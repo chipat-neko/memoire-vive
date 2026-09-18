@@ -84,3 +84,20 @@ test('mobile : pas de défilement horizontal (liste, fiche, vue par projet)', as
   assert.ok(await debordement(page) <= 0, 'vue par projet');
   await terminer(page);
 });
+
+test('couleurs de famille : data-couleur choisit la couleur, dans les deux thèmes', async () => {
+  const page = await ouvrir();
+  const couleur = (theme) => page.evaluate((t) => {
+    document.documentElement.setAttribute('data-theme', t);
+    const essai = document.createElement('span');
+    essai.setAttribute('data-couleur', '3');
+    document.body.append(essai);
+    const valeur = getComputedStyle(essai).getPropertyValue('--famille').trim();
+    const neutre = getComputedStyle(document.body).getPropertyValue('--famille').trim();
+    essai.remove();
+    return [valeur, neutre];
+  }, theme);
+  assert.deepEqual(await couleur('light'), ['#27724F', '#CFC8B6']);
+  assert.deepEqual(await couleur('dark'), ['#7FC9A5', '#544F41']);
+  await terminer(page);
+});

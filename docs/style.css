@@ -29,6 +29,16 @@
   --t-erreur-fg: #A0402F;    --t-erreur-bg: #F5E2DC;
   --t-autre-fg: #5E5A50;     --t-autre-bg: #ECE8DD;
 
+  /* Familles de projets (indice « couleur » 1 à 6 de config/projets.json) :
+     liserés, points et noms. Contraste ≥ 4,5 sur --bg, --surface et
+     --surface-2, vérifié par tests/js/couleurs.test.mjs. */
+  --famille-1: #7A4FB0;
+  --famille-2: #2F6AAE;
+  --famille-3: #27724F;
+  --famille-4: #9A5800;
+  --famille-5: #AD3A6B;
+  --famille-6: #5C6A2A;
+
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
@@ -64,6 +74,13 @@
     --t-erreur-fg: #E0836F;    --t-erreur-bg: #3A2620;
     --t-autre-fg: #C9C2AF;     --t-autre-bg: #34312A;
 
+    --famille-1: #BBA0EA;
+    --famille-2: #8DB8EE;
+    --famille-3: #7FC9A5;
+    --famille-4: #E6AA5E;
+    --famille-5: #EE98BB;
+    --famille-6: #BAC57E;
+
     color-scheme: dark;
   }
 }
@@ -94,6 +111,13 @@
   --t-reference-fg: #E2C27A; --t-reference-bg: #352C18;
   --t-erreur-fg: #E0836F;    --t-erreur-bg: #3A2620;
   --t-autre-fg: #C9C2AF;     --t-autre-bg: #34312A;
+
+  --famille-1: #BBA0EA;
+  --famille-2: #8DB8EE;
+  --famille-3: #7FC9A5;
+  --famille-4: #E6AA5E;
+  --famille-5: #EE98BB;
+  --famille-6: #BAC57E;
 
   color-scheme: dark;
 }
@@ -150,6 +174,18 @@ mark { background: var(--mark); color: var(--text); border-radius: 3px; padding:
 .skip-link:focus { top: 12px; }
 
 .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 64px; }
+
+/* --------------------------------------------------------------- familles */
+
+/* data-couleur (1 à 6) choisit la couleur de famille d'un élément et de ses
+   descendants ; sans famille, --famille garde la couleur neutre. */
+:root { --famille: var(--border-strong); }
+[data-couleur="1"] { --famille: var(--famille-1); }
+[data-couleur="2"] { --famille: var(--famille-2); }
+[data-couleur="3"] { --famille: var(--famille-3); }
+[data-couleur="4"] { --famille: var(--famille-4); }
+[data-couleur="5"] { --famille: var(--famille-5); }
+[data-couleur="6"] { --famille: var(--famille-6); }
 
 /* ---------------------------------------------------------------- en-tête */
 

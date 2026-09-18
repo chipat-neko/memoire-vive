@@ -123,3 +123,42 @@ test('famille ou type inconnu dans l’ancre (lien ancien) : une pastille active
   assert.equal(await page.locator('#family-chips .chip', { hasText: 'jeux-video' }).count(), 0);
   await terminer(page);
 });
+
+/* Géométrie des lignes de la vue Liste (positions arrondies au pixel). */
+function lignes(page) {
+  return page.locator('#lines .entry-line').evaluateAll((items) => items.map((li) => {
+    const r = (sel) => { const e = li.querySelector(sel); return e ? e.getBoundingClientRect() : null; };
+    const ligne = li.getBoundingClientRect();
+    const [titre, projet, date] = [r('.entry-link'), r('.entry-line-project'), r('time')];
+    return {
+      hauteur: Math.round(ligne.height), gaucheTitre: Math.round(titre.left), basTitre: Math.round(titre.bottom),
+      gaucheProjet: Math.round(projet.left), hautProjet: Math.round(projet.top), droiteDate: Math.round(date.right),
+      icone: Boolean(li.querySelector('.main-link-icon')),
+    };
+  }));
+}
+const distincts = (valeurs) => Array.from(new Set(valeurs));
+
+test('vue Liste (bureau) : colonnes alignées et même hauteur, avec ou sans icône du lien principal', async () => {
+  const page = await site.page({ donnees });
+  await page.goto(site.url('#/entrees?vue=liste'));
+  await page.locator('#lines .entry-line').first().waitFor();
+  const rangs = await lignes(page);
+  assert.ok(rangs.some((l) => l.icone) && rangs.some((l) => !l.icone));
+  assert.deepEqual(distincts(rangs.map((l) => l.hauteur)).length, 1, 'hauteurs : ' + distincts(rangs.map((l) => l.hauteur)));
+  assert.deepEqual(distincts(rangs.map((l) => l.droiteDate)).length, 1, 'bord droit des dates');
+  assert.deepEqual(distincts(rangs.map((l) => l.gaucheTitre)).length, 1, 'début des titres');
+  assert.deepEqual(distincts(rangs.map((l) => l.gaucheProjet)).length, 1, 'début des projets');
+  await terminer(page);
+});
+
+test('vue Liste (mobile) : titre sur la première ligne, projet, date et icône sur la seconde, alignés', async () => {
+  const page = await site.page({ donnees, mobile: true });
+  await page.goto(site.url('#/entrees?vue=liste'));
+  await page.locator('#lines .entry-line').first().waitFor();
+  const rangs = await lignes(page);
+  assert.ok(rangs.every((l) => l.hautProjet >= l.basTitre - 1), 'projet sous le titre');
+  assert.deepEqual(distincts(rangs.map((l) => l.droiteDate)).length, 1, 'bord droit des dates');
+  assert.deepEqual(distincts(rangs.map((l) => l.gaucheProjet)).length, 1, 'début des projets');
+  await terminer(page);
+});

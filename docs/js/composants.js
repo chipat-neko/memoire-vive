@@ -225,13 +225,14 @@ export function mainLinkIcon(link, name) {
   }, '↗');
 }
 
-/* Ligne d'une entrée (vue « Liste ») : type, titre, projet, date relative,
-   icône du lien principal. */
+/* Ligne d'une entrée (vue « Liste ») : type, titre (et « nouveau »), projet,
+   date relative, icône du lien principal ; colonnes fixes (style.css). */
 export function entryLine(entry, { targets = null, since = null } = {}) {
   return el('li', { class: 'entry-line', 'data-couleur': entry._family ? entry._family.couleur : null },
     typeBadge(entry.type),
-    el('a', { class: 'entry-link', href: entryHash(entry) }, highlight(entry.titre, targets)),
-    isNew(entry, since) ? newBadge() : null,
+    el('span', { class: 'entry-line-title' },
+      el('a', { class: 'entry-link', href: entryHash(entry) }, highlight(entry.titre, targets)),
+      isNew(entry, since) ? newBadge() : null),
     el('span', { class: 'entry-line-project' }, entry.projet ? entry._projectName : 'Sans projet'),
     timeElement(entry.cree_le),
     mainLinkIcon(entry._mainLink, entry.titre));

@@ -260,7 +260,10 @@ def normalize_projects_config(raw: dict) -> dict:
             for name in PROJECT_KEYS:
                 if isinstance(values, dict) and name in values:
                     target[name] = values[name]
-            target["alias"] = [slug(a) for a in (target["alias"] or []) if slug(str(a))]
+            raw_alias = target["alias"] or []
+            if isinstance(raw_alias, str):
+                raw_alias = [raw_alias]  # une chaîne seule vaut liste à un élément
+            target["alias"] = [s for s in (slug(str(a)) for a in raw_alias) if s]
     else:
         for alias, key in (raw.get("alias") or {}).items():
             projet(key)["alias"].append(slug(alias))

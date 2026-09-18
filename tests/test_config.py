@@ -21,6 +21,14 @@ class ConfigProjetsTest(unittest.TestCase):
         self.assertEqual(cfg["projets"]["depths"], {
             "nom": None, "famille": "jeux", "alias": [], "description": None, "lien_principal": None})
 
+    def test_alias_chaine_traitee_comme_liste_a_un_element(self):
+        cfg = config(depths={"alias": "rogue-lite"})
+        self.assertEqual(cfg["projets"]["depths"]["alias"], ["rogue-lite"])
+
+    def test_alias_numerique_converti_en_chaine(self):
+        cfg = config(depths={"alias": [56]})
+        self.assertEqual(cfg["projets"]["depths"]["alias"], ["56"])
+
     def test_famille_inconnue_ignoree(self):
         cfg = config(x={"famille": "nulle-part"})
         self.assertIsNone(cfg["projets"]["x"]["famille"])

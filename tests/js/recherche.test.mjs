@@ -62,6 +62,20 @@ test('fautes de frappe : seuils selon la longueur du terme', () => {
   assert.deepEqual(trouves('tuor pipeline'), []);                    // 4 lettres : exact seulement
 });
 
+test('fautes : le seuil vient de la racine comparée, pas du mot tapé', () => {
+  // « tours » et « cours » ont pour racine « tour », « cour » (4 lettres) :
+  // exact ou préfixe seulement, jamais « pour » ou « jour » (2 fautes sur le
+  // mot tapé). « versions », « serveurs » : racines de 7 lettres, 1 faute.
+  const idx = buildIndex([
+    { title: 'Pour le jour', meta: '', resume: '', content: 'Pour une journée.' },
+    { title: 'Une vision', meta: '', resume: '', content: 'Servir et serve.' },
+  ]);
+  const docs = (q) => search(idx, q).hits.map((h) => h.doc);
+  for (const q of ['tours', 'cours', 'tours pour', 'versions', 'serveurs']) assert.deepEqual(docs(q), [], q);
+  assert.deepEqual(docs('pours'), [0]);                             // pluriel de « pour » : exact
+  assert.deepEqual(trouves('dnojons grottes'), [1]);                // racine de 6 lettres : 1 faute
+});
+
 test('préfixe : seulement pour le dernier terme', () => {
   assert.deepEqual(trouves('pipeline archi'), [0]);
   assert.deepEqual(trouves('archi pipeline'), []);

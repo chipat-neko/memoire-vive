@@ -147,8 +147,10 @@ function wordCandidates(index, word, prefix) {
       add(index.words[i], QUALITY.prefix);
     }
   }
-  if (word.length >= 5) {
-    const max = word.length >= 8 ? 2 : 1;
+  // Seuils sur la racine comparée (pas sur le mot tapé) : « cours » (racine
+  // « cour », 4 lettres) est cherché exactement, sans devenir « pour » ou « jour ».
+  if (s.length >= 5) {
+    const max = s.length >= 8 ? 2 : 1;
     for (const w of index.words) {
       if (Math.abs(w.length - s.length) > max || found.has(w)) continue;
       const distance = editDistance(s, w, max);

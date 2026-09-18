@@ -109,7 +109,7 @@ fait au niveau du projet) :
 2. sinon premier lien de genre **depot** (`github.com`, `gitlab.com`) ;
 3. sinon aucun.
 
-Forme : `"lien_principal": {"url": "…", "genre": "site" | "depot" | "autre"}` ou `null`.
+Forme : `"lien_principal": {"url": "…", "genre": "site" | "depot"}` ou `null`.
 
 **Projet.**
 
@@ -131,6 +131,10 @@ Ajouts par rapport à la v1 (`schema: 2`) :
 
 Le site v2 refuse `schema > 2` avec le message existant « recharger la page ». Les liens par
 projet sont agrégés par le site (pas dupliqués dans `data.json`).
+
+**Étapes de version.** Le chantier A ajoute ces champs **sans changer `schema`** (reste 1) :
+ce sont des ajouts compatibles, que le site actuel ignore, donc A peut être publié seul. Le
+passage à `schema: 2` se fait dans le même push que le site du chantier B.
 
 ## 4. Chantier B — site public (`docs/`)
 

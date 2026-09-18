@@ -107,5 +107,38 @@ class ProjetsEtRechercheTest(unittest.TestCase):
         self.assertEqual(export.normalize_term("  Modèle  Œuvre "), "modele oeuvre")
 
 
+def entrees(n):
+    return [{"id": f"{i:064x}", "contenu": f"texte {i}"} for i in range(1, n + 1)]
+
+
+class VoisinsTest(unittest.TestCase):
+    def test_filtre_soi_seuil_et_non_publiees(self):
+        liste = entrees(3)
+        def search(query, n):
+            return [(f"{1:064x}", 1.0), (f"{2:064x}", 0.9), (f"{3:064x}", 0.5), (f"{99:064x}", 0.95)]
+        relies, echecs = export.add_neighbours(liste, search, threshold=0.75)
+        self.assertEqual(liste[0]["voisins"], [{"id": f"{2:064x}", "score": 0.9}])
+        self.assertEqual(liste[1]["voisins"], [{"id": f"{1:064x}", "score": 1.0}])
+        self.assertEqual((relies, echecs), (3, 0))
+
+    def test_au_plus_cinq(self):
+        liste = entrees(8)
+        def search(query, n):
+            return [(e["id"], 0.9) for e in liste]
+        export.add_neighbours(liste, search)
+        self.assertEqual(len(liste[0]["voisins"]), export.MAX_VOISINS)
+
+    def test_echecs_tolerés_puis_abandon(self):
+        liste = entrees(10)
+        appels = []
+        def search(query, n):
+            appels.append(query)
+            raise export.ExportError("indisponible")
+        relies, echecs = export.add_neighbours(liste, search)
+        self.assertEqual((relies, echecs), (0, 10))
+        self.assertEqual(len(appels), 3, "on arrête d'appeler après trois échecs consécutifs")
+        self.assertTrue(all(e["voisins"] == [] for e in liste))
+
+
 if __name__ == "__main__":
     unittest.main()

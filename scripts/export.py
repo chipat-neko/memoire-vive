@@ -349,26 +349,32 @@ class Api:
             self.headers["CF-Access-Client-Id"] = config["cf_client_id"]
             self.headers["CF-Access-Client-Secret"] = config["cf_client_secret"]
 
-    def get(self, path: str, params: dict | None = None):
+    def request(self, method: str, path: str, params: dict | None = None,
+                body: dict | None = None, retries: int = HTTP_RETRIES):
         url = self.base + path
         if params:
             url += "?" + urllib.parse.urlencode(params)
+        headers = dict(self.headers)
+        data = None
+        if body is not None:
+            data = json.dumps(body).encode("utf-8")
+            headers["Content-Type"] = "application/json"
         problem = "aucune réponse"
-        for attempt in range(1, HTTP_RETRIES + 1):
-            request = urllib.request.Request(url, headers=self.headers)
+        for attempt in range(1, retries + 1):
+            request = urllib.request.Request(url, data=data, headers=headers, method=method)
             try:
                 with _OPENER.open(request, timeout=HTTP_TIMEOUT) as response:
                     content_type = response.headers.get("Content-Type", "")
-                    body = response.read()
+                    raw_body = response.read()
                 if "json" not in content_type:
                     raise ExportError(
                         f"{path} a répondu autre chose que du JSON ({content_type or 'type inconnu'}). "
                         "Le tunnel est-il protégé par Cloudflare Access sans jeton de service ?"
                     )
                 try:
-                    return json.loads(body.decode("utf-8"))
+                    return json.loads(raw_body.decode("utf-8"))
                 except ValueError:
-                    problem = f"JSON illisible : {body[:200]!r}"
+                    problem = f"JSON illisible : {raw_body[:200]!r}"
             except urllib.error.HTTPError as err:
                 if err.code == 401 or (err.code == 403 and not self.uses_access):
                     raise ExportError(
@@ -390,10 +396,26 @@ class Api:
                 problem = f"injoignable ({err.reason})"
             except OSError as err:  # délais dépassés, connexion coupée, lecture incomplète
                 problem = f"injoignable ({err})"
-            if attempt < HTTP_RETRIES:
+            if attempt < retries:
                 time.sleep(2 ** attempt)
         hint = " En local : lancer start-memory-rest.ps1 (port 8000)." if "injoignable" in problem else ""
         raise ExportError(f"{self.source} : {problem}.{hint}")
+
+    def get(self, path: str, params: dict | None = None):
+        return self.request("GET", path, params)
+
+    def search(self, query: str, n: int) -> list[tuple[str, float]]:
+        # Une seule tentative : les voisins ne valent pas d'attendre.
+        data = self.request("POST", "/api/search", body={"query": query, "n_results": n}, retries=1)
+        results = data.get("results") if isinstance(data, dict) else None
+        if not isinstance(results, list):
+            raise ExportError("réponse inattendue de /api/search.")
+        pairs = []
+        for result in results:
+            memory = (result or {}).get("memory") or {}
+            if memory.get("content_hash"):
+                pairs.append((memory["content_hash"], float(result.get("similarity_score") or 0)))
+        return pairs
 
 
 FETCH_PASSES = 3
@@ -719,6 +741,44 @@ def project_main_link(members: list[dict]) -> dict | None:
     return None
 
 
+# Voisins : entrées proches par le sens, calculées par le dashboard. Le seuil
+# est réglé sur les données réelles (voir Task 8 du plan du chantier A).
+SEUIL_VOISINS = 0.75
+MAX_VOISINS = 5
+
+
+def add_neighbours(entries: list[dict], search, threshold: float = SEUIL_VOISINS) -> tuple[int, int]:
+    """
+    Ajoute « voisins » à chaque entrée. search(texte, n) renvoie des couples
+    (hash, score). Jamais bloquant : un échec laisse la liste vide, et après
+    trois échecs consécutifs on n'interroge plus le dashboard.
+    Renvoie (entrées reliées, recherches échouées).
+    """
+    published = {entry["id"] for entry in entries}
+    linked = failures = consecutive = 0
+    for entry in entries:
+        entry["voisins"] = []
+        if consecutive >= 3:
+            failures += 1
+            continue
+        try:
+            results = search(entry["contenu"], MAX_VOISINS + 3)
+        except ExportError:
+            failures += 1
+            consecutive += 1
+            continue
+        consecutive = 0
+        seen = set()
+        for other, score in results:
+            if other == entry["id"] or other not in published or other in seen or score < threshold:
+                continue
+            seen.add(other)
+            entry["voisins"].append({"id": other, "score": round(float(score), 3)})
+        entry["voisins"] = entry["voisins"][:MAX_VOISINS]
+        linked += bool(entry["voisins"])
+    return linked, failures
+
+
 # --------------------------------------------------------------------------
 # Projets
 # --------------------------------------------------------------------------
@@ -990,18 +1050,26 @@ def main() -> int:
         known_secrets = (config["api_key"], config["cf_client_id"], config["cf_client_secret"])
         if not config["local"]:
             known_secrets += (_host_of(config["api_url"]),)  # adresse du tunnel
-        raw = fetch_all_memories(Api(config))
-        payload, report = build_payload(raw, load_projects_config(), known_secrets)
+        api = Api(config)
+        raw = fetch_all_memories(api)
+        payload, report = build_payload(raw, load_projects_config(), known_secrets,
+                                        load_entry_overrides(), load_search_config())
     except ExportError as err:
         print(f"Échec : {err}", file=sys.stderr)
         return 1
 
+    linked, failures = add_neighbours(payload["entrees"], api.search)
+
     nb_links = Counter(link["type"] for e in payload["entrees"] for link in e["liens"])
     print(f"  {len(raw)} entrées lues, {payload['nb_entrees']} publiables, "
-          f"{report['excluded']} exclues par tag, {len(payload['projets'])} projets, "
-          f"liens : {nb_links['en_ligne']} en ligne / {nb_links['local']} locaux.")
-    if report["redactions"]:
-        print(f"  ! {report['redactions']} secret(s) masqué(s) dans : {', '.join(report['redacted_entries'])}")
+          f"{report['excluded']} exclues par tag, {report['masquees']} masquées, "
+          f"{len(payload['projets'])} projets, "
+          f"liens : {nb_links['en_ligne']} en ligne / {nb_links['local']} locaux, "
+          f"voisins : {linked} entrées reliées.")
+    if failures:
+        print(f"  ! {failures} recherche(s) de voisins en échec : publié sans ces voisins.")
+    if report["orphelines"]:
+        print(f"  ! Corrections sans entrée correspondante : {', '.join(report['orphelines'])}")
 
     previous = read_previous()
     previous_count = (previous or {}).get("nb_entrees") or 0

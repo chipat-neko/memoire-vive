@@ -18,7 +18,7 @@ async function ouvrir(ancre, selecteur) {
 }
 
 const CARTES = '#list-view:not([hidden]) #grid .card h3 a';
-const RESULTATS = '#page-view .card h3 a';
+const RESULTATS = '#page-view .card h4 a';
 
 test('ouvrir une fiche depuis la liste : titre, URL courte, focus sur le titre', async () => {
   const page = await ouvrir('#/recherche?q=jarvis', RESULTATS);

@@ -112,7 +112,7 @@ export function createResultsView(ctx) {
       const shown = entries.entries.slice(0, current.shown);
       const section = el('section', { class: 'results-section', 'aria-labelledby': 'h-res-entrees' },
         el('h3', { id: 'h-res-entrees' }, 'Entrées'),
-        el('div', { class: 'grid' }, shown.map((entry) => card(entry, { targets: entries.targets, since: state.since }))));
+        el('div', { class: 'grid' }, shown.map((entry) => card(entry, { targets: entries.targets, since: state.since, heading: 'h4' }))));
       const remaining = entries.entries.length - shown.length;
       if (remaining > 0) {
         const more = el('button', { type: 'button', class: 'btn-secondary' },

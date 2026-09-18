@@ -110,3 +110,26 @@ test('couleurs de famille : data-couleur choisit la couleur, dans les deux thèm
   assert.deepEqual(await couleur('dark'), ['#7FC9A5', '#544F41']);
   await terminer(page);
 });
+
+test('niveaux de titres : le titre d’une carte est un niveau sous celui de sa section', async () => {
+  const page = await site.page({ donnees });
+  const niveaux = () => page.evaluate(() => {
+    const zone = document.querySelector('#page-view');
+    const titres = Array.from(zone.querySelectorAll('h2, h3, h4, h5, h6'));
+    const niveau = (h) => Number(h.tagName[1]);
+    return titres.filter((h) => h.closest('.card, .project-card')).map((h) => {
+      const avant = titres.slice(0, titres.indexOf(h)).reverse().find((t) => !t.closest('.card, .project-card'));
+      return [h.textContent, niveau(h), avant ? niveau(avant) : 1];
+    });
+  });
+  // Accueil (familles), résultats (« Projets », « Entrées »), page projet (sections).
+  for (const [ancre, attendu] of [['#/', '.project-card'], ['#/recherche?q=jarvis', '#page-view .card'],
+    ['#/projet/jarvis', '#page-view .card']]) {
+    await page.goto(site.url(ancre));
+    await page.locator(attendu).first().waitFor();
+    const cartes = await niveaux();
+    assert.ok(cartes.length > 0, ancre);
+    for (const [texte, niveau, section] of cartes) assert.equal(niveau, section + 1, `${ancre} : « ${texte} »`);
+  }
+  await terminer(page);
+});

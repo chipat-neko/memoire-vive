@@ -16,7 +16,7 @@ async function recherche(q, attendu = '#page-view .card') {
   return page;
 }
 
-const titres = (page) => page.locator('#h-res-entrees ~ .grid .card h3').allTextContents();
+const titres = (page) => page.locator('#h-res-entrees ~ .grid .card h4').allTextContents();
 
 test('résultats : projets et entrées triées par score, surlignage, URL et champ de recherche', async () => {
   const page = await recherche('donjon');
@@ -26,9 +26,9 @@ test('résultats : projets et entrées triées par score, surlignage, URL et cha
   // recréée à chaque frappe ne serait pas lue) ; le compteur visible n'en est pas une.
   assert.equal((await page.textContent('#annonce')).replace(/\s/g, ' '), '1 projet · 2 entrées');
   assert.equal(await page.getAttribute('#results-count', 'aria-live'), null);
-  assert.deepEqual(await page.locator('#h-res-projets ~ .project-grid h3').allTextContents(), ['Depths']);
+  assert.deepEqual(await page.locator('#h-res-projets ~ .project-grid h4').allTextContents(), ['Depths']);
   assert.deepEqual(await titres(page), ['Depths — génération de donjon', 'Depths — idées de monstres']);
-  assert.equal(await page.locator('#h-res-entrees ~ .grid .card h3 mark').first().textContent(), 'donjon');
+  assert.equal(await page.locator('#h-res-entrees ~ .grid .card h4 mark').first().textContent(), 'donjon');
   assert.equal(await page.locator('.project-card mark').first().textContent(), 'donjons');
   assert.equal(await page.inputValue('#search-input'), 'donjon');
   await terminer(page);

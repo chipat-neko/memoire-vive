@@ -194,14 +194,15 @@ export function linksInfo(entry) {
 }
 
 /* Carte d'une entrée. options : targets (surlignage), since (dernière
-   visite), showProject (lien vers le projet, inutile sur sa propre page). */
-export function card(entry, { targets = null, since = null, showProject = true } = {}) {
+   visite), showProject (lien vers le projet, inutile sur sa propre page),
+   heading (niveau du titre : 'h4' dans une section titrée en h3). */
+export function card(entry, { targets = null, since = null, showProject = true, heading = 'h3' } = {}) {
   const tagsShown = entry.tags.slice(0, 5);
   const extraTags = entry.tags.length - tagsShown.length;
   return el('article', { class: 'card', 'data-couleur': entry._family ? entry._family.couleur : null },
     el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet && showProject ? projectButton(entry) : null,
       isNew(entry, since) ? newBadge() : null),
-    el('h3', null, el('a', { class: 'entry-link', href: entryHash(entry) }, highlight(entry.titre, targets))),
+    el(heading, null, el('a', { class: 'entry-link', href: entryHash(entry) }, highlight(entry.titre, targets))),
     entry.resume ? el('p', { class: 'resume' }, highlight(entry.resume, targets)) : null,
     el('div', { class: 'meta-line' }, timeElement(entry.cree_le), linksInfo(entry)),
     tagsShown.length ? el('ul', { class: 'tags', 'aria-label': 'Tags' },
@@ -237,11 +238,12 @@ export function entryLine(entry, { targets = null, since = null } = {}) {
 }
 
 /* Carte d'un projet : le nom mène à sa page, le bouton du lien principal
-   est un lien distinct (jamais un lien dans un autre). */
-export function projectCard(project, { since = null, targets = null, showFamily = false } = {}) {
+   est un lien distinct (jamais un lien dans un autre). heading : niveau du
+   titre, un sous celui de la section (famille, « Projets ») : 'h4'. */
+export function projectCard(project, { since = null, targets = null, showFamily = false, heading = 'h4' } = {}) {
   const last = project._last ? new Date(project._last).toISOString() : null;
   return el('article', { class: 'project-card', 'data-couleur': project._family ? project._family.couleur : null },
-    el('h3', null, el('a', { href: projectHash(project.id) }, highlight(project.nom, targets))),
+    el(heading, null, el('a', { href: projectHash(project.id) }, highlight(project.nom, targets))),
     // Résultats de recherche : la famille (aussi cherchée) est écrite, le
     // liseré n'est jamais la seule information.
     showFamily ? el('p', { class: 'project-card-family' },

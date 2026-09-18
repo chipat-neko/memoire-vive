@@ -156,7 +156,7 @@ export function createProjectView(ctx) {
           el('a', { href: entryHash(entry) }, entry.titre),
           isNew(entry, state.since) ? newBadge() : null,
           entry.resume ? el('p', null, entry.resume) : null))))
-      : el('div', { class: 'grid' }, group.entries.map((entry) => card(entry, { since: state.since, showProject: false })));
+      : el('div', { class: 'grid' }, group.entries.map((entry) => card(entry, { since: state.since, showProject: false, heading: 'h4' })));
     return el('section', { class: 'project-section', 'aria-labelledby': headingId },
       el('h3', { id: headingId }, group.title, el('span', { class: 'count' }, ' · ' + group.entries.length)),
       body);

@@ -31,7 +31,7 @@ test('accueil : familles dans l’ordre configuré, puis « Sans famille »', as
 
 test('accueil : dans une famille, activité la plus récente d’abord', async () => {
   const page = await accueil();
-  const outils = page.locator('.family').nth(2).locator('.project-card h3');
+  const outils = page.locator('.family').nth(2).locator('.project-card h4');
   assert.deepEqual(await outils.allTextContents(), ['Mémoire Vive', 'Bibliothèque Claude', 'Tour de contrôle']);
   await terminer(page);
 });
@@ -40,7 +40,7 @@ test('carte de projet : liseré, description, activité, lien principal distinct
   const page = await accueil();
   const jarvis = carteProjet(page, 'Jarvis');
   assert.equal(await jarvis.getAttribute('data-couleur'), '3');
-  assert.equal(await jarvis.locator('h3 a').getAttribute('href'), '#/projet/jarvis');
+  assert.equal(await jarvis.locator('h4 a').getAttribute('href'), '#/projet/jarvis');
   assert.match(await jarvis.locator('.project-card-description').textContent(), /^Assistant vocal local/);
   assert.equal((await jarvis.locator('.meta-line').textContent()).replace(/\s/g, ' '), '16 entrées · dernière activité il y a 6 j');
   const bouton = jarvis.getByRole('link', { name: 'Ouvrir le site : Jarvis (nouvel onglet)' });
@@ -55,14 +55,14 @@ test('point « nouveau » : projets actifs depuis la dernière visite', async ()
   await page.evaluate(() => localStorage.setItem('memoire-vive:derniere-visite', '2026-09-19T00:00:00Z'));
   await page.reload();
   await page.locator('.project-card').first().waitFor();
-  assert.deepEqual(await page.locator('.project-card:has(.new-badge) h3').allTextContents(), ['Mémoire Vive']);
+  assert.deepEqual(await page.locator('.project-card:has(.new-badge) h4').allTextContents(), ['Mémoire Vive']);
   await terminer(page);
 });
 
 test('nom du projet : page du projet ; onglets de l’en-tête et page courante', async () => {
   const page = await accueil();
   assert.equal(await page.getAttribute('#nav-home', 'aria-current'), 'page');
-  await carteProjet(page, 'Depths').locator('h3 a').click();
+  await carteProjet(page, 'Depths').locator('h4 a').click();
   await attendreAncre(page, '#/projet/depths');
   await page.locator('#titre-vue', { hasText: 'Depths' }).waitFor();
   assert.equal(await page.getAttribute('#nav-home', 'aria-current'), null);

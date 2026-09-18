@@ -85,7 +85,7 @@ test('retour d’une page projet vers l’accueil (précédent) : position et fo
   const page = await site.page({ donnees, mobile: true });
   await page.goto(site.url('#/'));
   await page.locator('.project-card').first().waitFor();
-  const { position, href } = await ouvrirProjetDepuis(page, page.locator('.project-card h3 a[href="#/projet/atelier"]'));
+  const { position, href } = await ouvrirProjetDepuis(page, page.locator('.project-card h4 a[href="#/projet/atelier"]'));
   assert.ok(position > 0, 'accueil défilé avant le clic');
   await page.goBack();
   await page.locator('#titre-vue', { hasText: /^Projets$/ }).waitFor();
@@ -97,7 +97,7 @@ test('« ← Tous les projets » après l’accueil : retour arrière, position 
   const page = await site.page({ donnees, mobile: true });
   await page.goto(site.url('#/'));
   await page.locator('.project-card').first().waitFor();
-  const { position, href } = await ouvrirProjetDepuis(page, page.locator('.project-card h3 a[href="#/projet/atelier"]'));
+  const { position, href } = await ouvrirProjetDepuis(page, page.locator('.project-card h4 a[href="#/projet/atelier"]'));
   const longueur = await page.evaluate(() => history.length);
   await page.getByRole('link', { name: '← Tous les projets' }).click();
   await page.locator('#titre-vue', { hasText: /^Projets$/ }).waitFor();
@@ -127,7 +127,7 @@ test('page projet ouverte sans passer par l’accueil : « ← Tous les projets 
   assert.deepEqual(await etat(page), { y: 0, focus: 'titre-vue' });
   // Accueil → projet → autre rubrique → autre projet → « Tous les projets » :
   // ce n'est plus un retour vers la carte ouverte au départ.
-  await ouvrirProjetDepuis(page, page.locator('.project-card h3 a[href="#/projet/atelier"]'));
+  await ouvrirProjetDepuis(page, page.locator('.project-card h4 a[href="#/projet/atelier"]'));
   await page.click('#nav-entries');
   await page.locator('#grid .card').first().waitFor();
   await page.locator('#grid .project-tag').first().click();

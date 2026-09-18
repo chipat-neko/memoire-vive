@@ -11,8 +11,12 @@ const TYPE_LABELS = {
 
 const fmtDay = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const fmtLong = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
-const rtfShort = new Intl.RelativeTimeFormat('fr', { numeric: 'auto', style: 'short' });
-const rtfLong = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' });
+// « auto » seulement pour les jours (« hier », « avant-hier »), comptés au
+// calendrier ; semaines, mois et années en durée écoulée (« il y a 1 sem. »,
+// pas « la semaine dernière », qui serait une semaine du calendrier).
+const rtfDay = new Intl.RelativeTimeFormat('fr', { numeric: 'auto', style: 'short' });
+const rtfShort = new Intl.RelativeTimeFormat('fr', { numeric: 'always', style: 'short' });
+const rtfLong = new Intl.RelativeTimeFormat('fr', { numeric: 'always' });
 
 export const VISIT_KEY = 'memoire-vive:derniere-visite';
 
@@ -56,7 +60,16 @@ export function formatLong(iso) {
   return Number.isNaN(time) ? '' : fmtLong.format(time);
 }
 
-/* « il y a 3 j », « hier », « il y a 2 sem. », « il y a 3 mois »… ; now en ms. */
+/* Jours du calendrier local entre deux instants (arrondi : un changement
+   d'heure fait 23 ou 25 h). */
+function calendarDays(time, now) {
+  const startOfDay = (ms) => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+  return Math.round((startOfDay(now) - startOfDay(time)) / 86400000);
+}
+
+/* « il y a 5 h », « hier », « avant-hier », « il y a 3 j », « il y a 2 sem. »,
+   « il y a 3 mois »… ; now en ms. Moins de 24 h : en heures ; au-delà, en jours
+   du calendrier, pour que « hier » soit toujours la veille. */
 export function relativeDate(iso, now = Date.now()) {
   const time = typeof iso === 'number' ? iso : Date.parse(iso);
   if (Number.isNaN(time)) return '';
@@ -66,8 +79,8 @@ export function relativeDate(iso, now = Date.now()) {
   if (minutes < 60) return rtfShort.format(-Math.floor(minutes), 'minute');
   const hours = minutes / 60;
   if (hours < 24) return rtfShort.format(-Math.floor(hours), 'hour');
-  const days = hours / 24;
-  if (days < 7) return rtfShort.format(-Math.floor(days), 'day');
+  const days = Math.max(1, calendarDays(time, now));
+  if (days < 7) return rtfDay.format(-days, 'day');
   if (days < 30) return rtfShort.format(-Math.floor(days / 7), 'week');
   if (days < 365) return rtfLong.format(-Math.floor(days / 30), 'month');
   return rtfLong.format(-Math.floor(days / 365), 'year');

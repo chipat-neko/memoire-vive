@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { relativeDate, lastVisit, isNew, VISIT_KEY } from '../../docs/js/composants.js';
 
-const MAINTENANT = Date.parse('2026-09-20T12:00:00Z');
+// Midi, heure locale : les jours comptés au calendrier ne dépendent pas du fuseau.
+const MAINTENANT = new Date(2026, 8, 20, 12).getTime();
 const avant = (secondes) => new Date(MAINTENANT - secondes * 1000).toISOString();
 
 test('dates relatives en français', () => {
@@ -22,6 +23,24 @@ test('dates relatives en français', () => {
     assert.equal(relativeDate(avant(secondes), MAINTENANT).replace(/\s/g, ' '), attendu, String(secondes));
   }
   assert.equal(relativeDate('pas une date', MAINTENANT), '');
+});
+
+test('dates relatives : jours comptés au calendrier (« hier » = la veille)', () => {
+  // Heures locales : le test vaut dans tout fuseau horaire.
+  const local = (jour, heure, minute = 0) => new Date(2026, 8, jour, heure, minute).getTime();
+  const maintenant = local(19, 10);
+  const cas = [
+    [local(18, 9), 'hier'],               // 25 h, la veille
+    [local(17, 23), 'avant-hier'],        // 35 h, deux jours avant
+    [local(17, 19, 18), 'avant-hier'],
+    [local(16, 15), 'il y a 3 j'],        // 67 h
+    [local(18, 11), 'il y a 23 h'],       // moins de 24 h : en heures
+    [local(12, 23), 'il y a 1 sem.'],     // 7 jours au calendrier
+    [local(5, 12), 'il y a 2 sem.'],
+  ];
+  for (const [moment, attendu] of cas) {
+    assert.equal(relativeDate(moment, maintenant).replace(/\s/g, ' '), attendu, new Date(moment).toString());
+  }
 });
 
 function stockage(initial = {}) {

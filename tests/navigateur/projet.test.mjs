@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { ouvrirSite, terminer, attendreAncre, contraste } from './outils.mjs';
-import { jeuDeTest } from './donnees-test.mjs';
+import { jeuDeTest, assembler } from './donnees-test.mjs';
 
 let site;
 before(async () => { site = await ouvrirSite(); });
@@ -109,6 +109,23 @@ test('page projet : jalons datés au jour, date relative en infobulle', async ()
   const page = await projet('jarvis');
   const date = page.locator('.timeline time').first();
   assert.equal(await date.textContent(), '8 sept. 2026');
-  assert.equal((await date.getAttribute('title')).replace(/\s/g, ' '), 'la semaine dernière');
+  // Durée écoulée (12 jours), pas « la semaine dernière » (semaine du calendrier).
+  assert.equal((await date.getAttribute('title')).replace(/\s/g, ' '), 'il y a 1 sem.');
+  await terminer(page);
+});
+
+test('dates relatives au calendrier : une entrée de l’avant-veille au soir n’est pas « hier »', async () => {
+  const mini = assembler([{
+    id: 'aaaaaaaaaaaa2222', titre: 'Soirée de l’avant-veille', resume: '', contenu: 'x', type: 'note', tags: [], projet: 'jarvis',
+    cree_le: '2026-09-17T17:18:00Z', modifie_le: null, liens: [], lien_principal: null, corrige: false, voisins: [],
+  }]);
+  // 19 septembre, 14 h à Paris ; l'entrée date du 17 à 19 h 18 (43 h avant).
+  const page = await site.page({ donnees: mini, horloge: '2026-09-19T12:00:00Z' });
+  await page.goto(site.url('#/projet/jarvis'));
+  await page.locator('#titre-vue').waitFor();
+  assert.match((await page.textContent('.project-dates')).replace(/\s/g, ' '), /dernière le 17 sept\. 2026 \(avant-hier\)$/);
+  await page.goto(site.url('#/'));
+  await page.locator('.project-card').first().waitFor();
+  assert.equal((await page.textContent('.project-card .meta-line time')).replace(/\s/g, ' '), 'avant-hier');
   await terminer(page);
 });

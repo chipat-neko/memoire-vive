@@ -140,5 +140,45 @@ class VoisinsTest(unittest.TestCase):
         self.assertTrue(all(e["voisins"] == [] for e in liste))
 
 
+class ApiSearchTest(unittest.TestCase):
+    """
+    Analyse par Api.search de la réponse brute de /api/search. On construit
+    un vrai Api (adresse locale bidon, jamais contactée) et on remplace son
+    attribut d'instance « request » par un bouchon qui renvoie une réponse
+    fabriquée : search() ne doit jamais lever autre chose qu'ExportError.
+    """
+    def _api(self, payload):
+        api = export.Api({
+            "api_url": "http://127.0.0.1:1", "api_key": "",
+            "cf_client_id": "", "cf_client_secret": "", "local": True,
+        })
+        api.request = lambda *args, **kwargs: payload
+        return api
+
+    def test_resultats_bien_formes(self):
+        api = self._api({"results": [
+            {"memory": {"content_hash": f"{1:064x}"}, "similarity_score": 0.9},
+            {"memory": {"content_hash": f"{2:064x}"}, "similarity_score": 0.5},
+        ]})
+        self.assertEqual(api.search("texte", 5), [(f"{1:064x}", 0.9), (f"{2:064x}", 0.5)])
+
+    def test_elements_mal_formes_ignores(self):
+        api = self._api({"results": [
+            "pas un objet",
+            42,
+            {"memory": "pas un objet non plus"},
+            {"similarity_score": 0.8},                # pas de "memory" du tout
+            {"memory": {}},                            # pas de content_hash
+            {"memory": {"content_hash": f"{3:064x}"}, "similarity_score": "pas un nombre"},
+            {"memory": {"content_hash": f"{4:064x}"}, "similarity_score": 0.7},
+        ]})
+        self.assertEqual(api.search("texte", 5), [(f"{4:064x}", 0.7)])
+
+    def test_reponse_sans_liste_results_leve_exporterror(self):
+        api = self._api({"autre_chose": []})
+        with self.assertRaises(export.ExportError):
+            api.search("texte", 5)
+
+
 if __name__ == "__main__":
     unittest.main()

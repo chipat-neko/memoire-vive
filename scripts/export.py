@@ -405,16 +405,26 @@ class Api:
         return self.request("GET", path, params)
 
     def search(self, query: str, n: int) -> list[tuple[str, float]]:
-        # Une seule tentative : les voisins ne valent pas d'attendre.
+        # Une seule tentative : les voisins ne valent pas d'attendre. Réponse
+        # mal formée (élément qui n'est pas un objet, "memory" absente, score
+        # non numérique) : l'élément est ignoré plutôt que de faire planter
+        # l'export entier — jamais autre chose qu'ExportError ne sort d'ici.
         data = self.request("POST", "/api/search", body={"query": query, "n_results": n}, retries=1)
         results = data.get("results") if isinstance(data, dict) else None
         if not isinstance(results, list):
             raise ExportError("réponse inattendue de /api/search.")
         pairs = []
         for result in results:
-            memory = (result or {}).get("memory") or {}
-            if memory.get("content_hash"):
-                pairs.append((memory["content_hash"], float(result.get("similarity_score") or 0)))
+            if not isinstance(result, dict):
+                continue
+            memory = result.get("memory")
+            if not isinstance(memory, dict) or not memory.get("content_hash"):
+                continue
+            try:
+                score = float(result.get("similarity_score") or 0)
+            except (TypeError, ValueError):
+                continue
+            pairs.append((memory["content_hash"], score))
         return pairs
 
 
@@ -1066,6 +1076,8 @@ def main() -> int:
           f"{len(payload['projets'])} projets, "
           f"liens : {nb_links['en_ligne']} en ligne / {nb_links['local']} locaux, "
           f"voisins : {linked} entrées reliées.")
+    if report["redactions"]:
+        print(f"  ! {report['redactions']} secret(s) masqué(s) dans : {', '.join(report['redacted_entries'])}")
     if failures:
         print(f"  ! {failures} recherche(s) de voisins en échec : publié sans ces voisins.")
     if report["orphelines"]:

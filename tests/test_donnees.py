@@ -102,8 +102,56 @@ class ProjetsEtRechercheTest(unittest.TestCase):
 
     def test_lien_configure_invalide_ignore(self):
         cfg = config(alpha={"lien_principal": "javascript:alert(1)"})
-        projet = export.build_payload(self.brut(), cfg)[0]["projets"][0]
-        self.assertEqual(projet["lien_principal"]["url"], "https://a.github.io/alpha/")
+        payload, report = export.build_payload(self.brut(), cfg)
+        self.assertEqual(payload["projets"][0]["lien_principal"]["url"], "https://a.github.io/alpha/")
+        self.assertEqual(report["liens_refuses"], ["alpha (URL invalide)"])
+
+    def lien_publie(self, url, secrets=()):
+        payload, report = export.build_payload(self.brut(), config(alpha={"lien_principal": url}), secrets)
+        return payload["projets"][0]["lien_principal"]["url"], report
+
+    def test_lien_configure_sans_identifiants(self):
+        url, report = self.lien_publie("https://user:jeton@exemple.fr/page")
+        self.assertEqual(url, "https://exemple.fr/page")
+        self.assertEqual(report["liens_refuses"], [])
+        self.assertEqual(report["redactions"], 1)
+        self.assertIn("projet alpha", report["redacted_entries"])
+
+    def test_lien_configure_refuse_s_il_contient_un_secret(self):
+        for lien, secrets in (("https://exemple.fr/?k=cle-du-dashboard-42", ("cle-du-dashboard-42",)),
+                              ("https://exemple.fr/?token=abc123456789", ())):
+            url, report = self.lien_publie(lien, secrets)
+            self.assertEqual(url, "https://a.github.io/alpha/", lien)  # calcul automatique à la place
+            self.assertEqual(report["liens_refuses"], ["alpha (secret masqué)"])
+            self.assertNotIn("cle-du-dashboard-42", json.dumps(export.build_payload(
+                self.brut(), config(alpha={"lien_principal": lien}), secrets)[0]))
+
+    def test_lien_configure_local_refuse(self):
+        for lien in ("http://192.168.1.10:8080/", "http://nas.local/", "http://localhost:8000/",
+                     "https://100.101.102.103/", "http://nas:5000/"):
+            url, report = self.lien_publie(lien)
+            self.assertEqual(url, "https://a.github.io/alpha/", lien)
+            self.assertEqual(report["liens_refuses"], ["alpha (adresse locale)"], lien)
+
+    def test_description_et_nom_configures_masques(self):
+        cfg = config(alpha={"nom": "Alpha sk-ant-abcdefghijklmnopqrstuvwxyz0123",
+                            "description": "Accès : password=Hunter22! puis cle-du-dashboard-42."})
+        payload, report = export.build_payload(self.brut(), cfg, ("cle-du-dashboard-42",))
+        projet = payload["projets"][0]
+        texte = json.dumps(payload, ensure_ascii=False)
+        for secret in ("Hunter22", "sk-ant-abcdef", "cle-du-dashboard-42"):
+            self.assertNotIn(secret, texte)
+        self.assertIn("[masqué]", projet["nom"])
+        self.assertIn("[masqué]", projet["description"])
+        self.assertEqual(report["redactions"], 3)
+        self.assertEqual(report["redacted_entries"], ["projet alpha"])
+
+    def test_masquages_des_corrections_comptes(self):
+        cle = f"{1:064x}"[:12]  # une seule entrée : memoire(2) aurait la même clé courte
+        _, report = export.build_payload([memoire(1, TEXTE, ["alpha"])], config(), overrides={
+            cle: {"titre": "Alpha password=Hunter22!", "resume": "Clé : sk-ant-abcdefghijklmnopqrstuvwxyz0123"}})
+        self.assertEqual(report["redactions"], 2)
+        self.assertEqual(report["redacted_entries"], [cle])
 
     def test_familles_et_synonymes_a_la_racine(self):
         payload, _ = export.build_payload(self.brut(), config(), search_config={"synonymes": [["ia", "llm"]]})

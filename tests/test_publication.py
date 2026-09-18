@@ -187,6 +187,20 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual(code, 1, sortie)
         self.assertIn("HTTP 401", sortie)
 
+    def test_10_lien_configure_refuse_signale(self):
+        reglages = self.projet / "config" / "projets.json"
+        avant = reglages.read_text(encoding="utf-8")
+        cfg = json.loads(avant)
+        cfg["projets"]["test3"] = {"lien_principal": "http://192.168.1.10:8080/"}
+        reglages.write_text(json.dumps(cfg), encoding="utf-8")
+        try:
+            code, sortie = self.exporter("--dry-run")
+        finally:
+            reglages.write_text(avant, encoding="utf-8")
+        self.assertEqual(code, 0, sortie)
+        self.assertIn("Lien principal configuré refusé, calcul automatique à la place : test3 (adresse locale)",
+                      sortie)
+
 
 if __name__ == "__main__":
     unittest.main()

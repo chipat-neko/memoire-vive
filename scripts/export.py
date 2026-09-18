@@ -776,6 +776,26 @@ def main_link(liens: list[dict]) -> dict | None:
     return None
 
 
+def configured_link(value, known_secrets: tuple[str, ...] = ()) -> tuple[str | None, str, int]:
+    """
+    Lien principal configuré d'un projet, soumis aux règles d'un lien trouvé
+    dans le texte : (URL publiable ou None, motif du refus, masquages faits).
+    Secrets masqués puis identifiants retirés ; refusé s'il reste un secret
+    masqué, si l'URL est invalide ou si l'hôte n'est pas joignable d'Internet.
+    """
+    url, hits = redact(str(value).strip(), known_secrets)
+    # Jamais d'identifiants dans un lien publié (« https://[masqué]@hôte » compris).
+    url = re.sub(r"(?<=://)[^/?#\s]*@", "", url, count=1)
+    if REDACTED in url:
+        return None, "secret masqué", hits
+    host = _host_of(url)
+    if host and _is_local_host(host):
+        return None, "adresse locale", hits
+    if not _is_valid_web_url(url):
+        return None, "URL invalide", hits
+    return url, "", hits
+
+
 def project_main_link(members: list[dict]) -> dict | None:
     """Premier site parmi les entrées (de la plus récente à la plus ancienne), sinon premier dépôt."""
     recent_first = sorted(members, key=lambda e: e["cree_le"] or "", reverse=True)
@@ -919,9 +939,22 @@ def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] 
                    overrides: dict | None = None, search_config: dict | None = None) -> tuple[dict, dict]:
     overrides = overrides or {}
     excluded_tags = EXCLUDED_TAGS | {slug(t) for t in config["tags_exclus"]}
-    report = {"excluded": 0, "masquees": 0, "redactions": 0, "redacted_entries": [], "orphelines": []}
+    report = {"excluded": 0, "masquees": 0, "redactions": 0, "redacted_entries": [], "orphelines": [],
+              "liens_refuses": []}
     entries = []
     seen_keys = set()
+
+    def note(hits: int, where: str) -> None:
+        # where : clé courte d'une entrée, ou « projet <id> » pour un réglage de projet.
+        if hits:
+            report["redactions"] += hits
+            if where not in report["redacted_entries"]:
+                report["redacted_entries"].append(where)
+
+    def masked(text: str, where: str) -> str:
+        text, hits = redact(text, known_secrets)
+        note(hits, where)
+        return text
 
     for item in raw:
         key = item["content_hash"][:12].lower()
@@ -935,18 +968,15 @@ def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] 
         if override.get("masquer"):
             report["masquees"] += 1
             continue
-        content, hits = redact(str(item.get("content") or ""), known_secrets)
-        if hits:
-            report["redactions"] += hits
-            report["redacted_entries"].append(key)
+        content = masked(str(item.get("content") or ""), key)
         title, rest = split_title(content, tags)
         summary = derive_summary(rest)
         corrected = False
         if str(override.get("titre") or "").strip():
-            title, _ = redact(str(override["titre"]).strip(), known_secrets)
+            title = masked(str(override["titre"]).strip(), key)
             corrected = True
         if str(override.get("resume") or "").strip():
-            summary, _ = redact(str(override["resume"]).strip(), known_secrets)
+            summary = masked(str(override["resume"]).strip(), key)
             corrected = True
         liens = detect_links(content)
         # Liste blanche : rien d'autre ne sort (ni metadata, ni access_queries).
@@ -983,15 +1013,27 @@ def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] 
             (e for e in members if e["type"] in ("reference", "architecture")
              or "architecture" in (slug(t) for t in e["tags"])),
             key=lambda e: e["cree_le"] or "")
-        description = settings.get("description") or (architecture[0]["resume"] if architecture else None) or None
-        configured = settings.get("lien_principal")
-        if configured and _is_valid_web_url(str(configured)):
-            lien = {"url": str(configured), "genre": link_kind(str(configured))}
+        # Réglages saisis à la main (et bientôt par l'admin) : publiés, donc
+        # masqués comme le texte des entrées.
+        where = f"projet {key}"
+        description = str(settings.get("description") or "").strip()
+        if description:
+            description = masked(description, where)
         else:
+            description = (architecture[0]["resume"] if architecture else None) or None
+        lien = None
+        if settings.get("lien_principal"):
+            url, reason, hits = configured_link(settings["lien_principal"], known_secrets)
+            note(hits, where)
+            if url:
+                lien = {"url": url, "genre": link_kind(url)}
+            else:
+                report["liens_refuses"].append(f"{key} ({reason})")
+        if lien is None:
             lien = project_main_link(members)
         projects.append({
             "id": key,
-            "nom": name,
+            "nom": masked(str(name), where),
             "famille": settings.get("famille"),
             "description": description,
             "lien_principal": lien,
@@ -1127,6 +1169,9 @@ def main() -> int:
           f"voisins : {linked} entrées reliées.")
     if report["redactions"]:
         print(f"  ! {report['redactions']} secret(s) masqué(s) dans : {', '.join(report['redacted_entries'])}")
+    if report["liens_refuses"]:
+        print("  ! Lien principal configuré refusé, calcul automatique à la place : "
+              + ", ".join(report["liens_refuses"]))
     if failures:
         print(f"  ! {failures} recherche(s) de voisins en échec : publié sans ces voisins.")
     if report["orphelines"]:

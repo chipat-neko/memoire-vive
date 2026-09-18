@@ -12,7 +12,7 @@ const donnees = jeuDeTest();
 async function ouvrir(ancre = '#/entrees', options = {}) {
   const page = await site.page({ donnees, ...options });
   await page.goto(site.url(ancre));
-  await page.locator('#grid .card').first().waitFor();
+  await page.locator('.card:visible').first().waitFor();
   return page;
 }
 
@@ -72,7 +72,7 @@ test('contraste de la pastille active ≥ 4,5 (thèmes clair et sombre)', async 
   await terminer(page);
 });
 
-test('mobile : pas de défilement horizontal (grille, fiche, vue Liste, page projet, accueil)', async () => {
+test('mobile : pas de défilement horizontal (grille, fiche, vue Liste, page projet, accueil, résultats)', async () => {
   const archi = entreeTitree(donnees, 'Jarvis — architecture');
   const page = await ouvrir('#/entrees', { mobile: true });
   assert.ok(await debordement(page) <= 0, 'liste');
@@ -88,6 +88,9 @@ test('mobile : pas de défilement horizontal (grille, fiche, vue Liste, page pro
   await page.goto(site.url('#/'));
   await page.locator('.project-card').first().waitFor();
   assert.ok(await debordement(page) <= 0, 'accueil');
+  await page.goto(site.url('#/recherche?q=jarvis'));
+  await page.locator('#page-view .card').first().waitFor();
+  assert.ok(await debordement(page) <= 0, 'résultats');
   await terminer(page);
 });
 

@@ -225,11 +225,15 @@ export function entryLine(entry, { targets = null, since = null } = {}) {
 
 /* Carte d'un projet : le nom mène à sa page, le bouton du lien principal
    est un lien distinct (jamais un lien dans un autre). */
-export function projectCard(project, { since = null } = {}) {
+export function projectCard(project, { since = null, targets = null, showFamily = false } = {}) {
   const last = project._last ? new Date(project._last).toISOString() : null;
   return el('article', { class: 'project-card', 'data-couleur': project._family ? project._family.couleur : null },
-    el('h3', null, el('a', { href: projectHash(project.id) }, project.nom)),
-    project.description ? el('p', { class: 'project-card-description' }, project.description) : null,
+    el('h3', null, el('a', { href: projectHash(project.id) }, highlight(project.nom, targets))),
+    // Résultats de recherche : la famille (aussi cherchée) est écrite, le
+    // liseré n'est jamais la seule information.
+    showFamily ? el('p', { class: 'project-card-family' },
+      highlight(project._family ? project._family.nom : 'Sans famille', targets)) : null,
+    project.description ? el('p', { class: 'project-card-description' }, highlight(project.description, targets)) : null,
     el('p', { class: 'meta-line' },
       plural(project._count, 'entrée', 'entrées'),
       last ? [' · dernière activité ', timeElement(last)] : null,

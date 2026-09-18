@@ -50,7 +50,6 @@
           <select id="sort-select">
             <option value="recent">Plus récentes</option>
             <option value="ancien">Plus anciennes</option>
-            <option value="pertinence">Pertinence</option>
             <option value="projet">Projet (A → Z)</option>
           </select>
           <div class="segmented" role="group" aria-label="Affichage">
@@ -74,6 +73,8 @@
 
     <!-- Accueil, page projet, résultats de recherche -->
     <section id="page-view" aria-labelledby="titre-vue" hidden></section>
+    <!-- Nombre de résultats annoncé pendant la frappe (région persistante) -->
+    <p id="annonce" class="visually-hidden" aria-live="polite"></p>
 
     <!-- Fiche d'une entrée -->
     <article id="entry-view" class="entry" hidden aria-labelledby="entry-title"></article>

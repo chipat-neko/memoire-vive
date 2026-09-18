@@ -463,6 +463,27 @@ a.project-tag { display: inline-block; }
 .project-card .meta-line { align-items: center; margin: 0; }
 .project-card .actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
+/* ------------------------------------------------------------- résultats */
+
+.results-head { margin-bottom: 22px; }
+.results-head h2 { font-family: var(--serif); font-weight: 600; font-size: 28px; line-height: 1.2; margin: 0 0 6px; overflow-wrap: anywhere; }
+.results-head h2:focus { outline: none; }
+.results-head .result-count { margin: 0; }
+.results-help { color: var(--text-muted); max-width: 70ch; }
+.project-card-family { margin: 0; font: 600 13px var(--sans); color: var(--text-muted); overflow-wrap: anywhere; }
+.results-section { margin-bottom: 34px; }
+.results-section > h3 {
+  font: 700 12px var(--sans); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-strong); margin: 0 0 14px;
+}
+.related-entries { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.related-entries li {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; min-width: 0;
+  border-left: 4px solid var(--famille); padding: 4px 0 4px 12px;
+}
+.related-entries a { overflow-wrap: anywhere; }
+.related-entries .related-project { font-size: 13px; color: var(--text-muted); }
+
 /* ------------------------------------------------------------ page projet */
 
 .page-nav { margin-bottom: 22px; }

@@ -2,12 +2,13 @@
    Modules ES sans dépendance ; toutes les données viennent de data.json,
    déjà préparé par scripts/export.py (titres, résumés, projets, liens). */
 import { loadData, prepare, DataError } from './donnees.js';
-import { parseHash, searchHash, defaultFilters } from './routes.js';
+import { parseHash, searchHash, entriesHash, defaultFilters } from './routes.js';
 import { el, plural, formatLong, lastVisit } from './composants.js';
 import { createListView } from './vues/entrees.js';
 import { createEntryView } from './vues/fiche.js';
 import { createProjectView } from './vues/projet.js';
 import { createHomeView } from './vues/accueil.js';
+import { createResultsView } from './vues/resultats.js';
 
 const CONFIG = {
   dataUrl: 'data.json',
@@ -22,10 +23,12 @@ const state = {
   entries: [],
   projects: new Map(),
   typeOrder: [],
-  index: null,           // index de recherche (recherche.js)
+  index: null,           // index de recherche des entrées (recherche.js)
+  projectIndex: null,    // index de recherche des projets
+  projectList: [],       // projets, dans l'ordre de projectIndex
   families: new Map(),
   since: null,           // dernière visite (ms) : entrées plus récentes « nouveau »
-  filters: { q: '', ...defaultFilters() },
+  filters: defaultFilters(),
   shown: CONFIG.pageSize,
   showAllProjects: false,
   lastList: [],          // entrées de la vue affichée, pour « précédente / suivante »
@@ -43,7 +46,7 @@ const dom = {
   search: $('search-input'), sort: $('sort-select'),
   typeChips: $('type-chips'), familyChips: $('family-chips'), projectChips: $('project-chips'),
   activeFilters: $('active-filters'), resultCount: $('result-count'), status: $('status'),
-  grid: $('grid'), lines: $('lines'),
+  grid: $('grid'), lines: $('lines'), announce: $('annonce'),
   more: $('more'), moreBtn: $('more-btn'), empty: $('empty'),
   themeToggle: $('theme-toggle'), navHome: $('nav-home'), navEntries: $('nav-entries'),
 };
@@ -53,6 +56,7 @@ ctx.list = createListView(ctx);
 ctx.entry = createEntryView(ctx);
 ctx.project = createProjectView(ctx);
 ctx.home = createHomeView(ctx);
+ctx.results = createResultsView(ctx);
 
 // ------------------------------------------------------------ données
 
@@ -83,6 +87,8 @@ function init(data) {
   state.projects = model.projects;
   state.typeOrder = model.typeOrder;
   state.index = model.index;
+  state.projectIndex = model.projectIndex;
+  state.projectList = model.projectList;
   state.families = model.families;
   // L'horodatage mémorisé est celui de l'export affiché : une entrée créée
   // avant la visite mais publiée après reste « nouvelle » à la suivante.
@@ -130,15 +136,6 @@ function focusView(returning) {
 
 // ------------------------------------------------------------ routage
 
-/* Filtres de la liste pour une route qui l'affiche. En attendant sa vue
-   (Task 11), la recherche affiche la liste filtrée. */
-function listFilters(target) {
-  const filters = { q: '', ...defaultFilters() };
-  if (target.view === 'entries') Object.assign(filters, target.filters);
-  if (target.view === 'search') filters.q = target.q;
-  return filters;
-}
-
 function sameFilters(a, b) {
   return Object.keys(a).every((key) => a[key] === b[key]);
 }
@@ -146,8 +143,10 @@ function sameFilters(a, b) {
 /* Entrées affichées par la vue d'une ancre, dans l'ordre (Précédente/Suivante). */
 function sequenceFor(origin) {
   if (origin.view === 'project') return ctx.project.projectEntries(origin.id);
-  state.filters = listFilters(origin);
-  return ctx.list.filtered().list;
+  if (origin.view === 'search') return ctx.results.resultEntries(origin.q);
+  if (origin.view !== 'entries') return [];
+  state.filters = origin.filters;
+  return ctx.list.filtered();
 }
 
 function route() {
@@ -168,19 +167,22 @@ function route() {
   const returning = Boolean(previous && previous.view === 'entry' && !state.typing);
   state.lastListHash = location.hash || '#/';
   renderNav(next.view);
+  // Hors de la recherche, le champ ne montre pas une requête qui ne filtre
+  // plus rien (la fiche, traitée plus haut, garde celle d'où elle vient).
+  if (next.view !== 'search') dom.search.value = '';
   if (next.view === 'home') {
     ctx.home.showHome({ returning });
     window.scrollTo(0, returning ? state.scroll.get(state.lastListHash) || 0 : 0);
     return;
   }
-  if (next.view === 'project') {
-    ctx.project.showProject(next.id, { returning });
+  if (next.view === 'project' || next.view === 'search') {
+    if (next.view === 'project') ctx.project.showProject(next.id, { returning });
+    else ctx.results.showResults(next.q, { returning });
     window.scrollTo(0, returning ? state.scroll.get(state.lastListHash) || 0 : 0);
     return;
   }
-  const filters = listFilters(next);
-  if (!sameFilters(filters, state.filters)) {
-    state.filters = filters;
+  if (!sameFilters(next.filters, state.filters)) {
+    state.filters = next.filters;
     state.shown = CONFIG.pageSize;
   }
   ctx.list.showList(returning);
@@ -250,7 +252,7 @@ function setFilters(patch) {
   const focusKey = active && active.dataset ? active.dataset.focusKey : '';
   Object.assign(state.filters, patch);
   state.shown = CONFIG.pageSize;
-  const hash = ctx.list.listHash(state.filters);
+  const hash = entriesHash(state.filters);
   history.replaceState(null, '', hash);
   state.lastListHash = hash;
   ctx.list.renderList();
@@ -323,7 +325,7 @@ function bind() {
       leaveSearch();
     }
   });
-  dom.sort.addEventListener('change', () => setFilters({ tri: dom.sort.value === 'recent' && !state.filters.q ? '' : dom.sort.value }));
+  dom.sort.addEventListener('change', () => setFilters({ tri: dom.sort.value === 'recent' ? '' : dom.sort.value }));
   for (const button of document.querySelectorAll('.segmented button')) {
     button.addEventListener('click', () => setFilters({ vue: button.dataset.view }));
   }
@@ -341,9 +343,9 @@ function bind() {
     const target = event.target.closest('[data-action="tag"]');
     if (!target || !state.data) return;
     event.preventDefault();
-    const patch = { tag: target.dataset.tag, type: '', projet: '', q: '' };
+    const patch = { tag: target.dataset.tag, type: '', famille: '', projet: '' };
     if (dom.listView.hidden) {
-      location.hash = ctx.list.listHash(Object.assign({}, state.filters, patch));
+      location.hash = entriesHash(Object.assign(defaultFilters(), patch));
     } else {
       setFilters(patch);
       window.scrollTo(0, 0);

@@ -12,7 +12,7 @@ const donnees = jeuDeTest();
 async function ouvrir(ancre) {
   const page = await site.page({ donnees });
   await page.goto(site.url(ancre));
-  await page.locator('#grid .card').first().waitFor();
+  await page.locator('.card:visible').first().waitFor();
   return page;
 }
 

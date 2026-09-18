@@ -18,9 +18,10 @@ async function ouvrir(ancre, selecteur) {
 }
 
 const CARTES = '#list-view:not([hidden]) #grid .card h3 a';
+const RESULTATS = '#page-view .card h3 a';
 
 test('ouvrir une fiche depuis la liste : titre, URL courte, focus sur le titre', async () => {
-  const page = await ouvrir('#/recherche?q=jarvis', CARTES);
+  const page = await ouvrir('#/recherche?q=jarvis', RESULTATS);
   await page.getByRole('link', { name: 'Jarvis — architecture', exact: true }).click();
   await page.locator('#entry-view:not([hidden]) #entry-title').waitFor();
   assert.equal(await page.textContent('#entry-title'), 'Jarvis — architecture');
@@ -60,10 +61,10 @@ test('« Retour à la liste » : filtres et recherche conservés', async () => {
   await page.locator(CARTES).first().waitFor();
   assert.ok(page.url().endsWith('#/entrees?type=milestone'), page.url());
   await page.goto(site.url('#/recherche?q=jarvis'));
-  await page.locator(CARTES).first().click();
+  await page.locator(RESULTATS).first().click();
   await page.locator('#entry-title').waitFor();
   await page.getByRole('link', { name: '← Retour aux résultats' }).click();
-  await page.locator(CARTES).first().waitFor();
+  await page.locator(RESULTATS).first().waitFor();
   assert.ok(page.url().endsWith('#/recherche?q=jarvis'), page.url());
   assert.equal(await page.inputValue('#search-input'), 'jarvis');
   await terminer(page);

@@ -123,5 +123,14 @@ export function prepare(data) {
     content: e.contenu,
   })), data.synonymes);
 
-  return { data, entries, projects, families, typeOrder, index };
+  // Index des projets (page de résultats) : nom, famille, description.
+  const projectList = Array.from(projects.values());
+  const projectIndex = buildIndex(projectList.map((p) => ({
+    title: p.nom,
+    meta: [p._family ? p._family.nom : '', p.id].join(' '),
+    resume: p.description || '',
+    content: '',
+  })), data.synonymes);
+
+  return { data, entries, projects, families, typeOrder, index, projectList, projectIndex };
 }

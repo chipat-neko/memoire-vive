@@ -1,7 +1,7 @@
 /* Toutes les entrées : filtres (type, famille, projet, tag), tri, vue
-   « Grille » (cartes) ou « Liste » (une ligne par entrée), « Afficher plus ». */
-import { normalize, search } from '../recherche.js';
-import { entriesHash, searchHash } from '../routes.js';
+   « Grille » (cartes) ou « Liste » (une ligne par entrée), « Afficher plus ».
+   La recherche a sa propre page (vues/resultats.js). */
+import { normalize } from '../recherche.js';
 import { el, plural, typeLabel, card, entryLine, chip } from '../composants.js';
 import { NO_PROJECT, NO_FAMILY } from '../donnees.js';
 
@@ -12,29 +12,13 @@ export function familyKey(entry) {
 export function createListView(ctx) {
   const { config, state, dom } = ctx;
 
-  function effectiveSort() {
-    const f = state.filters;
-    if (f.tri === 'pertinence' && !f.q) return 'recent';
-    return f.tri || (f.q ? 'pertinence' : 'recent');
-  }
-
-  /* found : Map entrée → score de la recherche, ou null sans recherche. */
-  function matches(entry, found, except) {
+  function matches(entry, except) {
     const f = state.filters;
     if (except !== 'type' && f.type && entry.type !== f.type) return false;
     if (except !== 'famille' && f.famille && familyKey(entry) !== f.famille) return false;
     if (except !== 'projet' && f.projet && entry._project !== f.projet) return false;
     if (f.tag && !entry._tags.includes(normalize(f.tag))) return false;
-    return !found || found.has(entry);
-  }
-
-  function searched() {
-    if (!state.filters.q) return { found: null, targets: null };
-    const result = search(state.index, state.filters.q);
-    return {
-      found: new Map(result.hits.map((hit) => [state.entries[hit.doc], hit.score])),
-      targets: result.targets,
-    };
+    return true;
   }
 
   function typeRank(type) {
@@ -42,14 +26,11 @@ export function createListView(ctx) {
     return index === -1 ? state.typeOrder.length : index;
   }
 
-  function sortEntries(list, found) {
+  function sortEntries(list) {
     const byRecent = (a, b) => b._time - a._time || (a.id < b.id ? -1 : 1);
-    switch (effectiveSort()) {
+    switch (state.filters.tri) {
       case 'ancien':
         return list.sort((a, b) => -byRecent(a, b));
-      case 'pertinence':
-        // found vaut null quand la fiche trie toutes les entrées (entrée hors de la liste affichée).
-        return list.sort((a, b) => (found ? (found.get(b) || 0) - (found.get(a) || 0) : 0) || byRecent(a, b));
       case 'projet':
         return list.sort((a, b) =>
           (a._project === NO_PROJECT) - (b._project === NO_PROJECT)
@@ -61,20 +42,13 @@ export function createListView(ctx) {
     }
   }
 
-  /* Ancre de l'état affiché : la recherche passe par #/recherche, le reste
-     par #/entrees. */
-  function listHash(filters) {
-    return filters.q ? searchHash(filters.q) : entriesHash(filters);
-  }
-
   function filtered() {
-    const { found, targets } = searched();
-    return { found, targets, list: sortEntries(state.entries.filter((e) => matches(e, found)), found) };
+    return sortEntries(state.entries.filter((e) => matches(e)));
   }
 
   function showList(restoreScroll) {
     ctx.show(dom.listView);
-    document.title = 'Mémoire Vive';
+    document.title = 'Toutes les entrées — Mémoire Vive';
     renderList();
     if (restoreScroll) {
       window.scrollTo(0, state.scroll.get(state.lastListHash) || 0);
@@ -86,21 +60,17 @@ export function createListView(ctx) {
 
   function renderList() {
     const f = state.filters;
-    const { found, targets, list } = filtered();
+    const list = filtered();
     state.lastList = list;
 
-    // Comparaison sans les espaces : ne pas effacer l'espace en cours de frappe.
-    if (dom.search.value.trim() !== f.q) dom.search.value = f.q;
-    const sort = effectiveSort();
-    dom.sort.value = sort;
-    dom.sort.querySelector('option[value="pertinence"]').disabled = !f.q;
+    dom.sort.value = f.tri || 'recent';
     for (const button of document.querySelectorAll('.segmented button')) {
       button.setAttribute('aria-pressed', String(button.dataset.view === f.vue));
     }
 
-    renderTypeChips(found);
-    renderFamilyChips(found);
-    renderProjectChips(found);
+    renderTypeChips();
+    renderFamilyChips();
+    renderProjectChips();
     renderActiveFilters();
 
     const total = state.entries.length;
@@ -125,7 +95,7 @@ export function createListView(ctx) {
     dom.empty.hidden = true;
 
     const asLines = f.vue === 'liste';
-    const options = { targets, since: state.since };
+    const options = { since: state.since };
     dom.grid.hidden = asLines;
     dom.lines.hidden = !asLines;
     const container = asLines ? dom.lines : dom.grid;
@@ -139,12 +109,12 @@ export function createListView(ctx) {
 
   function resetButton() {
     const button = el('button', { type: 'button', class: 'btn-secondary' }, 'Effacer les filtres');
-    button.addEventListener('click', () => ctx.setFilters({ q: '', type: '', famille: '', projet: '', tag: '' }));
+    button.addEventListener('click', () => ctx.setFilters({ type: '', famille: '', projet: '', tag: '' }));
     return button;
   }
 
-  function renderTypeChips(found) {
-    const pool = state.entries.filter((e) => matches(e, found, 'type'));
+  function renderTypeChips() {
+    const pool = state.entries.filter((e) => matches(e, 'type'));
     const counts = new Map();
     for (const entry of pool) counts.set(entry.type, (counts.get(entry.type) || 0) + 1);
     const current = state.filters.type;
@@ -158,13 +128,13 @@ export function createListView(ctx) {
 
   /* Familles dans l'ordre configuré, puis « Sans famille » ; le nom est écrit
      (la couleur n'est jamais la seule information). */
-  function renderFamilyChips(found) {
+  function renderFamilyChips() {
     if (!state.families.size) {
       dom.familyChips.hidden = true;
       dom.familyChips.replaceChildren();
       return;
     }
-    const pool = state.entries.filter((e) => matches(e, found, 'famille'));
+    const pool = state.entries.filter((e) => matches(e, 'famille'));
     const counts = new Map();
     for (const entry of pool) counts.set(familyKey(entry), (counts.get(familyKey(entry)) || 0) + 1);
     const current = state.filters.famille;
@@ -183,8 +153,8 @@ export function createListView(ctx) {
     dom.familyChips.replaceChildren(...chips);
   }
 
-  function renderProjectChips(found) {
-    const pool = state.entries.filter((e) => matches(e, found, 'projet'));
+  function renderProjectChips() {
+    const pool = state.entries.filter((e) => matches(e, 'projet'));
     const counts = new Map();
     for (const entry of pool) counts.set(entry._project, (counts.get(entry._project) || 0) + 1);
     const current = state.filters.projet;
@@ -211,7 +181,7 @@ export function createListView(ctx) {
     if (hidden > 0) {
       chips.push(chip('+ ' + hidden + ' autres', null, false, () => {
         state.showAllProjects = true;
-        renderProjectChips(searched().found);
+        renderProjectChips();
         // Le focus va sur le premier projet qui vient d'apparaître.
         const first = dom.projectChips.querySelectorAll('.chip')[visible.length + 1];
         if (first) first.focus();
@@ -219,7 +189,7 @@ export function createListView(ctx) {
     } else if (state.showAllProjects && keys.length > config.projectChips + 1) {
       chips.push(chip('Réduire', null, false, () => {
         state.showAllProjects = false;
-        renderProjectChips(searched().found);
+        renderProjectChips();
         const more = dom.projectChips.querySelector('[data-focus-key="projets:plus"]');
         if (more) more.focus();
       }, 'projets:moins', 'more-chip'));
@@ -235,14 +205,14 @@ export function createListView(ctx) {
       pill.addEventListener('click', () => ctx.setFilters({ tag: '' }));
       items.push(el('span', null, 'Tag :'), pill);
     }
-    if (f.q || f.type || f.famille || f.projet || f.tag) {
+    if (f.type || f.famille || f.projet || f.tag) {
       const clear = el('button', { type: 'button', class: 'link-button' }, 'Effacer tous les filtres');
-      clear.addEventListener('click', () => ctx.setFilters({ q: '', type: '', famille: '', projet: '', tag: '' }));
+      clear.addEventListener('click', () => ctx.setFilters({ type: '', famille: '', projet: '', tag: '' }));
       items.push(clear);
     }
     dom.activeFilters.hidden = !items.length;
     dom.activeFilters.replaceChildren(...items);
   }
 
-  return { showList, renderList, filtered, sortEntries, typeRank, listHash };
+  return { showList, renderList, filtered, sortEntries, typeRank };
 }

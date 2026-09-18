@@ -36,7 +36,7 @@ export function createEntryView(ctx) {
 
     document.title = entry.titre + ' — Mémoire Vive';
     state.openedId = entry._short;
-    const sequence = state.lastList.includes(entry) ? state.lastList : ctx.list.sortEntries(state.entries.slice(), null);
+    const sequence = state.lastList.includes(entry) ? state.lastList : ctx.list.sortEntries(state.entries.slice());
     const position = sequence.indexOf(entry);
     const previous = position > 0 ? sequence[position - 1] : null;
     const next = position >= 0 && position < sequence.length - 1 ? sequence[position + 1] : null;

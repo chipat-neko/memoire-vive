@@ -31,16 +31,6 @@ test('statistiques renseignées', async () => {
   await terminer(page);
 });
 
-test('recherche : « memoire » trouve « mémoire », surligne, met à jour l’URL, trie par pertinence', async () => {
-  const page = await liste();
-  await page.fill('#search-input', 'memoire');
-  await attendreAncre(page, 'q=memoire');
-  assert.ok(await page.locator('#grid .card').count() > 0);
-  assert.ok(await page.locator('#grid mark').count() > 0);
-  assert.equal(await page.inputValue('#sort-select'), 'pertinence');
-  await terminer(page);
-});
-
 test('frappe lente : l’espace est conservé ; Échap vide la recherche', async () => {
   const page = await liste();
   await page.locator('#search-input').pressSequentially('tour de', { delay: 180 });

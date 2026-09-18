@@ -46,7 +46,7 @@ async function sansInjection(page) {
 test('données piégées (XSS) : aucune balise injectée, aucun lien javascript: ou data:', async () => {
   const page = await site.page({ donnees: donneesPiegees() });
   for (const [ancre, attendu] of [['#/', '.project-card'], ['#/entrees', '#grid .card'], ['#/entrees?vue=liste', '.entry-line'],
-    ['#/entree/abcdef123456', '#entry-title'], ['#/projet/x', '#titre-vue']]) {
+    ['#/entree/abcdef123456', '#entry-title'], ['#/projet/x', '#titre-vue'], ['#/recherche?q=voisine', '#page-view .card']]) {
     await page.goto(site.url(ancre));
     await page.locator(attendu).first().waitFor();
     assert.ok(await sansInjection(page), ancre);
@@ -75,10 +75,10 @@ for (const [nom, gestion, attendu] of [
 test('« coeur » trouve « cœur » (surligné) ; l’apostrophe droite trouve l’apostrophe typographique', async () => {
   const page = await site.page({ donnees: jeuDeTest() });
   await page.goto(site.url('#/recherche?q=coeur'));
-  await page.locator('#grid .card').first().waitFor();
-  assert.equal(await page.locator('#grid mark').first().textContent(), 'cœur');
+  await page.locator('#page-view .card').first().waitFor();
+  assert.equal(await page.locator('#page-view .card mark').first().textContent(), 'cœur');
   await page.goto(site.url('#/recherche?q=' + encodeURIComponent("l'atelier")));
-  await page.locator('#grid .card').first().waitFor();
-  assert.equal(await page.locator('#grid .card').count(), 1);
+  await page.locator('#titre-vue', { hasText: 'atelier' }).waitFor();
+  assert.equal(await page.locator('#page-view .card').count(), 1);
   await terminer(page);
 });

@@ -89,3 +89,16 @@ test('voisins : entrées publiées seulement, score numérique fini', () => {
   assert.deepEqual(model.entries[0]._neighbours.map((v) => [v.entry.titre, v.score]), [['b', 0.9]]);
   assert.deepEqual(model.entries[1]._neighbours, []);
 });
+
+test('index des projets : nom, famille et description', () => {
+  const model = prepare({
+    familles: [{ id: 'jeux', nom: 'Jeux vidéo', couleur: 1 }],
+    projets: [{ id: 'depths', nom: 'Depths', famille: 'jeux', description: 'Donjons procéduraux.' },
+      { id: 'jarvis', nom: 'Jarvis', description: 'Assistant vocal.' }],
+    entrees: [],
+  });
+  const noms = (q) => search(model.projectIndex, q).hits.map((h) => model.projectList[h.doc].nom);
+  assert.deepEqual(noms('donjon'), ['Depths']);
+  assert.deepEqual(noms('video'), ['Depths']);
+  assert.deepEqual(noms('jarvis'), ['Jarvis']);
+});

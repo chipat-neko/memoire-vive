@@ -46,6 +46,15 @@ class ConfigProjetsTest(unittest.TestCase):
         self.assertEqual({e["projet"] for e in payload["entrees"]}, {"depths"})
         self.assertEqual([p["nom"] for p in payload["projets"]], ["Depths"])
 
+    def test_fichier_reel_v2_coherent(self):
+        cfg = export.load_projects_config()
+        self.assertEqual(len(cfg["familles"]), 5)
+        classes = [p for p in cfg["projets"].values() if p["famille"]]
+        self.assertEqual(len(classes), 46)
+        alias = [a for p in cfg["projets"].values() for a in p["alias"]]
+        self.assertEqual(len(alias), len(set(alias)), "un alias ne peut viser qu'un projet")
+        self.assertFalse(set(alias) & set(cfg["projets"]), "un alias ne peut pas être lui-même un projet")
+
 
 if __name__ == "__main__":
     unittest.main()

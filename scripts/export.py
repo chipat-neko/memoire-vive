@@ -751,9 +751,13 @@ def project_main_link(members: list[dict]) -> dict | None:
     return None
 
 
-# Voisins : entrées proches par le sens, calculées par le dashboard. Le seuil
-# est réglé sur les données réelles (voir Task 8 du plan du chantier A).
-SEUIL_VOISINS = 0.75
+# Voisins : entrées proches par le sens, calculées par le dashboard.
+# Seuil réglé le 18/09/2026 sur 70 entrées réelles : le plus bas score (au
+# centième) où au moins 9 voisins affichés sur 10 restent pertinents (même
+# projet ou même thème). À 0,80 : 50 pertinents sur 52 ; à 0,79 : 58 sur 66 ;
+# à 0,75 (valeur initiale) : 121 sur 182, trop d'entrées rapprochées par leur
+# seule forme (deux « Projet X — architecture » de sujets sans rapport).
+SEUIL_VOISINS = 0.80
 MAX_VOISINS = 5
 
 

@@ -87,18 +87,114 @@ Chaque entrée de `data.json` contient, en plus du texte :
     « adresse locale ».
   - Limite connue : un chemin qui contient des espaces n'est détecté en entier que s'il
     est écrit entre guillemets.
+- `lien_principal` : `{ "url": "...", "genre": "site" | "depot" }`, ou `null` : le premier
+  lien `en_ligne` vers un site (tout hôte qui n'est pas un hébergeur de code :
+  `*.github.io`, `*.vercel.app`, `*.web.app`, `claude.ai/…`…), à défaut le premier dépôt
+  (`github.com`, `gitlab.com`, `bitbucket.org`, `codeberg.org`) ;
+- `voisins` : `[{ "id": "<hash complet>", "score": 0.81 }]`, au plus 5 entrées publiées
+  proches par le sens, de score au moins égal à `SEUIL_VOISINS` (0,80, réglé le
+  18/09/2026 sur les données réelles : au moins 9 voisins affichés sur 10 sont du même
+  projet ou du même thème) ;
+- `corrige` : `true` quand le titre ou le résumé vient de `config/entrees.json`.
 
-## Régler les projets
+Les voisins sont calculés par le dashboard : `POST /api/search` avec le texte de l'entrée
+(8 résultats demandés), dont l'export retire l'entrée elle-même et les entrées non
+publiées. Le dashboard a bien `GET /api/search/similar/{hash}`, mais ce point d'accès est
+défectueux : il cherche le hash comme du texte et répond donc toujours 404. Les voisins
+ne bloquent jamais l'export : un appel en échec laisse l'entrée sans voisins (l'export
+affiche le nombre d'échecs), et après trois échecs de suite le dashboard n'est plus
+interrogé.
 
-`config/projets.json` (facultatif) :
+Chaque projet (`projets[]`) contient `id`, `nom` (configuré, sinon tiré du texte, sinon
+le tag), `nb`, `types`, `premiere`, `derniere`, et :
 
-- `alias` : fusionne un tag dans un projet (`"rogue-lite": "depths"`) ;
-- `noms` : nom affiché d'un projet (`"pont-memoire": "Pont mémoire"`) ;
-- `tags_generiques` : tags qui ne désignent jamais un projet (`dashboard`, `python`…) ;
+- `famille` : l'identifiant configuré, sinon `null` (« Sans famille ») ;
+- `description` : configurée, sinon le `resume` de la plus ancienne entrée du projet de
+  type `reference` ou `architecture` (ou taguée `architecture`), sinon `null` ;
+- `lien_principal` : configuré (URL web valide), sinon le premier site parmi ses entrées,
+  de la plus récente à la plus ancienne, sinon le premier dépôt, sinon `null`.
+
+À la racine : `familles` (copie ordonnée de celles de `config/projets.json`) et
+`synonymes` (groupes de `config/recherche.json`, normalisés). Tous ces champs sont des
+ajouts compatibles : `schema` reste à 1 et le site actuel les ignore.
+
+## Régler les projets, les entrées et la recherche
+
+Trois fichiers facultatifs, dans `config/`, modifiables à la main. La clé `_aide` de
+chacun rappelle son mode d'emploi ; l'export l'ignore.
+
+### `config/projets.json` (version 2)
+
+```json
+{
+  "version": 2,
+  "familles": [
+    { "id": "jeux", "nom": "Jeux & univers de jeu", "couleur": 1 }
+  ],
+  "projets": {
+    "depths": {
+      "nom": "Depths",
+      "famille": "jeux",
+      "alias": ["rogue-lite"],
+      "description": null,
+      "lien_principal": null
+    }
+  },
+  "tags_generiques": ["dashboard", "python", "lien"],
+  "tags_exclus": []
+}
+```
+
+- `familles` : ordre d'affichage = ordre du tableau ; `couleur` : indice 1 à 6 d'une
+  palette du site (thèmes clair et sombre).
+- `projets.<id>` : toutes les clés sont facultatives. `nom` : nom affiché ; `famille` :
+  une famille déclarée (sinon ignorée) ; `alias` : tags rattachés à ce projet ;
+  `description` : présentation du projet ; `lien_principal` : une URL, ou `null` pour le
+  calcul automatique.
+- `tags_generiques` : tags qui ne désignent jamais un projet (`dashboard`, `python`…).
 - `tags_exclus` : tags dont les entrées ne sont jamais publiées.
 
 Sans réglage, le projet d'une entrée est son tag le plus « voté » : chaque entrée vote
 pour son premier tag qui n'est pas générique.
+
+Un fichier sans `"version": 2` est lu comme l'ancien format (`alias` et `noms` globaux,
+par exemple `"alias": { "rogue-lite": "depths" }`) et converti en mémoire à chaque export.
+
+### `config/entrees.json`
+
+```json
+{ "a713bd8e2800": { "titre": "…", "resume": "…", "masquer": true } }
+```
+
+- Clé : les 12 premiers caractères de l'identifiant de l'entrée (celui de l'URL de sa
+  fiche, `#/entree/…`).
+- `titre`, `resume` remplacent les valeurs calculées (l'entrée porte alors
+  `"corrige": true`) et passent eux aussi par le masquage des secrets ; `masquer: true`
+  retire l'entrée du site, comme un tag d'exclusion.
+- Une clé qui ne correspond plus à aucune entrée est signalée par l'export
+  (avertissement, pas d'échec).
+
+### `config/recherche.json`
+
+```json
+{ "synonymes": [["ia", "intelligence artificielle", "llm", "modele"], ["local", "hors-ligne", "hors ligne", "offline"]] }
+```
+
+Groupes de termes équivalents pour la recherche du site. L'export les normalise comme la
+recherche (minuscules, sans accents, doublons retirés ; un groupe de moins de deux termes
+est ignoré) et les copie dans `data.json`.
+
+## Tests
+
+Depuis la racine du dépôt :
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+Bibliothèque standard uniquement ; ni la mémoire réelle ni le réseau extérieur ne sont
+touchés : `tests/test_publication.py` lance l'export contre un faux dashboard local, dans
+un dépôt git temporaire relié à un dépôt distant local.
 
 ## Structure
 
@@ -111,7 +207,8 @@ docs/               site publié par GitHub Pages (branche main, dossier /docs)
   data.json         généré par l'export, ne pas modifier à la main
 scripts/export.py   export + commit + push
 exporter.cmd        la même chose en double-clic (Windows)
-config/projets.json réglages facultatifs des projets
+config/             réglages facultatifs : projets.json, entrees.json, recherche.json
+tests/              tests unitaires et d'intégration de l'export
 phase2/             modèle de workflow GitHub Actions, inactif
 .env                clé locale (ignoré par git) — modèle : .env.example
 ```
@@ -127,7 +224,7 @@ l'adresse du tunnel dans les logs.
    `https://memoire-api.<domaine>`. **Protéger ce sous-domaine par Cloudflare Access**
    avec un jeton de service : sans cela, tout le dashboard (lecture, modification,
    suppression en masse) n'est gardé que par la clé API. Si possible, n'autoriser que
-   `GET /api/memories` (règle Access ou WAF sur le nom d'hôte).
+   `GET /api/memories` et `POST /api/search` (règle Access ou WAF sur le nom d'hôte).
 2. Dans le dépôt : Settings → Secrets and variables → Actions → créer `MEMOIRE_API_URL`,
    `MEMOIRE_API_KEY`, `MEMOIRE_CF_ACCESS_CLIENT_ID` et `MEMOIRE_CF_ACCESS_CLIENT_SECRET`.
 3. Copier `phase2/export-quotidien.yml` dans `.github/workflows/` et pousser.

@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { ouvrirSite, terminer } from './outils.mjs';
-import { jeuDeTest } from './donnees-test.mjs';
+import { jeuDeTest, entreeTitree } from './donnees-test.mjs';
 
 let site;
 before(async () => { site = await ouvrirSite(); });
@@ -75,5 +75,21 @@ test('pastille « nouveau » : stockage bloqué, ni pastille ni erreur', async (
   await page.goto(site.url('#/entrees'));
   await page.locator('#grid .card').first().waitFor();
   assert.equal(await page.locator('.new-badge').count(), 0);
+  await terminer(page);
+});
+
+test('carte d’entrée : résumé limité à 5 lignes même étirée par sa voisine', async () => {
+  const longue = jeuDeTest();
+  const texte = 'Un résumé très long qui continue encore et encore, avec des détails sur le projet, ses choix, '.repeat(4);
+  for (const titre of ['Note sans projet', 'Mémoire Vive — site en ligne', 'Mémoire Vive — architecture']) {
+    entreeTitree(longue, titre).resume = texte;
+  }
+  entreeTitree(longue, 'Note sans projet').titre = 'Note sans projet, avec un titre assez long pour tenir sur trois lignes de la carte';
+  const page = await site.page({ donnees: longue });
+  await page.goto(site.url('#/entrees'));
+  await page.locator('#grid .card').first().waitFor();
+  const lignes = await page.locator('#grid .card .resume').evaluateAll((boites) => boites.map((b) =>
+    Math.round((b.clientHeight / parseFloat(getComputedStyle(b).lineHeight)) * 10) / 10));
+  assert.ok(lignes.every((n) => n <= 5), lignes.filter((n) => n > 5).join(', '));
   await terminer(page);
 });

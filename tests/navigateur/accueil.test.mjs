@@ -103,3 +103,31 @@ test('carte de projet : « dernière activité » et sa date séparés par une s
   assert.ok(ecarts.every((e) => e <= 1), ecarts.join(', '));
   await terminer(page);
 });
+
+const LONG = 'Monorepo partagé par tous les jeux : moteur, outils de niveau, génération procédurale, '
+  + 'salles préfabriquées sur grille, croissance aléatoire avec budget de salles, boss et trésor placés, '
+  + 'sauvegardes, interface, sons, musiques, tests de performance et publication sur la page du projet.';
+
+/* Hauteur de chaque boîte limitée à « lignes » lignes, en nombre de lignes. */
+function lignesAffichees(page, selecteur) {
+  return page.locator(selecteur).evaluateAll((boites) => boites.map((b) =>
+    Math.round((b.clientHeight / parseFloat(getComputedStyle(b).lineHeight)) * 10) / 10));
+}
+
+test('carte de projet : description limitée à 3 lignes même étirée par sa voisine ; activité en bas', async () => {
+  const longue = jeuDeTest();
+  for (const id of ['tour-de-controle', 'depths']) longue.projets.find((p) => p.id === id).description = LONG;
+  const page = await site.page({ donnees: longue });
+  await page.goto(site.url('#/'));
+  await page.locator('.project-card').first().waitFor();
+  const lignes = await lignesAffichees(page, '.project-card-description');
+  assert.ok(lignes.every((n) => n <= 3), lignes.join(', '));
+  // Sans bouton de lien principal, la ligne d'activité est au bas de la carte.
+  const ecarts = await page.locator('.project-card:not(:has(.actions))').evaluateAll((cartes) => cartes.map((c) => {
+    const s = getComputedStyle(c);
+    return Math.round(c.getBoundingClientRect().bottom - c.querySelector('.meta-line').getBoundingClientRect().bottom
+      - parseFloat(s.paddingBottom) - parseFloat(s.borderBottomWidth));
+  }));
+  assert.ok(ecarts.length >= 2 && ecarts.every((e) => e <= 1), ecarts.join(', '));
+  await terminer(page);
+});

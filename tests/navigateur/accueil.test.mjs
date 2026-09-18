@@ -89,3 +89,17 @@ test('barre de recherche sur toutes les vues ; taper depuis l’accueil puis « 
   assert.ok(page.url().endsWith('#/'), page.url());
   await terminer(page);
 });
+
+test('carte de projet : « dernière activité » et sa date séparés par une simple espace', async () => {
+  const page = await accueil();
+  const ecarts = await page.locator('.project-card .meta-line time').evaluateAll((temps) => temps.map((time) => {
+    const texte = time.previousSibling;
+    const plage = document.createRange();
+    plage.selectNodeContents(texte);
+    const rects = plage.getClientRects();
+    return Math.round(time.getBoundingClientRect().left - rects[rects.length - 1].right);
+  }));
+  assert.ok(ecarts.length > 0);
+  assert.ok(ecarts.every((e) => e <= 1), ecarts.join(', '));
+  await terminer(page);
+});

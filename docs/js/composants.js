@@ -249,9 +249,10 @@ export function projectCard(project, { since = null, targets = null, showFamily 
     showFamily ? el('p', { class: 'project-card-family' },
       highlight(project._family ? project._family.nom : 'Sans famille', targets)) : null,
     project.description ? el('p', { class: 'project-card-description' }, highlight(project.description, targets)) : null,
+    // Une seule phrase dans un seul élément : l'écart de la ligne flexible
+    // ne sépare que la phrase et la pastille « nouveau ».
     el('p', { class: 'meta-line' },
-      plural(project._count, 'entrée', 'entrées'),
-      last ? [' · dernière activité ', timeElement(last)] : null,
+      el('span', null, plural(project._count, 'entrée', 'entrées'), last ? [' · dernière activité ', timeElement(last)] : null),
       isNew({ _time: project._last }, since) ? newBadge() : null),
     project._mainLink ? el('div', { class: 'actions' }, mainLinkButton(project._mainLink, project.nom)) : null);
 }

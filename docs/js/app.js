@@ -2,7 +2,7 @@
    Modules ES sans dépendance ; toutes les données viennent de data.json,
    déjà préparé par scripts/export.py (titres, résumés, projets, liens). */
 import { loadData, prepare, DataError } from './donnees.js';
-import { parseHash, searchHash, entriesHash, defaultFilters } from './routes.js';
+import { parseHash, searchHash, entriesHash, projectHash, defaultFilters } from './routes.js';
 import { el, plural, formatLong, lastVisit } from './composants.js';
 import { createListView } from './vues/entrees.js';
 import { createEntryView } from './vues/fiche.js';
@@ -36,6 +36,8 @@ const state = {
   route: null,
   entryDepth: 0,         // fiches ouvertes depuis la vue d'origine (pour « Retour »)
   openedId: '',          // dernière fiche ouverte, pour lui rendre le focus au retour
+  projectOrigin: null,   // { hash, id } : liste (accueil, résultats) d'où un projet a été ouvert
+  returnFocus: '',       // au retour vers une page : ancre du lien qui reprend le focus
   firstRender: true,     // premier affichage : le focus reste en haut de page
 };
 
@@ -135,12 +137,16 @@ function show(section) {
   }
 }
 
-/* Focus après l'affichage d'une page : au retour d'une fiche, sur le lien de
-   cette fiche ; sinon sur le titre de la page, sauf au premier affichage et
-   pendant la frappe dans la recherche. */
+/* Focus après l'affichage d'une page : au retour (d'une fiche, ou d'un projet
+   vers la liste d'où il a été ouvert), position rendue et focus sur le lien
+   quitté, de préférence celui qui est visible ; sinon sur le titre de la page,
+   sauf au premier affichage et pendant la frappe dans la recherche. */
 function focusView(returning) {
-  if (returning && state.openedId) {
-    const link = dom.pageView.querySelector('a[href="#/entree/' + CSS.escape(state.openedId) + '"]');
+  if (returning && state.returnFocus) {
+    window.scrollTo(0, state.scroll.get(state.lastListHash) || 0);
+    const links = Array.from(dom.pageView.querySelectorAll('a[href="' + CSS.escape(state.returnFocus) + '"]'));
+    const visible = (link) => { const box = link.getBoundingClientRect(); return box.bottom > 0 && box.top < window.innerHeight; };
+    const link = links.find(visible) || links[0];
     if (link) { link.focus({ preventScroll: true }); return; }
   }
   if (state.firstRender || document.activeElement === dom.search) return;
@@ -178,8 +184,27 @@ function route() {
     openEntry(next, previous);
     return;
   }
-  const returning = Boolean(previous && previous.view === 'entry' && !state.typing);
-  state.lastListHash = location.hash || '#/';
+  const hash = location.hash || '#/';
+  // Retour : depuis une fiche, ou depuis une page projet vers la liste
+  // (accueil, résultats) d'où ce projet a été ouvert ; l'origine survit aux
+  // fiches et projets ouverts depuis cette page, pas au passage par une autre liste.
+  const origin = state.projectOrigin;
+  const fromProject = Boolean(previous && previous.view === 'project' && origin && origin.hash === hash);
+  const returning = Boolean(previous && (previous.view === 'entry' || fromProject) && !state.typing);
+  state.returnFocus = !returning ? ''
+    : fromProject ? projectHash(origin.id)
+    : (state.openedId ? '#/entree/' + state.openedId : '');
+  if (next.view === 'project') {
+    if (previous && (previous.view === 'home' || previous.view === 'search')) {
+      state.projectOrigin = { hash: state.lastListHash, id: next.id };
+    }
+    // Nouvelle entrée d'historique (lien, barre d'adresse) : on note si elle
+    // suit l'accueil ; « ← Tous les projets » y revient alors en arrière.
+    if (history.state === null) history.replaceState({ fromHome: Boolean(previous && previous.view === 'home') }, '');
+  } else {
+    state.projectOrigin = null;
+  }
+  state.lastListHash = hash;
   renderNav(next.view);
   // Hors de la recherche, le champ ne montre pas une requête qui ne filtre
   // plus rien (la fiche, traitée plus haut, garde celle d'où elle vient).

@@ -65,3 +65,75 @@ test('Échap dans la recherche : retour à la vue de départ', async () => {
   assert.equal(await page.inputValue('#search-input'), '');
   await terminer(page);
 });
+
+/* Page défilée jusqu'au lien, position notée, clic : page projet ouverte. */
+async function ouvrirProjetDepuis(page, lien) {
+  await lien.scrollIntoViewIfNeeded();
+  const position = await page.evaluate(() => Math.round(window.scrollY));
+  const href = await lien.getAttribute('href');
+  await lien.click();
+  await attendreAncre(page, href);
+  await page.locator('.project-head #titre-vue').waitFor();
+  return { position, href };
+}
+
+const etat = (page) => page.evaluate(() => ({
+  y: Math.round(window.scrollY), focus: document.activeElement?.getAttribute('href') || document.activeElement?.id,
+}));
+
+test('retour d’une page projet vers l’accueil (précédent) : position et focus sur la carte ouverte', async () => {
+  const page = await site.page({ donnees, mobile: true });
+  await page.goto(site.url('#/'));
+  await page.locator('.project-card').first().waitFor();
+  const { position, href } = await ouvrirProjetDepuis(page, page.locator('.project-card h3 a[href="#/projet/atelier"]'));
+  assert.ok(position > 0, 'accueil défilé avant le clic');
+  await page.goBack();
+  await page.locator('#titre-vue', { hasText: /^Projets$/ }).waitFor();
+  assert.deepEqual(await etat(page), { y: position, focus: href });
+  await terminer(page);
+});
+
+test('« ← Tous les projets » après l’accueil : retour arrière, position et focus rendus', async () => {
+  const page = await site.page({ donnees, mobile: true });
+  await page.goto(site.url('#/'));
+  await page.locator('.project-card').first().waitFor();
+  const { position, href } = await ouvrirProjetDepuis(page, page.locator('.project-card h3 a[href="#/projet/atelier"]'));
+  const longueur = await page.evaluate(() => history.length);
+  await page.getByRole('link', { name: '← Tous les projets' }).click();
+  await page.locator('#titre-vue', { hasText: /^Projets$/ }).waitFor();
+  assert.deepEqual(await etat(page), { y: position, focus: href });
+  assert.equal(await page.evaluate(() => history.length), longueur, 'aucune nouvelle entrée d’historique');
+  await terminer(page);
+});
+
+test('retour d’une page projet vers les résultats : position et focus sur le projet ouvert', async () => {
+  const page = await site.page({ donnees, mobile: true });
+  await page.goto(site.url('#/recherche?q=outils'));
+  await page.locator('#h-res-projets').waitFor();
+  const { position, href } = await ouvrirProjetDepuis(page, page.locator('#h-res-projets ~ .project-grid .project-card a').last());
+  assert.ok(position > 0, 'résultats défilés avant le clic');
+  await page.goBack();
+  await page.locator('#titre-vue', { hasText: 'Recherche' }).waitFor();
+  assert.deepEqual(await etat(page), { y: position, focus: href });
+  await terminer(page);
+});
+
+test('page projet ouverte sans passer par l’accueil : « ← Tous les projets » mène en haut du catalogue', async () => {
+  const page = await site.page({ donnees, mobile: true });
+  await page.goto(site.url('#/projet/atelier'));
+  await page.locator('.project-head #titre-vue').waitFor();
+  await page.getByRole('link', { name: '← Tous les projets' }).click();
+  await page.locator('#titre-vue', { hasText: /^Projets$/ }).waitFor();
+  assert.deepEqual(await etat(page), { y: 0, focus: 'titre-vue' });
+  // Accueil → projet → autre rubrique → autre projet → « Tous les projets » :
+  // ce n'est plus un retour vers la carte ouverte au départ.
+  await ouvrirProjetDepuis(page, page.locator('.project-card h3 a[href="#/projet/atelier"]'));
+  await page.click('#nav-entries');
+  await page.locator('#grid .card').first().waitFor();
+  await page.locator('#grid .project-tag').first().click();
+  await page.locator('.project-head #titre-vue').waitFor();
+  await page.getByRole('link', { name: '← Tous les projets' }).click();
+  await page.locator('#titre-vue', { hasText: /^Projets$/ }).waitFor();
+  assert.deepEqual(await etat(page), { y: 0, focus: 'titre-vue' });
+  await terminer(page);
+});

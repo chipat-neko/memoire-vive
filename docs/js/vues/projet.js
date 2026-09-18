@@ -105,8 +105,14 @@ export function createProjectView(ctx) {
       linksList(project, members),
       el('p', { class: 'project-dates' }, datesLine(members)));
 
+    const allProjects = el('a', { class: 'btn-secondary', href: '#/' }, '← Tous les projets');
+    allProjects.addEventListener('click', (event) => {
+      // Ouverte depuis l'accueil : revenir sur son entrée d'historique (position
+      // et focus rendus) plutôt qu'en créer une nouvelle.
+      if (history.state && history.state.fromHome) { event.preventDefault(); history.back(); }
+    });
     const children = [
-      el('nav', { class: 'page-nav', 'aria-label': 'Navigation' }, el('a', { class: 'btn-secondary', href: '#/' }, '← Tous les projets')),
+      el('nav', { class: 'page-nav', 'aria-label': 'Navigation' }, allProjects),
       head,
       ...sections.map((group) => section(group)),
       localSection(members),

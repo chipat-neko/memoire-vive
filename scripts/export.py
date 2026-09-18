@@ -246,6 +246,22 @@ def _read_json_config(path: Path) -> dict:
     return data
 
 
+def _tag_list(raw: dict, name: str) -> list[str]:
+    """
+    Liste de tags d'un réglage. Une chaîne seule vaut liste à un élément :
+    list("perso") donnerait ['p', 'e', 'r', 's', 'o'] et les entrées taguées
+    « perso » seraient publiées. Tout autre type est refusé plutôt qu'ignoré.
+    """
+    value = raw.get(name)
+    if value is None:
+        return []
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, list):
+        raise ExportError(f"{PROJECTS_CONFIG.name} : « {name} » doit être une liste de tags.")
+    return [str(tag) for tag in value if tag is not None and str(tag).strip()]
+
+
 def normalize_projects_config(raw: dict) -> dict:
     """
     Réglages des projets, toujours sous la forme v2. Une configuration v1
@@ -287,8 +303,8 @@ def normalize_projects_config(raw: dict) -> dict:
         "version": 2,
         "familles": familles,
         "projets": projets,
-        "tags_generiques": list(raw.get("tags_generiques") or []),
-        "tags_exclus": list(raw.get("tags_exclus") or []),
+        "tags_generiques": _tag_list(raw, "tags_generiques"),
+        "tags_exclus": _tag_list(raw, "tags_exclus"),
     }
 
 
@@ -299,8 +315,17 @@ def load_projects_config() -> dict:
 def load_entry_overrides() -> dict[str, dict]:
     """Corrections par entrée, indexées par les 12 premiers caractères du hash."""
     data = _read_json_config(ENTRIES_CONFIG)
-    return {str(key).lower()[:12]: value for key, value in data.items()
-            if not str(key).startswith("_") and isinstance(value, dict)}
+    overrides = {}
+    for key, value in data.items():
+        if str(key).startswith("_"):
+            continue  # « _aide » et autres commentaires
+        if not isinstance(value, dict):
+            # Ignorée sans bruit, une correction « "masquer": true » mal écrite
+            # laisserait l'entrée publiée : on refuse d'exporter.
+            raise ExportError(f"{ENTRIES_CONFIG.name} : la correction « {key} » doit être un objet JSON "
+                              '(par exemple { "masquer": true }).')
+        overrides[str(key).lower()[:12]] = value
+    return overrides
 
 
 def normalize_term(text: str) -> str:

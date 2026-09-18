@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { ouvrirSite, terminer, attendreAncre } from './outils.mjs';
-import { jeuDeTest, entreeTitree } from './donnees-test.mjs';
+import { jeuDeTest, entreeTitree, assembler, identifiant, MAINTENANT_TEST } from './donnees-test.mjs';
 
 let site;
 before(async () => { site = await ouvrirSite(); });
@@ -137,5 +137,31 @@ test('frappe depuis une fiche : le focus reste dans le champ, aucune touche perd
   await page.locator('#titre-vue', { hasText: 'jarvis archi' }).waitFor();
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'search-input');
   assert.equal(await page.inputValue('#search-input'), 'jarvis archi');
+  await terminer(page);
+});
+
+test('résultats : 6 projets d’abord, puis « Afficher les N projets » (focus sur le premier ajouté)', async () => {
+  const projets = {};
+  const entrees = [];
+  for (let i = 0; i < 9; i++) {
+    projets['monde-' + i] = { nom: 'Monde ' + i, famille: 'jeux', description: null };
+    entrees.push({
+      id: identifiant(900 + i), titre: 'Carnet ' + i, resume: '', contenu: 'x', type: 'note', tags: [], projet: 'monde-' + i,
+      cree_le: new Date(Date.parse(MAINTENANT_TEST) - (i + 1) * 3600000).toISOString(), modifie_le: null, liens: [],
+      lien_principal: null, corrige: false, voisins: [],
+    });
+  }
+  const page = await site.page({ donnees: assembler(entrees, { projets }) });
+  await page.goto(site.url('#/recherche?q=jeu'));
+  await page.locator('#h-res-projets').waitFor();
+  const cartes = page.locator('#h-res-projets ~ .project-grid .project-card');
+  assert.equal(await cartes.count(), 6);
+  assert.match((await page.textContent('#results-count')).replace(/\s/g, ' '), /^9 projets/);
+  const bouton = page.getByRole('button', { name: 'Afficher les 9 projets' });
+  await bouton.click();
+  assert.equal(await cartes.count(), 9);
+  assert.equal(await bouton.count(), 0);
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('href')),
+    await cartes.nth(6).locator('a').first().getAttribute('href'));
   await terminer(page);
 });

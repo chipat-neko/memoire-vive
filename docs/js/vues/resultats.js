@@ -7,6 +7,7 @@ import { el, plural, card, projectCard, typeBadge } from '../composants.js';
 
 const TOP = 5;          // meilleurs résultats dont on suit les voisins
 const RELATED_MAX = 6;  // entrées « En rapport » au plus
+const PROJECTS_SHOWN = 6; // projets affichés avant « Afficher les N projets »
 
 /* Voisins des meilleurs résultats, absents des résultats, classés par score
    de voisinage cumulé (à égalité : le plus récent). */
@@ -26,7 +27,7 @@ export function relatedEntries(top, inResults, max = RELATED_MAX) {
 
 export function createResultsView(ctx) {
   const { config, state, dom } = ctx;
-  let current = { q: null, shown: config.pageSize };
+  let current = { q: null, shown: config.pageSize, allProjects: false };
 
   /* Entrées trouvées, de la meilleure à la moins bonne (à égalité : la plus
      récente), et cibles du surlignage. */
@@ -54,7 +55,7 @@ export function createResultsView(ctx) {
   function showResults(q, { returning = false } = {}) {
     ctx.show(dom.pageView);
     if (dom.search.value.trim() !== q) dom.search.value = q;
-    if (q !== current.q) current = { q, shown: config.pageSize };
+    if (q !== current.q) current = { q, shown: config.pageSize, allProjects: false };
     render(returning);
   }
 
@@ -86,10 +87,26 @@ export function createResultsView(ctx) {
         el('a', { class: 'btn-secondary', href: '#/entrees' }, 'Voir toutes les entrées')));
     }
     if (projects.projects.length) {
-      children.push(el('section', { class: 'results-section', 'aria-labelledby': 'h-res-projets' },
+      // Un mot courant trouve tous les projets d'une famille (son nom est
+      // cherché) : les meilleurs d'abord, pour que les entrées restent proches.
+      const total = projects.projects.length;
+      const all = current.allProjects || total <= PROJECTS_SHOWN;
+      const section = el('section', { class: 'results-section', 'aria-labelledby': 'h-res-projets' },
         el('h3', { id: 'h-res-projets' }, 'Projets'),
-        el('div', { class: 'project-grid' }, projects.projects.map((p) =>
-          projectCard(p, { since: state.since, targets: projects.targets, showFamily: true })))));
+        el('div', { class: 'project-grid' }, projects.projects.slice(0, all ? total : PROJECTS_SHOWN).map((p) =>
+          projectCard(p, { since: state.since, targets: projects.targets, showFamily: true }))));
+      if (!all) {
+        const more = el('button', { type: 'button', class: 'btn-secondary' }, 'Afficher les ' + total + ' projets');
+        more.addEventListener('click', () => {
+          current.allProjects = true;
+          render(false);
+          // Le focus passe au premier projet ajouté (le bouton disparaît).
+          const added = dom.pageView.querySelectorAll('#h-res-projets ~ .project-grid .project-card')[PROJECTS_SHOWN];
+          if (added) added.querySelector('a').focus();
+        });
+        section.append(el('div', { class: 'more' }, more));
+      }
+      children.push(section);
     }
     if (entries.entries.length) {
       const shown = entries.entries.slice(0, current.shown);

@@ -1,6 +1,6 @@
 /* Vue liste : filtres (recherche, type, projet, tag), tri, grille ou
    regroupement par projet, « Afficher plus ». */
-import { normalize, queryTerms, relevance } from '../recherche.js';
+import { normalize, search } from '../recherche.js';
 import { listHash } from '../routes.js';
 import { el, plural, typeLabel, typeCount, formatDay, card, chip } from '../composants.js';
 import { NO_PROJECT } from '../donnees.js';
@@ -14,13 +14,22 @@ export function createListView(ctx) {
     return f.tri || (f.q ? 'pertinence' : 'recent');
   }
 
-  function matches(entry, terms, except) {
+  /* found : Map entrée → score de la recherche, ou null sans recherche. */
+  function matches(entry, found, except) {
     const f = state.filters;
     if (except !== 'type' && f.type && entry.type !== f.type) return false;
     if (except !== 'projet' && f.projet && entry._project !== f.projet) return false;
     if (f.tag && !entry._tags.includes(normalize(f.tag))) return false;
-    for (const term of terms) if (!entry._hay.includes(term)) return false;
-    return true;
+    return !found || found.has(entry);
+  }
+
+  function searched() {
+    if (!state.filters.q) return { found: null, targets: null };
+    const result = search(state.index, state.filters.q);
+    return {
+      found: new Map(result.hits.map((hit) => [state.entries[hit.doc], hit.score])),
+      targets: result.targets,
+    };
   }
 
   function typeRank(type) {
@@ -28,15 +37,14 @@ export function createListView(ctx) {
     return index === -1 ? state.typeOrder.length : index;
   }
 
-  function sortEntries(list, terms) {
+  function sortEntries(list, found) {
     const byRecent = (a, b) => b._time - a._time || (a.id < b.id ? -1 : 1);
     switch (effectiveSort()) {
       case 'ancien':
         return list.sort((a, b) => -byRecent(a, b));
-      case 'pertinence': {
-        const scores = new Map(list.map((e) => [e, relevance(e, terms)]));
-        return list.sort((a, b) => scores.get(b) - scores.get(a) || byRecent(a, b));
-      }
+      case 'pertinence':
+        // found vaut null quand la fiche trie toutes les entrées (entrée hors de la liste affichée).
+        return list.sort((a, b) => (found ? (found.get(b) || 0) - (found.get(a) || 0) : 0) || byRecent(a, b));
       case 'projet':
         return list.sort((a, b) =>
           (a._project === NO_PROJECT) - (b._project === NO_PROJECT)
@@ -49,8 +57,8 @@ export function createListView(ctx) {
   }
 
   function filtered() {
-    const terms = queryTerms(state.filters.q);
-    return { terms, list: sortEntries(state.entries.filter((e) => matches(e, terms)), terms) };
+    const { found, targets } = searched();
+    return { found, targets, list: sortEntries(state.entries.filter((e) => matches(e, found)), found) };
   }
 
   function showList(restoreScroll) {
@@ -70,7 +78,7 @@ export function createListView(ctx) {
 
   function renderList() {
     const f = state.filters;
-    const { terms, list } = filtered();
+    const { found, targets, list } = filtered();
     state.lastList = list;
 
     // Comparaison sans les espaces : ne pas effacer l'espace en cours de frappe.
@@ -82,8 +90,8 @@ export function createListView(ctx) {
       button.setAttribute('aria-pressed', String(button.dataset.view === f.vue));
     }
 
-    renderTypeChips(terms);
-    renderProjectChips(terms);
+    renderTypeChips(found);
+    renderProjectChips(found);
     renderActiveFilters();
 
     const total = state.entries.length;
@@ -110,12 +118,12 @@ export function createListView(ctx) {
     if (f.vue === 'projets') {
       dom.grid.hidden = true;
       dom.groups.hidden = false;
-      renderGroups(list, terms);
+      renderGroups(list, targets);
     } else {
       dom.groups.hidden = true;
       dom.grid.hidden = false;
       const fragment = document.createDocumentFragment();
-      for (const entry of list.slice(0, state.shown)) fragment.append(card(entry, terms));
+      for (const entry of list.slice(0, state.shown)) fragment.append(card(entry, targets));
       dom.grid.append(fragment);
       const remaining = list.length - state.shown;
       if (remaining > 0) {
@@ -131,8 +139,8 @@ export function createListView(ctx) {
     return button;
   }
 
-  function renderTypeChips(terms) {
-    const pool = state.entries.filter((e) => matches(e, terms, 'type'));
+  function renderTypeChips(found) {
+    const pool = state.entries.filter((e) => matches(e, found, 'type'));
     const counts = new Map();
     for (const entry of pool) counts.set(entry.type, (counts.get(entry.type) || 0) + 1);
     const current = state.filters.type;
@@ -144,8 +152,8 @@ export function createListView(ctx) {
     dom.typeChips.replaceChildren(...chips);
   }
 
-  function renderProjectChips(terms) {
-    const pool = state.entries.filter((e) => matches(e, terms, 'projet'));
+  function renderProjectChips(found) {
+    const pool = state.entries.filter((e) => matches(e, found, 'projet'));
     const counts = new Map();
     for (const entry of pool) counts.set(entry._project, (counts.get(entry._project) || 0) + 1);
     const current = state.filters.projet;
@@ -172,7 +180,7 @@ export function createListView(ctx) {
     if (hidden > 0) {
       chips.push(chip('+ ' + hidden + ' autres', null, false, () => {
         state.showAllProjects = true;
-        renderProjectChips(queryTerms(state.filters.q));
+        renderProjectChips(searched().found);
         // Le focus va sur le premier projet qui vient d'apparaître.
         const first = dom.projectChips.querySelectorAll('.chip')[visible.length + 1];
         if (first) first.focus();
@@ -180,7 +188,7 @@ export function createListView(ctx) {
     } else if (state.showAllProjects && keys.length > config.projectChips + 1) {
       chips.push(chip('Réduire', null, false, () => {
         state.showAllProjects = false;
-        renderProjectChips(queryTerms(state.filters.q));
+        renderProjectChips(searched().found);
         const more = dom.projectChips.querySelector('[data-focus-key="projets:plus"]');
         if (more) more.focus();
       }, 'projets:moins', 'more-chip'));
@@ -205,7 +213,7 @@ export function createListView(ctx) {
     dom.activeFilters.replaceChildren(...items);
   }
 
-  function renderGroups(list, terms) {
+  function renderGroups(list, targets) {
     const groups = new Map();
     for (const entry of list) {
       if (!groups.has(entry._project)) groups.set(entry._project, []);
@@ -231,7 +239,7 @@ export function createListView(ctx) {
           + (lastDate ? ' — dernière le ' + formatDay(lastDate) : '')));
 
       const shown = single ? members : members.slice(0, config.groupPreview);
-      const grid = el('div', { class: 'grid' }, shown.map((entry) => card(entry, terms)));
+      const grid = el('div', { class: 'grid' }, shown.map((entry) => card(entry, targets)));
       const section = el('section', { class: 'group', 'aria-label': name }, head, grid);
       if (members.length > shown.length) {
         section.append(el('div', { class: 'group-more' },

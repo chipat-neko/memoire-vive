@@ -95,11 +95,12 @@ export async function copy(text, label) {
   toast(label || 'Copié.');
 }
 
-/* Surligne sans innerHTML : les plages viennent de recherche.js. */
-export function highlight(text, terms) {
+/* Surligne sans innerHTML : les plages viennent de recherche.js
+   (targets : cibles renvoyées par search, ou null). */
+export function highlight(text, targets) {
   const fragment = document.createDocumentFragment();
   text = String(text || '');
-  const ranges = highlightRanges(text, terms);
+  const ranges = highlightRanges(text, targets);
   let cursor = 0;
   for (const [start, end] of ranges) {
     if (start > cursor) fragment.append(text.slice(cursor, start));
@@ -129,19 +130,19 @@ export function linksInfo(entry) {
   return parts.length ? el('span', { class: 'links-info' }, parts.join(' · ')) : null;
 }
 
-export function card(entry, terms) {
+export function card(entry, targets) {
   const tagsShown = entry.tags.slice(0, 5);
   const extraTags = entry.tags.length - tagsShown.length;
   return el('article', { class: 'card' },
     el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet ? projectButton(entry) : null),
-    el('h3', null, el('a', { href: entryHash(entry) }, highlight(entry.titre, terms))),
-    entry.resume ? el('p', { class: 'resume' }, highlight(entry.resume, terms)) : null,
+    el('h3', null, el('a', { href: entryHash(entry) }, highlight(entry.titre, targets))),
+    entry.resume ? el('p', { class: 'resume' }, highlight(entry.resume, targets)) : null,
     el('div', { class: 'meta-line' },
       el('time', { datetime: entry.cree_le }, formatDay(entry.cree_le)),
       linksInfo(entry)),
     tagsShown.length ? el('ul', { class: 'tags', 'aria-label': 'Tags' },
       tagsShown.map((tag) => el('li', null,
-        el('button', { type: 'button', class: 'tag', 'data-action': 'tag', 'data-tag': tag }, highlight(tag, terms)))),
+        el('button', { type: 'button', class: 'tag', 'data-action': 'tag', 'data-tag': tag }, highlight(tag, targets)))),
       extraTags > 0 ? el('li', { class: 'tag-more' }, '+' + extraTags) : null) : null,
     el('div', { class: 'actions' },
       el('a', { class: 'btn-primary', href: entryHash(entry), 'aria-label': 'Voir la fiche : ' + entry.titre }, 'Voir la fiche')),

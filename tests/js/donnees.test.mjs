@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData, prepare, DataError, NO_PROJECT } from '../../docs/js/donnees.js';
+import { search } from '../../docs/js/recherche.js';
 
 function reponse(corps, { status = 200, type = 'application/json' } = {}) {
   return async () => new Response(corps, { status, headers: { 'Content-Type': type } });
@@ -39,7 +40,6 @@ test('prepare : champs dérivés, projets et ordre des types', () => {
   });
   const [a, b] = model.entries;
   assert.equal(a._short, 'abcdef123456');
-  assert.equal(a._title, 'le coeur');
   assert.equal(a._projectName, 'Alpha');
   assert.deepEqual([a._online, a._invalid, a._local], [1, 1, 1]);
   assert.equal(b._project, NO_PROJECT);
@@ -48,4 +48,5 @@ test('prepare : champs dérivés, projets et ordre des types', () => {
   assert.deepEqual(b.tags, []);
   assert.deepEqual(model.typeOrder, ['note', 'zeta']);
   assert.equal(model.projects.get('alpha').nom, 'Alpha');
+  assert.deepEqual(search(model.index, 'coeur alpha').hits.map((h) => h.doc), [0]);
 });

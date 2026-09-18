@@ -21,6 +21,7 @@ const state = {
   entries: [],
   projects: new Map(),
   typeOrder: [],
+  index: null,           // index de recherche (recherche.js)
   filters: { q: '', type: '', projet: '', tag: '', tri: '', vue: 'grille' },
   shown: CONFIG.pageSize,
   showAllProjects: false,
@@ -76,6 +77,7 @@ function init(data) {
   state.entries = model.entries;
   state.projects = model.projects;
   state.typeOrder = model.typeOrder;
+  state.index = model.index;
   renderStats();
   dom.status.hidden = true;
   route();

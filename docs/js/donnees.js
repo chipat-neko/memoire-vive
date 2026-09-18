@@ -1,6 +1,6 @@
 /* Données : chargement de data.json (messages d'erreur clairs) et
    préparation du modèle affiché (champs dérivés, projets, ordre des types). */
-import { normalize } from './recherche.js';
+import { normalize, buildIndex } from './recherche.js';
 import { typeLabel, isWebUrl } from './composants.js';
 
 export const NO_PROJECT = '_aucun';
@@ -52,18 +52,9 @@ export function prepare(data) {
     const liens = Array.isArray(entry.liens) ? entry.liens.filter((l) => l && l.valeur) : [];
     const project = entry.projet ? projects.get(entry.projet) : null;
     const projectName = project ? project.nom : (entry.projet || 'Sans projet');
-    const meta = normalize([tags.join(' '), projectName, entry.projet, typeLabel(entry.type), entry.type].join(' '));
-    const title = normalize(entry.titre);
-    const resume = normalize(entry.resume);
-    const content = normalize(entry.contenu);
     return Object.assign({}, entry, {
       tags,
       liens,
-      _title: title,
-      _resume: resume,
-      _content: content,
-      _meta: meta,
-      _hay: [title, resume, content, meta, normalize(liens.map((l) => l.valeur).join(' '))].join('\n'),
       _tags: tags.map(normalize),
       _time: Date.parse(entry.cree_le) || 0,
       _project: entry.projet || NO_PROJECT,
@@ -79,5 +70,13 @@ export function prepare(data) {
   const present = Array.from(new Set(entries.map((e) => e.type)));
   const typeOrder = known.filter((t) => present.includes(t)).concat(present.filter((t) => !known.includes(t)).sort());
 
-  return { data, entries, projects, typeOrder };
+  // Index de recherche : titre ×6, projet/tags/type ×3, résumé ×2, texte ×1.
+  const index = buildIndex(entries.map((e) => ({
+    title: e.titre,
+    meta: [e._projectName, e.projet, e.tags.join(' '), typeLabel(e.type), e.type].join(' '),
+    resume: e.resume,
+    content: e.contenu,
+  })), data.synonymes);
+
+  return { data, entries, projects, typeOrder, index };
 }

@@ -241,6 +241,57 @@ export function assembler(entrees, { familles = FAMILLES, projets = PROJETS, syn
   };
 }
 
+/* Générateur pseudo-aléatoire déterministe (mulberry32). */
+function hasard(graine) {
+  let a = graine >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const MOTS_REELS = ['architecture', 'donjon', 'mémoire', 'réseau', 'réseaux', 'modèle', 'jeu', 'jeux', 'site',
+  'dépôt', 'export', 'recherche', 'session', 'contrôle', 'tour', 'carte', 'projet', 'jalon', 'décision', 'erreur',
+  'animal', 'animaux', 'vocal', 'local', 'synthèse', 'génération', 'interface', 'serveur', 'données', 'tableau',
+  'sécurité', 'intelligence', 'artificielle', 'graphique', 'cube', 'rivière', 'monstre', 'salle', 'trésor'];
+const SYLLABES = ['ba', 'ce', 'di', 'fo', 'gu', 'la', 'me', 'ni', 'po', 'ru', 'sa', 'te', 'vi', 'zo', 'cha',
+  'pre', 'tra', 'gne', 'lou', 'ran', 'vin', 'mon', 'deur', 'lette', 'sion', 'qui', 'bro', 'fla', 'gri', 'sté'];
+
+/* Jeu volumineux pour la performance : `nombre` entrées d'une centaine de
+   mots tirés d'un vocabulaire d'environ 20 000 mots (loi très inégale,
+   comme un vrai texte), 40 projets répartis en 5 familles, des voisins. */
+export function jeuVolumineux(nombre = 3000) {
+  const alea = hasard(42);
+  const lexique = new Set(MOTS_REELS);
+  while (lexique.size < 20000) {
+    const n = 2 + Math.floor(alea() * 3);
+    let mot = '';
+    for (let i = 0; i < n; i++) mot += SYLLABES[Math.floor(alea() * SYLLABES.length)];
+    lexique.add(mot);
+  }
+  const mots = Array.from(lexique);
+  const tirer = () => mots[Math.floor(mots.length * alea() ** 3)];
+  const phrase = (n) => Array.from({ length: n }, tirer).join(' ');
+  const familles = ['jeux', 'cours', 'ia', 'outils', 'sites'].map((id, i) => ({ id, nom: 'Famille ' + id, couleur: i + 1 }));
+  const projets = {};
+  for (let p = 0; p < 40; p++) projets['projet-' + p] = { nom: 'Projet ' + p, famille: familles[p % 5].id, description: phrase(20) };
+  const types = ['note', 'milestone', 'decision', 'reference', 'architecture', 'error'];
+  const ids = Array.from({ length: nombre }, (_, n) => identifiant(n + 1000));
+  const entrees = ids.map((id, n) => {
+    const projet = 'projet-' + (n % 40);
+    const voisins = [1, 2, 3].map((k) => ({ id: ids[(n + k * 37) % nombre], score: 0.8 + k / 100 }));
+    return {
+      id, titre: `Projet ${n % 40} — ${phrase(5)}`, resume: phrase(18), contenu: phrase(80 + Math.floor(alea() * 80)),
+      type: types[n % types.length], tags: [projet, tirer()], projet,
+      cree_le: isoAvant(n), modifie_le: isoAvant(n), liens: [], lien_principal: null, corrige: false, voisins,
+    };
+  });
+  return assembler(entrees, { familles, projets });
+}
+
 /* Retrouve une entrée du jeu de test par le début de son titre. */
 export function entreeTitree(donnees, debut) {
   const entree = donnees.entrees.find((e) => e.titre.startsWith(debut));

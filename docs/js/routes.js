@@ -7,7 +7,7 @@
    Les anciennes ancres « #/?q=…&type=… » redirigent vers leur équivalent. */
 
 export const SORTS = ['recent', 'ancien', 'projet'];
-export const VIEWS = ['grille', 'projets'];
+export const VIEWS = ['grille', 'liste'];
 const FILTER_KEYS = ['type', 'projet', 'famille', 'tag'];
 
 export function defaultFilters() {

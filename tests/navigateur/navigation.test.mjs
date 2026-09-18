@@ -25,7 +25,7 @@ test('ancienne ancre avec recherche : redirigée vers #/recherche', async () => 
 });
 
 test('ancienne ancre de filtres : redirigée vers #/entrees, filtres gardés', async () => {
-  const page = await ouvrir('#/?type=milestone&tri=ancien');
+  const page = await ouvrir('#/?type=milestone&tri=ancien&vue=projets');
   assert.ok(page.url().endsWith('#/entrees?type=milestone&tri=ancien'), page.url());
   const badges = await page.locator('#grid .type-badge').allTextContents();
   assert.ok(badges.length > 0 && badges.every((b) => b === 'Jalon'), badges.join(', '));

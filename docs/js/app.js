@@ -13,7 +13,6 @@ const CONFIG = {
   dataUrl: 'data.json',
   supportedSchema: 1,
   pageSize: 60,       // cartes affichées avant « Afficher plus »
-  groupPreview: 6,    // entrées par projet dans la vue « Par projet »
   projectChips: 10,   // projets affichés avant « + N autres »
 };
 const THEME_KEY = 'memoire-vive:theme';
@@ -42,8 +41,9 @@ const $ = (id) => document.getElementById(id);
 const dom = {
   stats: $('stats'), listView: $('list-view'), entryView: $('entry-view'), pageView: $('page-view'),
   search: $('search-input'), sort: $('sort-select'),
-  typeChips: $('type-chips'), projectChips: $('project-chips'), activeFilters: $('active-filters'),
-  resultCount: $('result-count'), status: $('status'), grid: $('grid'), groups: $('groups'),
+  typeChips: $('type-chips'), familyChips: $('family-chips'), projectChips: $('project-chips'),
+  activeFilters: $('active-filters'), resultCount: $('result-count'), status: $('status'),
+  grid: $('grid'), lines: $('lines'),
   more: $('more'), moreBtn: $('more-btn'), empty: $('empty'),
   themeToggle: $('theme-toggle'), navHome: $('nav-home'), navEntries: $('nav-entries'),
 };
@@ -331,23 +331,16 @@ function bind() {
     const firstNew = state.shown;
     state.shown += CONFIG.pageSize;
     ctx.list.renderList();
-    // Le focus passe à la première carte ajoutée (le bouton peut disparaître).
-    const link = dom.grid.querySelectorAll('.card h3 a')[firstNew];
+    // Le focus passe à la première entrée ajoutée (le bouton peut disparaître).
+    const link = dom.listView.querySelectorAll('a.entry-link')[firstNew];
     if (link) link.focus();
   });
 
-  // Délégation : tags (cartes, fiches) et groupes de la vue « Par projet ».
+  // Délégation : tags, sur les cartes comme sur les fiches.
   document.addEventListener('click', (event) => {
-    const target = event.target.closest('[data-action]');
+    const target = event.target.closest('[data-action="tag"]');
     if (!target || !state.data) return;
-    const action = target.dataset.action;
-    if (action !== 'tag' && action !== 'group') return;
     event.preventDefault();
-    if (action === 'group') {
-      setFilters({ projet: target.dataset.project });
-      window.scrollTo(0, 0);
-      return;
-    }
     const patch = { tag: target.dataset.tag, type: '', projet: '', q: '' };
     if (dom.listView.hidden) {
       location.hash = ctx.list.listHash(Object.assign({}, state.filters, patch));

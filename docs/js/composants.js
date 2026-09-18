@@ -8,10 +8,6 @@ const TYPE_LABELS = {
   note: 'Note', milestone: 'Jalon', decision: 'Décision', reference: 'Référence',
   architecture: 'Architecture', observation: 'Observation', error: 'Erreur',
 };
-const TYPE_PLURALS = {
-  note: 'notes', milestone: 'jalons', decision: 'décisions', reference: 'références',
-  architecture: 'architectures', observation: 'observations', error: 'erreurs',
-};
 
 const fmtDay = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const fmtLong = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
@@ -47,11 +43,6 @@ export function typeLabel(type) {
 // Espace insécable entre le nombre et le mot.
 export function plural(count, one, many) {
   return count + '\xa0' + (count > 1 ? many : one);
-}
-
-export function typeCount(type, count) {
-  const one = typeLabel(type).toLowerCase();
-  return plural(count, one, TYPE_PLURALS[type] || one + 's');
 }
 
 // Date ISO ou horodatage en millisecondes.
@@ -197,7 +188,7 @@ export function card(entry, { targets = null, since = null, showProject = true }
   return el('article', { class: 'card', 'data-couleur': entry._family ? entry._family.couleur : null },
     el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet && showProject ? projectButton(entry) : null,
       isNew(entry, since) ? newBadge() : null),
-    el('h3', null, el('a', { href: entryHash(entry) }, highlight(entry.titre, targets))),
+    el('h3', null, el('a', { class: 'entry-link', href: entryHash(entry) }, highlight(entry.titre, targets))),
     entry.resume ? el('p', { class: 'resume' }, highlight(entry.resume, targets)) : null,
     el('div', { class: 'meta-line' }, timeElement(entry.cree_le), linksInfo(entry)),
     tagsShown.length ? el('ul', { class: 'tags', 'aria-label': 'Tags' },
@@ -208,6 +199,28 @@ export function card(entry, { targets = null, since = null, showProject = true }
       el('a', { class: 'btn-primary', href: entryHash(entry), 'aria-label': 'Voir la fiche : ' + entry.titre }, 'Voir la fiche'),
       mainLinkButton(entry._mainLink, entry.titre)),
   );
+}
+
+/* Icône du lien principal (vue « Liste ») : lien distinct du titre. */
+export function mainLinkIcon(link, name) {
+  if (!link) return null;
+  const label = link.genre === 'depot' ? 'Dépôt' : 'Ouvrir le site';
+  return el('a', {
+    class: 'main-link-icon', href: link.url, target: '_blank', rel: 'noopener noreferrer',
+    title: link.url, 'aria-label': label + ' : ' + name + ' (nouvel onglet)',
+  }, '↗');
+}
+
+/* Ligne d'une entrée (vue « Liste ») : type, titre, projet, date relative,
+   icône du lien principal. */
+export function entryLine(entry, { targets = null, since = null } = {}) {
+  return el('li', { class: 'entry-line', 'data-couleur': entry._family ? entry._family.couleur : null },
+    typeBadge(entry.type),
+    el('a', { class: 'entry-link', href: entryHash(entry) }, highlight(entry.titre, targets)),
+    isNew(entry, since) ? newBadge() : null,
+    el('span', { class: 'entry-line-project' }, entry.projet ? entry._projectName : 'Sans projet'),
+    timeElement(entry.cree_le),
+    mainLinkIcon(entry._mainLink, entry.titre));
 }
 
 /* Carte d'un projet : le nom mène à sa page, le bouton du lien principal

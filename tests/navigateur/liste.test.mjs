@@ -72,13 +72,40 @@ test('pastille de projet : filtre ce projet', async () => {
   await terminer(page);
 });
 
-test('vue par projet : un groupe par projet et « Sans projet » ; accords corrects', async () => {
+test('vue Liste : une ligne par entrée (type, titre, projet, date, icône du lien principal)', async () => {
   const page = await liste();
-  await page.getByRole('button', { name: 'Par projet' }).click();
-  await page.locator('#groups .group').first().waitFor();
-  assert.equal(await page.locator('#groups .group').count(), donnees.projets.length + 1);
-  const metas = await page.locator('.group-meta').allTextContents();
-  assert.ok(!metas.some((m) => /\b([2-9]|\d{2,})\s(note|jalon|décision|référence|erreur)\b/.test(m)), metas.join(' | '));
+  await page.getByRole('button', { name: 'Liste', exact: true }).click();
+  await attendreAncre(page, 'vue=liste');
+  assert.equal(await page.locator('#lines .entry-line').count(), 60);
+  assert.equal(await page.locator('#grid').isHidden(), true);
+  const ligne = page.locator('.entry-line').filter({ has: page.getByRole('link', { name: 'Jarvis — architecture', exact: true }) });
+  assert.equal(await ligne.locator('.type-badge').textContent(), 'Référence');
+  assert.equal(await ligne.locator('.entry-line-project').textContent(), 'Jarvis');
+  assert.equal(await ligne.getAttribute('data-couleur'), '3');
+  assert.match(await ligne.locator('time').getAttribute('title'), /2026/);
+  const icone = ligne.getByRole('link', { name: 'Ouvrir le site : Jarvis — architecture (nouvel onglet)' });
+  assert.equal(await icone.getAttribute('href'), 'https://exemple.github.io/jarvis/');
+  await page.click('#more-btn');
+  assert.equal(await page.locator('#lines .entry-line').count(), donnees.nb_entrees);
+  assert.equal(await page.evaluate(() => document.activeElement?.textContent), await page.locator('#lines .entry-link').nth(60).textContent());
+  assert.equal(await page.getByRole('button', { name: 'Par projet' }).count(), 0, 'vue « Par projet » supprimée');
+  await terminer(page);
+});
+
+test('filtre famille : ordre configuré, « Sans famille », filtre et URL', async () => {
+  const page = await liste();
+  const noms = (await page.locator('#family-chips .chip').allTextContents()).map((t) => t.replace(/\s*\d+$/, ''));
+  assert.deepEqual(noms, ['Toutes les familles', 'Jeux & univers de jeu', 'IA & simulations', 'Outils Claude', 'Sans famille']);
+  await page.locator('#family-chips .chip', { hasText: 'IA & simulations' }).click();
+  await attendreAncre(page, 'famille=ia');
+  const couleurs = await page.locator('#grid .card').evaluateAll((cs) => cs.map((c) => c.getAttribute('data-couleur')));
+  assert.equal(couleurs.length, 16);
+  assert.ok(couleurs.every((c) => c === '3'));
+  const projets = (await page.locator('#project-chips .chip').allTextContents()).map((t) => t.replace(/\s*\d+$/, ''));
+  assert.deepEqual(projets, ['Tous les projets', '📁︎ Jarvis']);
+  await page.locator('#family-chips .chip', { hasText: 'Sans famille' }).click();
+  await attendreAncre(page, 'famille=_aucune');
+  assert.equal(await page.locator('#grid .card').count(), 2);
   await terminer(page);
 });
 

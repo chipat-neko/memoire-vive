@@ -10,9 +10,9 @@ test('accueil : ancre vide, « # » ou « #/ »', () => {
 
 test('toutes les entrées : filtres lus et validés', () => {
   assert.deepEqual(parseHash('#/entrees'), { view: 'entries', filters: defaultFilters() });
-  assert.deepEqual(parseHash('#/entrees?type=note&projet=jarvis&famille=ia&tag=bug&tri=ancien&vue=projets').filters,
-    { type: 'note', projet: 'jarvis', famille: 'ia', tag: 'bug', tri: 'ancien', vue: 'projets' });
-  assert.deepEqual(parseHash('#/entrees?tri=pertinence&vue=mosaique').filters, defaultFilters());
+  assert.deepEqual(parseHash('#/entrees?type=note&projet=jarvis&famille=ia&tag=bug&tri=ancien&vue=liste').filters,
+    { type: 'note', projet: 'jarvis', famille: 'ia', tag: 'bug', tri: 'ancien', vue: 'liste' });
+  assert.deepEqual(parseHash('#/entrees?tri=pertinence&vue=projets').filters, defaultFilters());
 });
 
 test('recherche, projet, fiche', () => {
@@ -26,7 +26,7 @@ test('recherche, projet, fiche', () => {
 test('anciennes ancres : redirection vers leur équivalent', () => {
   assert.deepEqual(parseHash('#/?q=jarvis&type=milestone'), { view: 'redirect', hash: '#/recherche?q=jarvis' });
   assert.deepEqual(parseHash('#/?type=milestone&tri=ancien&vue=projets'),
-    { view: 'redirect', hash: '#/entrees?type=milestone&tri=ancien&vue=projets' });
+    { view: 'redirect', hash: '#/entrees?type=milestone&tri=ancien' });
   assert.deepEqual(parseHash('#/?q=%20%20&tri=pertinence'), { view: 'redirect', hash: '#/entrees' });
   assert.deepEqual(parseHash('#?projet=jarvis'), { view: 'redirect', hash: '#/entrees?projet=jarvis' });
 });

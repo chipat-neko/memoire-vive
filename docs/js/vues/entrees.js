@@ -1,9 +1,13 @@
-/* Vue liste : filtres (recherche, type, projet, tag), tri, grille ou
-   regroupement par projet, « Afficher plus ». */
+/* Toutes les entrées : filtres (type, famille, projet, tag), tri, vue
+   « Grille » (cartes) ou « Liste » (une ligne par entrée), « Afficher plus ». */
 import { normalize, search } from '../recherche.js';
 import { entriesHash, searchHash } from '../routes.js';
-import { el, plural, typeLabel, typeCount, formatDay, card, chip } from '../composants.js';
-import { NO_PROJECT } from '../donnees.js';
+import { el, plural, typeLabel, card, entryLine, chip } from '../composants.js';
+import { NO_PROJECT, NO_FAMILY } from '../donnees.js';
+
+export function familyKey(entry) {
+  return entry._family ? entry._family.id : NO_FAMILY;
+}
 
 export function createListView(ctx) {
   const { config, state, dom } = ctx;
@@ -18,6 +22,7 @@ export function createListView(ctx) {
   function matches(entry, found, except) {
     const f = state.filters;
     if (except !== 'type' && f.type && entry.type !== f.type) return false;
+    if (except !== 'famille' && f.famille && familyKey(entry) !== f.famille) return false;
     if (except !== 'projet' && f.projet && entry._project !== f.projet) return false;
     if (f.tag && !entry._tags.includes(normalize(f.tag))) return false;
     return !found || found.has(entry);
@@ -73,8 +78,8 @@ export function createListView(ctx) {
     renderList();
     if (restoreScroll) {
       window.scrollTo(0, state.scroll.get(state.lastListHash) || 0);
-      // Au retour d'une fiche, le focus revient sur sa carte.
-      const link = state.openedId && dom.listView.querySelector('.card h3 a[href="#/entree/' + state.openedId + '"]');
+      // Au retour d'une fiche, le focus revient sur son lien.
+      const link = state.openedId && dom.listView.querySelector('a.entry-link[href="#/entree/' + state.openedId + '"]');
       if (link) link.focus({ preventScroll: true });
     }
   }
@@ -94,6 +99,7 @@ export function createListView(ctx) {
     }
 
     renderTypeChips(found);
+    renderFamilyChips(found);
     renderProjectChips(found);
     renderActiveFilters();
 
@@ -103,12 +109,12 @@ export function createListView(ctx) {
       : plural(list.length, 'entrée', 'entrées') + ' sur ' + total;
 
     dom.grid.replaceChildren();
-    dom.groups.replaceChildren();
+    dom.lines.replaceChildren();
     dom.more.hidden = true;
 
     if (!list.length) {
       dom.grid.hidden = true;
-      dom.groups.hidden = true;
+      dom.lines.hidden = true;
       dom.empty.hidden = false;
       dom.empty.replaceChildren(
         el('p', null, total ? 'Aucune entrée ne correspond à ces critères.' : 'La mémoire est vide pour le moment.'),
@@ -118,27 +124,22 @@ export function createListView(ctx) {
     }
     dom.empty.hidden = true;
 
-    if (f.vue === 'projets') {
-      dom.grid.hidden = true;
-      dom.groups.hidden = false;
-      renderGroups(list, targets);
-    } else {
-      dom.groups.hidden = true;
-      dom.grid.hidden = false;
-      const fragment = document.createDocumentFragment();
-      for (const entry of list.slice(0, state.shown)) fragment.append(card(entry, { targets, since: state.since }));
-      dom.grid.append(fragment);
-      const remaining = list.length - state.shown;
-      if (remaining > 0) {
-        dom.more.hidden = false;
-        dom.moreBtn.textContent = 'Afficher plus (' + plural(remaining, 'restante', 'restantes') + ')';
-      }
+    const asLines = f.vue === 'liste';
+    const options = { targets, since: state.since };
+    dom.grid.hidden = asLines;
+    dom.lines.hidden = !asLines;
+    const container = asLines ? dom.lines : dom.grid;
+    container.append(...list.slice(0, state.shown).map((entry) => (asLines ? entryLine(entry, options) : card(entry, options))));
+    const remaining = list.length - state.shown;
+    if (remaining > 0) {
+      dom.more.hidden = false;
+      dom.moreBtn.textContent = 'Afficher plus (' + plural(remaining, 'restante', 'restantes') + ')';
     }
   }
 
   function resetButton() {
     const button = el('button', { type: 'button', class: 'btn-secondary' }, 'Effacer les filtres');
-    button.addEventListener('click', () => ctx.setFilters({ q: '', type: '', projet: '', tag: '' }));
+    button.addEventListener('click', () => ctx.setFilters({ q: '', type: '', famille: '', projet: '', tag: '' }));
     return button;
   }
 
@@ -153,6 +154,33 @@ export function createListView(ctx) {
         () => ctx.setFilters({ type: current === type ? '' : type }), 'type:' + type));
     }
     dom.typeChips.replaceChildren(...chips);
+  }
+
+  /* Familles dans l'ordre configuré, puis « Sans famille » ; le nom est écrit
+     (la couleur n'est jamais la seule information). */
+  function renderFamilyChips(found) {
+    if (!state.families.size) {
+      dom.familyChips.hidden = true;
+      dom.familyChips.replaceChildren();
+      return;
+    }
+    const pool = state.entries.filter((e) => matches(e, found, 'famille'));
+    const counts = new Map();
+    for (const entry of pool) counts.set(familyKey(entry), (counts.get(familyKey(entry)) || 0) + 1);
+    const current = state.filters.famille;
+    const keys = Array.from(state.families.keys());
+    if (counts.has(NO_FAMILY) || current === NO_FAMILY) keys.push(NO_FAMILY);
+    const chips = [chip('Toutes les familles', pool.length, !current, () => ctx.setFilters({ famille: '' }), 'famille:')];
+    for (const key of keys) {
+      const family = state.families.get(key);
+      const button = chip(family ? family.nom : 'Sans famille', counts.get(key) || 0, current === key,
+        () => ctx.setFilters({ famille: current === key ? '' : key }), 'famille:' + key);
+      if (family && family.couleur) button.setAttribute('data-couleur', family.couleur);
+      button.prepend(el('span', { class: 'family-dot', 'aria-hidden': 'true' }));
+      chips.push(button);
+    }
+    dom.familyChips.hidden = false;
+    dom.familyChips.replaceChildren(...chips);
   }
 
   function renderProjectChips(found) {
@@ -207,51 +235,13 @@ export function createListView(ctx) {
       pill.addEventListener('click', () => ctx.setFilters({ tag: '' }));
       items.push(el('span', null, 'Tag :'), pill);
     }
-    if (f.q || f.type || f.projet || f.tag) {
+    if (f.q || f.type || f.famille || f.projet || f.tag) {
       const clear = el('button', { type: 'button', class: 'link-button' }, 'Effacer tous les filtres');
-      clear.addEventListener('click', () => ctx.setFilters({ q: '', type: '', projet: '', tag: '' }));
+      clear.addEventListener('click', () => ctx.setFilters({ q: '', type: '', famille: '', projet: '', tag: '' }));
       items.push(clear);
     }
     dom.activeFilters.hidden = !items.length;
     dom.activeFilters.replaceChildren(...items);
-  }
-
-  function renderGroups(list, targets) {
-    const groups = new Map();
-    for (const entry of list) {
-      if (!groups.has(entry._project)) groups.set(entry._project, []);
-      groups.get(entry._project).push(entry);
-    }
-    const single = Boolean(state.filters.projet);
-    const fragment = document.createDocumentFragment();
-    for (const [key, members] of groups) {
-      const project = state.projects.get(key);
-      const name = key === NO_PROJECT ? 'Sans projet' : (project ? project.nom : key);
-      const typeCounts = new Map();
-      for (const entry of members) typeCounts.set(entry.type, (typeCounts.get(entry.type) || 0) + 1);
-      const breakdown = Array.from(typeCounts, ([type, count]) => typeCount(type, count)).join(' · ');
-      const lastDate = members.reduce((max, e) => Math.max(max, e._time), 0);
-
-      // « group » : filtre sur le projet en gardant recherche, type et tag,
-      // pour que le nombre annoncé soit celui qui s'affiche.
-      const title = el('button', { type: 'button', class: 'link-button group-title', 'data-action': 'group', 'data-project': key }, name);
-      const head = el('div', { class: 'group-head' },
-        el('h2', null, single ? name : title),
-        el('span', { class: 'group-meta' },
-          plural(members.length, 'entrée', 'entrées') + ' — ' + breakdown
-          + (lastDate ? ' — dernière le ' + formatDay(lastDate) : '')));
-
-      const shown = single ? members : members.slice(0, config.groupPreview);
-      const grid = el('div', { class: 'grid' }, shown.map((entry) => card(entry, { targets, since: state.since })));
-      const section = el('section', { class: 'group', 'aria-label': name }, head, grid);
-      if (members.length > shown.length) {
-        section.append(el('div', { class: 'group-more' },
-          el('button', { type: 'button', class: 'btn-secondary', 'data-action': 'group', 'data-project': key },
-            'Voir les ' + members.length + ' entrées de ce projet')));
-      }
-      fragment.append(section);
-    }
-    dom.groups.append(fragment);
   }
 
   return { showList, renderList, filtered, sortEntries, typeRank, listHash };

@@ -4,6 +4,7 @@ import { normalize, buildIndex } from './recherche.js';
 import { typeLabel, isWebUrl } from './composants.js';
 
 export const NO_PROJECT = '_aucun';
+export const NO_FAMILY = '_aucune';
 
 export class DataError extends Error {}
 

@@ -55,18 +55,19 @@
           </select>
           <div class="segmented" role="group" aria-label="Affichage">
             <button type="button" data-view="grille" aria-pressed="true">Grille</button>
-            <button type="button" data-view="projets" aria-pressed="false">Par projet</button>
+            <button type="button" data-view="liste" aria-pressed="false">Liste</button>
           </div>
         </div>
       </div>
 
       <div class="chips" id="type-chips" role="group" aria-label="Filtrer par type"></div>
+      <div class="chips" id="family-chips" role="group" aria-label="Filtrer par famille" hidden></div>
       <div class="chips" id="project-chips" role="group" aria-label="Filtrer par projet"></div>
       <div class="active-filters" id="active-filters" hidden></div>
 
       <p class="result-count" id="result-count" aria-live="polite" tabindex="-1"></p>
       <div class="grid" id="grid" hidden></div>
-      <div id="groups" hidden></div>
+      <ul class="entry-list" id="lines" aria-label="Entrées" hidden></ul>
       <div class="more" id="more" hidden><button type="button" id="more-btn" class="btn-secondary"></button></div>
       <div class="empty" id="empty" hidden></div>
     </section>

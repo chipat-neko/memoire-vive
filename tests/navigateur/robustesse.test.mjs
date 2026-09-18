@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { ouvrirSite, terminer } from './outils.mjs';
+import { ouvrirSite, terminer, attendreAncre } from './outils.mjs';
 import { jeuDeTest, SCHEMA_TEST } from './donnees-test.mjs';
 
 let site;
@@ -95,6 +95,40 @@ test('données mal formées que la préparation ne sait pas lire : message clair
   await page.locator('#status.error').waitFor();
   assert.match(await page.textContent('#status'), /format inattendu/);
   assert.equal(await page.getByRole('button', { name: 'Recharger la page' }).count(), 1);
+  await terminer(page);
+});
+
+test('frappe dans la recherche après un échec de chargement : ni erreur ni entrée d’historique', async () => {
+  const page = await site.page({ donnees: (r) => r.fulfill({ status: 404, body: 'absent' }) });
+  await page.goto(site.url());
+  await page.locator('#status.error').waitFor();
+  const avant = await page.evaluate(() => [location.hash, history.length]);
+  await page.locator('#search-input').pressSequentially('jeu', { delay: 40 });
+  await page.waitForTimeout(400);
+  assert.deepEqual(await page.evaluate(() => [location.hash, history.length]), avant);
+  assert.equal(await page.locator('#page-view').isHidden(), true);
+  assert.match(await page.textContent('#status'), /Aucune donnée publiée/);
+  assert.deepEqual(page.erreurs.filter((e) => !e.includes('status of 404')), []);
+  await page.context().close();
+});
+
+test('frappe pendant le chargement : la recherche tapée s’affiche une fois les données arrivées', async () => {
+  const corps = JSON.stringify(jeuDeTest());
+  let servir;
+  const pret = new Promise((ok) => { servir = ok; });
+  const page = await site.page({
+    donnees: async (r) => { await pret; await r.fulfill({ status: 200, contentType: 'application/json', body: corps }); },
+  });
+  await page.goto(site.url());
+  await page.locator('#search-input').pressSequentially('donjon', { delay: 40 });
+  await page.waitForTimeout(300); // la recherche différée (120 ms) part avant les données
+  assert.equal(await page.textContent('#status'), 'Chargement de la mémoire…');
+  servir();
+  await attendreAncre(page, '#/recherche?q=donjon');
+  await page.locator('#titre-vue', { hasText: 'donjon' }).waitFor();
+  assert.equal(await page.inputValue('#search-input'), 'donjon');
+  assert.ok(await page.locator('#page-view .card').count() > 0);
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'search-input');
   await terminer(page);
 });
 

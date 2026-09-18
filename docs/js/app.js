@@ -102,8 +102,15 @@ function init(data) {
   state.since = lastVisit(() => window.localStorage, data.genere_le || new Date().toISOString());
   renderStats();
   dom.status.hidden = true;
+  // Texte tapé pendant le chargement (la recherche attendait les données) :
+  // route() vide le champ hors de la page de résultats, on le reprend ensuite.
+  const pending = dom.search.value.trim();
   route();
   state.firstRender = false;
+  if (pending && !(state.route.view === 'search' && state.route.q === pending)) {
+    dom.search.value = pending;
+    typeSearch(pending);
+  }
 }
 
 function renderStats() {
@@ -232,6 +239,8 @@ function openEntry(next, previous) {
    Chaque frappe est mesurée (recherche et affichage) : mesure
    « memoire-vive:recherche », lue par le test de performance. */
 function typeSearch(q) {
+  // Données pas encore chargées (init() reprendra le texte) ou chargement échoué.
+  if (!state.data) return;
   if (!q) { leaveSearch(); return; }
   const onSearch = state.route && state.route.view === 'search';
   if (onSearch) history.replaceState(history.state, '', searchHash(q));
@@ -246,7 +255,7 @@ function typeSearch(q) {
 
 /* Recherche vidée : retour à la vue d'où la frappe est partie, sinon à l'accueil. */
 function leaveSearch() {
-  if (!state.route || state.route.view !== 'search') return;
+  if (!state.data || !state.route || state.route.view !== 'search') return;
   if (history.state && history.state.typed) {
     history.back();
   } else {

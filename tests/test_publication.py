@@ -117,7 +117,8 @@ class PublicationTest(unittest.TestCase):
         texte = json.dumps(self.donnees(), ensure_ascii=False)
         self.assertNotIn("requête secrète", texte)
         premiere = next(e for e in self.donnees()["entrees"] if e["id"] == f"{5:064x}")
-        self.assertEqual(premiere["voisins"], [{"id": f"{6:064x}", "score": 0.9}])
+        # 5 trouve 6 (0,9) ; 4 trouve 5 (0,9), donc 5 reçoit 4 par symétrie.
+        self.assertEqual(premiere["voisins"], [{"id": f"{4:064x}", "score": 0.9}, {"id": f"{6:064x}", "score": 0.9}])
         self.assertEqual(self.donnees()["schema"], 1)
 
     def test_03_no_git_puis_rattrapage(self):

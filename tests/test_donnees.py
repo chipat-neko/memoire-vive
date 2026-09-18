@@ -167,15 +167,52 @@ def entrees(n):
     return [{"id": f"{i:064x}", "contenu": f"texte {i}"} for i in range(1, n + 1)]
 
 
+def h(i):
+    return f"{i:064x}"
+
+
+def v(i, score):
+    return {"id": h(i), "score": score}
+
+
+class FauxSens:
+    """
+    Imite POST /api/search : similarités symétriques fabriquées entre les
+    entrées « texte i » (1,0 avec elle-même, 0,1 par défaut), meilleures d'abord.
+    La base peut contenir des entrées non publiées (masquées, exclues).
+    """
+    def __init__(self, base, scores):
+        self.base = list(base)
+        self.scores = {frozenset(paire): s for paire, s in scores.items()}
+        self.appels = []
+
+    def search(self, query, n):
+        i = int(query.split()[-1])
+        self.appels.append(i)
+        res = [(h(j), 1.0 if j == i else self.scores.get(frozenset((i, j)), 0.1)) for j in self.base]
+        return sorted(res, key=lambda r: -r[1])[:n]
+
+
 class VoisinsTest(unittest.TestCase):
     def test_filtre_soi_seuil_et_non_publiees(self):
         liste = entrees(3)
-        def search(query, n):
-            return [(f"{1:064x}", 1.0), (f"{2:064x}", 0.9), (f"{3:064x}", 0.5), (f"{99:064x}", 0.95)]
-        relies, echecs = export.add_neighbours(liste, search, threshold=0.75)
-        self.assertEqual(liste[0]["voisins"], [{"id": f"{2:064x}", "score": 0.9}])
-        self.assertEqual(liste[1]["voisins"], [{"id": f"{1:064x}", "score": 1.0}])
-        self.assertEqual((relies, echecs), (3, 0))
+        sens = FauxSens([1, 2, 3, 99], {(1, 2): 0.9, (2, 3): 0.5, (1, 99): 0.95})  # 99 : non publiée
+        bilan = export.add_neighbours(liste, sens.search, threshold=0.75)
+        self.assertEqual(liste[0]["voisins"], [v(2, 0.9)])
+        self.assertEqual(liste[1]["voisins"], [v(1, 0.9)])
+        self.assertEqual(liste[2]["voisins"], [])
+        self.assertEqual((bilan.linked, bilan.searches, bilan.failures, bilan.pending), (2, 3, 0, []))
+
+    def test_recalcul_complet_symetrique(self):
+        # Les 8 résultats de la recherche de 1 sont elle-même et 7 entrées non
+        # publiées : 1 ne voit pas 2. Mais 2 voit 1 : par symétrie, 1 gagne 2.
+        liste = entrees(2)
+        proches = {(1, 90 + k): 0.99 - k / 100 for k in range(7)}
+        sens = FauxSens([1, 2] + list(range(90, 97)), {**proches, (1, 2): 0.85})
+        export.add_neighbours(liste, sens.search)
+        self.assertNotIn(h(2), [r[0] for r in sens.search("texte 1", 8)])
+        self.assertEqual(liste[0]["voisins"], [v(2, 0.85)])
+        self.assertEqual(liste[1]["voisins"], [v(1, 0.85)])
 
     def test_au_plus_cinq(self):
         liste = entrees(8)
@@ -183,6 +220,7 @@ class VoisinsTest(unittest.TestCase):
             return [(e["id"], 0.9) for e in liste]
         export.add_neighbours(liste, search)
         self.assertEqual(len(liste[0]["voisins"]), export.MAX_VOISINS)
+        self.assertEqual([x["id"] for x in liste[0]["voisins"]], [h(i) for i in range(2, 7)])  # à égalité : par id
 
     def test_echecs_tolerés_puis_abandon(self):
         liste = entrees(10)
@@ -190,10 +228,228 @@ class VoisinsTest(unittest.TestCase):
         def search(query, n):
             appels.append(query)
             raise export.ExportError("indisponible")
-        relies, echecs = export.add_neighbours(liste, search)
-        self.assertEqual((relies, echecs), (0, 10))
+        bilan = export.add_neighbours(liste, search)
+        self.assertEqual((bilan.linked, bilan.searches, bilan.failures), (0, 3, 3))
+        self.assertEqual(bilan.pending, [e["id"] for e in liste], "toutes restent à chercher")
         self.assertEqual(len(appels), 3, "on arrête d'appeler après trois échecs consécutifs")
         self.assertTrue(all(e["voisins"] == [] for e in liste))
+
+
+class VoisinsIncrementauxTest(unittest.TestCase):
+    """Seules les entrées nouvelles sont cherchées : chaque recherche écrit dans la mémoire partagée."""
+    CONNUS = {h(1): [v(2, 0.9)], h(2): [v(1, 0.9), v(3, 0.85)], h(3): [v(2, 0.85)]}
+
+    def test_seule_la_nouvelle_entree_est_cherchee(self):
+        liste = entrees(4)
+        sens = FauxSens([1, 2, 3, 4], {(1, 2): 0.9, (2, 3): 0.85, (1, 4): 0.82})
+        bilan = export.add_neighbours(liste, sens.search, self.CONNUS, {h(1), h(2), h(3)})
+        self.assertEqual(sens.appels, [4])
+        self.assertEqual(liste[3]["voisins"], [v(1, 0.82)])
+        self.assertEqual(liste[0]["voisins"], [v(2, 0.9), v(4, 0.82)], "symétrie : 1 gagne la nouvelle entrée")
+        self.assertEqual(liste[1]["voisins"], [v(1, 0.9), v(3, 0.85)])
+        self.assertEqual(liste[2]["voisins"], [v(2, 0.85)])
+        self.assertEqual((bilan.linked, bilan.searches, bilan.failures, bilan.pending), (4, 1, 0, []))
+
+    def test_aucune_entree_nouvelle_aucune_recherche(self):
+        liste = entrees(3)
+        sens = FauxSens([1, 2, 3], {})
+        bilan = export.add_neighbours(liste, sens.search, self.CONNUS, {h(1), h(2), h(3)})
+        self.assertEqual(sens.appels, [])
+        self.assertEqual({e["id"]: e["voisins"] for e in liste}, self.CONNUS)
+        self.assertEqual((bilan.searches, bilan.pending), (0, []))
+
+    def test_symetrie_garde_les_cinq_meilleurs(self):
+        liste = entrees(8)
+        connus = {h(1): [v(2, 0.95), v(3, 0.9), v(4, 0.88), v(5, 0.85), v(6, 0.81)]}
+        sens = FauxSens(range(1, 9), {(1, 7): 0.87, (1, 8): 0.805})
+        export.add_neighbours(liste, sens.search, connus, {h(i) for i in range(1, 7)})
+        self.assertEqual(sens.appels, [7, 8])
+        self.assertEqual(liste[0]["voisins"], [v(2, 0.95), v(3, 0.9), v(4, 0.88), v(7, 0.87), v(5, 0.85)])
+        self.assertEqual(liste[7]["voisins"], [v(1, 0.805)])
+
+    def test_sans_doublon(self):
+        liste = entrees(2)
+        def search(query, n):
+            autre = h(2) if query.endswith(" 1") else h(1)
+            return [(autre, 0.85), (autre, 0.9)]
+        export.add_neighbours(liste, search)  # 1 et 2 nouvelles : chacune trouve l'autre
+        self.assertEqual(liste[0]["voisins"], [v(2, 0.9)])
+        self.assertEqual(liste[1]["voisins"], [v(1, 0.9)])
+
+    def test_entree_disparue_retiree_sans_recherche(self):
+        liste = [e for e in entrees(3) if e["id"] != h(3)]  # 3 masquée ou supprimée
+        sens = FauxSens([1, 2], {})
+        export.add_neighbours(liste, sens.search, self.CONNUS, {h(1), h(2), h(3)})
+        self.assertEqual(sens.appels, [], "pas de recherche pour combler")
+        self.assertEqual(liste[1]["voisins"], [v(1, 0.9)])
+
+    def test_seuil_courant_applique_aux_anciens_voisins(self):
+        liste = entrees(3)
+        connus = {h(1): [v(2, 0.9), v(3, 0.78)]}
+        export.add_neighbours(liste, FauxSens([], {}).search, connus, {h(1), h(2), h(3)}, threshold=0.8)
+        self.assertEqual(liste[0]["voisins"], [v(2, 0.9)])
+
+    def test_dry_run_aucune_recherche(self):
+        liste = entrees(4)
+        sens = FauxSens([1, 2, 3, 4], {(1, 4): 0.9})
+        bilan = export.add_neighbours(liste, sens.search, self.CONNUS, {h(1), h(2), h(3)}, allow_search=False)
+        self.assertEqual(sens.appels, [])
+        self.assertEqual(liste[3]["voisins"], [])
+        self.assertEqual(liste[0]["voisins"], [v(2, 0.9)], "les entrées inchangées gardent leurs voisins")
+        self.assertEqual((bilan.searches, bilan.pending), (0, [h(4)]))
+
+    def test_entree_en_attente_garde_ses_voisins_et_sera_cherchee(self):
+        liste = entrees(2)
+        connus = {h(1): [v(2, 0.9)], h(2): [v(1, 0.9)]}
+        bilan = export.add_neighbours(liste, FauxSens([], {}).search, connus, {h(1)}, allow_search=False)
+        self.assertEqual(liste[1]["voisins"], [v(1, 0.9)])
+        self.assertEqual(bilan.pending, [h(2)])
+
+    def test_echec_laisse_l_entree_en_attente(self):
+        liste = entrees(3)
+        sens = FauxSens([1, 2, 3], {(1, 3): 0.9})
+        def search(query, n):
+            if query.endswith(" 2"):
+                raise export.ExportError("délai dépassé")
+            return sens.search(query, n)
+        bilan = export.add_neighbours(liste, search)
+        self.assertEqual((bilan.searches, bilan.failures, bilan.pending), (3, 1, [h(2)]))
+        self.assertEqual(liste[0]["voisins"], [v(3, 0.9)])
+
+    def test_budget_de_temps(self):
+        liste = entrees(5)
+        maintenant = [1000.0]
+        sens = FauxSens(range(1, 6), {})
+        def search(query, n):
+            maintenant[0] += 50  # chaque recherche « dure » 50 s
+            return sens.search(query, n)
+        bilan = export.add_neighbours(liste, search, budget=120, clock=lambda: maintenant[0])
+        self.assertEqual(sens.appels, [1, 2, 3], "0 s, 50 s, 100 s : sous le budget ; 150 s : arrêt")
+        self.assertTrue(bilan.out_of_time)
+        self.assertEqual(bilan.pending, [h(4), h(5)])
+        self.assertEqual(bilan.failures, 0)
+
+
+class VoisinsPrecedentsTest(unittest.TestCase):
+    REGLAGE = {"seuil": export.SEUIL_VOISINS, "max": export.MAX_VOISINS}
+
+    def precedent(self, **racine):
+        donnees = {"schema": 1, "voisins_reglage": dict(self.REGLAGE), "voisins_en_attente": [], "entrees": [
+            {"id": h(1), "voisins": [v(2, 0.9)]},
+            {"id": h(2), "voisins": [v(1, 0.9), "pas un objet", {"id": ["x"], "score": 0.9},
+                                     {"id": h(3), "score": float("nan")}, {"id": h(3), "score": True},
+                                     {"id": h(3), "score": "0.9"}]},
+            {"id": h(3)},                      # pas de liste « voisins » : à chercher
+            "pas une entrée",
+        ]}
+        donnees.update(racine)
+        return donnees
+
+    def test_reutilisables(self):
+        connus, cherches = export.previous_neighbours(self.precedent(), self.REGLAGE)
+        self.assertEqual(connus, {h(1): [v(2, 0.9)], h(2): [v(1, 0.9)]})
+        self.assertEqual(cherches, {h(1), h(2)})
+
+    def test_entrees_en_attente_a_chercher(self):
+        connus, cherches = export.previous_neighbours(self.precedent(voisins_en_attente=[h(2), 7]), self.REGLAGE)
+        self.assertIn(h(2), connus, "elle garde ses voisins en attendant")
+        self.assertEqual(cherches, {h(1)})
+
+    def test_recalcul_complet(self):
+        for precedent in (None, "pas un objet", {"entrees": []}, self.precedent(voisins_reglage=None),
+                          self.precedent(voisins_reglage={"seuil": 0.75, "max": 5}),
+                          self.precedent(voisins_reglage={"seuil": export.SEUIL_VOISINS, "max": 8})):
+            self.assertIsNone(export.previous_neighbours(precedent, self.REGLAGE), precedent)
+
+
+class MiseAJourDesVoisinsTest(unittest.TestCase):
+    """update_neighbours : ce que fait main() (réglage, entrées en attente, recalcul complet)."""
+    def payload(self, n):
+        brut = [memoire(i * 16 ** 52, f"Projet Alpha : entrée. Numéro {i}", ["alpha"], minute=i)
+                for i in range(1, n + 1)]
+        return export.build_payload(brut, config())[0]
+
+    def sens(self, n):
+        # Hash fabriqués par memoire(i * 16**52) : identifiants courts distincts.
+        sens = FauxSens([], {})
+        def search(query, n_results):
+            i = int(query.split()[-1])
+            sens.appels.append(i)
+            return [(f"{j * 16 ** 52:064x}", 0.95 if abs(i - j) == 1 else 0.1) for j in range(1, n + 1) if j != i]
+        sens.search = search
+        return sens
+
+    def test_premier_export_puis_rien_de_neuf(self):
+        sens = self.sens(4)
+        premier = self.payload(4)
+        bilan = export.update_neighbours(premier, None, sens.search)
+        self.assertTrue(bilan.full)
+        self.assertEqual(sorted(sens.appels), [1, 2, 3, 4])
+        self.assertEqual(premier["voisins_reglage"], {"seuil": export.SEUIL_VOISINS, "max": export.MAX_VOISINS})
+        self.assertEqual(premier["voisins_en_attente"], [])
+        premier["empreinte"] = export.fingerprint(premier)
+        precedent = json.loads(json.dumps(premier))  # relu depuis data.json
+
+        sens.appels.clear()
+        second = self.payload(4)
+        bilan = export.update_neighbours(second, precedent, sens.search)
+        self.assertFalse(bilan.full)
+        self.assertEqual(sens.appels, [], "aucune entrée nouvelle : aucune recherche")
+        self.assertEqual(export.fingerprint(second), precedent["empreinte"], "« Contenu identique »")
+
+    def test_une_entree_nouvelle(self):
+        sens = self.sens(5)
+        premier = self.payload(4)
+        export.update_neighbours(premier, None, sens.search)
+        sens.appels.clear()
+        second = self.payload(5)
+        export.update_neighbours(second, json.loads(json.dumps(premier)), sens.search)
+        self.assertEqual(sens.appels, [5])
+        quatre = next(e for e in second["entrees"] if e["id"] == f"{4 * 16 ** 52:064x}")
+        self.assertIn({"id": f"{5 * 16 ** 52:064x}", "score": 0.95}, quatre["voisins"])
+
+    def test_recalcul_force_ou_reglage_change(self):
+        sens = self.sens(3)
+        premier = self.payload(3)
+        export.update_neighbours(premier, None, sens.search)
+        for precedent, force in ((premier, True), (dict(premier, voisins_reglage={"seuil": 0.75, "max": 5}), False)):
+            sens.appels.clear()
+            bilan = export.update_neighbours(self.payload(3), json.loads(json.dumps(precedent)), sens.search,
+                                             recompute=force)
+            self.assertTrue(bilan.full)
+            self.assertEqual(sorted(sens.appels), [1, 2, 3])
+
+    def test_dry_run(self):
+        sens = self.sens(3)
+        bilan = export.update_neighbours(self.payload(3), None, sens.search, allow_search=False)
+        self.assertEqual(sens.appels, [])
+        self.assertEqual((bilan.full, bilan.searches, len(bilan.pending)), (True, 0, 3))
+
+
+class DelaiDesRecherchesTest(unittest.TestCase):
+    def test_search_demande_dix_secondes(self):
+        api = export.Api({"api_url": "http://127.0.0.1:1", "api_key": "", "cf_client_id": "",
+                          "cf_client_secret": "", "local": True})
+        appels = []
+        api.request = lambda *args, **kwargs: appels.append(kwargs) or {"results": []}
+        api.search("texte", 8)
+        self.assertEqual(appels[0]["timeout"], export.SEARCH_TIMEOUT)
+        self.assertEqual(export.SEARCH_TIMEOUT, 10)
+        self.assertEqual(appels[0]["retries"], 1)
+
+    def test_request_transmet_le_delai(self):
+        api = export.Api({"api_url": "http://127.0.0.1:1", "api_key": "", "cf_client_id": "",
+                          "cf_client_secret": "", "local": True})
+        delais = []
+        def ouvrir(requete, timeout):
+            delais.append(timeout)
+            raise OSError("refusé")
+        with mock.patch.object(export._OPENER, "open", ouvrir):
+            with self.assertRaises(export.ExportError):
+                api.request("GET", "/x", retries=1, timeout=7)
+            with self.assertRaises(export.ExportError):
+                api.request("GET", "/x", retries=1)
+        self.assertEqual(delais, [7, export.HTTP_TIMEOUT])
 
 
 class ApiSearchTest(unittest.TestCase):
@@ -305,16 +561,16 @@ class VoisinsJamaisBloquantsTest(unittest.TestCase):
             liste = entrees(2)
             def search(query, n):
                 raise erreur
-            relies, echecs = export.add_neighbours(liste, search)
-            self.assertEqual((relies, echecs), (0, 2), repr(erreur))
+            bilan = export.add_neighbours(liste, search)
+            self.assertEqual((bilan.linked, bilan.failures), (0, 2), repr(erreur))
             self.assertTrue(all(e["voisins"] == [] for e in liste))
 
     def test_resultats_mal_formes_d_une_recherche_maison(self):
         liste = entrees(2)
         def search(query, n):
             return [("un seul élément",)]  # ne se déballe pas en (hash, score)
-        relies, echecs = export.add_neighbours(liste, search)
-        self.assertEqual((relies, echecs), (0, 2))
+        bilan = export.add_neighbours(liste, search)
+        self.assertEqual((bilan.linked, bilan.failures), (0, 2))
 
 
 class ValeursNonFiniesTest(unittest.TestCase):

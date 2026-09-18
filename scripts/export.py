@@ -46,6 +46,7 @@ import urllib.request
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_FILE = ROOT / "docs" / "data.json"
@@ -59,6 +60,7 @@ PAGE_SIZE = 100          # maximum accepté par GET /api/memories
 MAX_PAGES = 10_000       # garde-fou contre une pagination qui ne finirait pas
 HTTP_TIMEOUT = 30
 HTTP_RETRIES = 3
+SEARCH_TIMEOUT = 10      # délai d'une recherche de voisins (POST /api/search)
 SCHEMA_VERSION = 1
 
 # En dessous de cette proportion de l'export précédent, on refuse de publier
@@ -377,7 +379,7 @@ class Api:
             self.headers["CF-Access-Client-Secret"] = config["cf_client_secret"]
 
     def request(self, method: str, path: str, params: dict | None = None,
-                body: dict | None = None, retries: int = HTTP_RETRIES):
+                body: dict | None = None, retries: int = HTTP_RETRIES, timeout: float = HTTP_TIMEOUT):
         url = self.base + path
         if params:
             url += "?" + urllib.parse.urlencode(params)
@@ -390,7 +392,7 @@ class Api:
         for attempt in range(1, retries + 1):
             request = urllib.request.Request(url, data=data, headers=headers, method=method)
             try:
-                with _OPENER.open(request, timeout=HTTP_TIMEOUT) as response:
+                with _OPENER.open(request, timeout=timeout) as response:
                     content_type = response.headers.get("Content-Type", "")
                     raw_body = response.read()
                 if "json" not in content_type:
@@ -436,11 +438,16 @@ class Api:
         return self.request("GET", path, params)
 
     def search(self, query: str, n: int) -> list[tuple[str, float]]:
-        # Une seule tentative : les voisins ne valent pas d'attendre. Réponse
-        # mal formée (élément qui n'est pas un objet, "memory" absente, score
-        # non numérique) : l'élément est ignoré plutôt que de faire planter
-        # l'export entier — jamais autre chose qu'ExportError ne sort d'ici.
-        data = self.request("POST", "/api/search", body={"query": query, "n_results": n}, retries=1)
+        # Une seule tentative, délai court : les voisins ne valent pas d'attendre.
+        # Réponse mal formée (élément qui n'est pas un objet, "memory" absente,
+        # hash qui n'est pas une chaîne, score non numérique ou non fini) :
+        # l'élément est ignoré plutôt que de faire planter l'export entier —
+        # jamais autre chose qu'ExportError ne sort d'ici.
+        # Attention : chaque recherche écrit dans la mémoire partagée (compteur,
+        # date et dernières requêtes d'accès de chaque résultat), d'où le calcul
+        # incrémental des voisins.
+        data = self.request("POST", "/api/search", body={"query": query, "n_results": n},
+                            retries=1, timeout=SEARCH_TIMEOUT)
         results = data.get("results") if isinstance(data, dict) else None
         if not isinstance(results, list):
             raise ExportError("réponse inattendue de /api/search.")
@@ -815,43 +822,150 @@ def project_main_link(members: list[dict]) -> dict | None:
 # seule forme (deux « Projet X — architecture » de sujets sans rapport).
 SEUIL_VOISINS = 0.80
 MAX_VOISINS = 5
+# Chaque recherche écrit dans la mémoire partagée (compteur, date et dix
+# dernières requêtes d'accès de chaque entrée trouvée), sans option pour
+# l'éviter : seules les entrées nouvelles sont cherchées, les autres reprennent
+# leurs voisins de l'export précédent. Au-delà de ce temps de recherche cumulé
+# (tunnel lent en phase 2), on s'arrête ; les entrées restantes sont notées
+# dans « voisins_en_attente » et cherchées à l'export suivant.
+VOISINS_BUDGET_S = 120
 
 
-def add_neighbours(entries: list[dict], search, threshold: float = SEUIL_VOISINS) -> tuple[int, int]:
+class NeighboursResult(NamedTuple):
+    linked: int            # entrées qui ont au moins un voisin
+    searches: int          # recherches lancées (POST /api/search)
+    failures: int          # recherches en échec
+    pending: list          # ids des entrées dont la recherche reste à faire
+    out_of_time: bool      # budget de temps épuisé
+    full: bool = False     # recalcul complet (renseigné par update_neighbours)
+
+
+def neighbours_setting() -> dict:
+    """Réglage écrit dans data.json : s'il change, tous les voisins sont recalculés."""
+    return {"seuil": SEUIL_VOISINS, "max": MAX_VOISINS}
+
+
+def _is_neighbour(item) -> bool:
+    score = item.get("score") if isinstance(item, dict) else None
+    return (isinstance(item, dict) and isinstance(item.get("id"), str)
+            and isinstance(score, (int, float)) and not isinstance(score, bool) and math.isfinite(score))
+
+
+def previous_neighbours(previous, setting: dict) -> tuple[dict[str, list[dict]], set[str]] | None:
     """
-    Ajoute « voisins » à chaque entrée. search(texte, n) renvoie des couples
-    (hash, score). Jamais bloquant : un échec laisse la liste vide, et après
-    trois échecs consécutifs on n'interroge plus le dashboard.
-    Renvoie (entrées reliées, recherches échouées).
+    Voisins de l'export précédent : (voisins par id, ids déjà cherchés). None
+    s'il faut tout recalculer : pas d'export précédent, ou réglage des voisins
+    absent ou différent. Une entrée de « voisins_en_attente » garde ses voisins
+    (reçus par symétrie) mais sera cherchée.
     """
-    published = {entry["id"] for entry in entries}
-    linked = failures = consecutive = 0
+    if not isinstance(previous, dict) or previous.get("voisins_reglage") != setting:
+        return None
+    waiting = previous.get("voisins_en_attente")
+    waiting = {i for i in waiting if isinstance(i, str)} if isinstance(waiting, list) else set()
+    entries = previous.get("entrees")
+    known: dict[str, list[dict]] = {}
+    searched: set[str] = set()
+    for entry in entries if isinstance(entries, list) else []:
+        if not isinstance(entry, dict) or not isinstance(entry.get("id"), str) \
+                or not isinstance(entry.get("voisins"), list):
+            continue  # illisible : l'entrée sera traitée comme nouvelle
+        known[entry["id"]] = [{"id": n["id"], "score": n["score"]} for n in entry["voisins"] if _is_neighbour(n)]
+        if entry["id"] not in waiting:
+            searched.add(entry["id"])
+    return known, searched
+
+
+def add_neighbours(entries: list[dict], search, known: dict | None = None, searched: set | None = None,
+                   threshold: float = SEUIL_VOISINS, allow_search: bool = True,
+                   budget: float = VOISINS_BUDGET_S, clock=time.monotonic) -> NeighboursResult:
+    """
+    Ajoute « voisins » à chaque entrée : au plus MAX_VOISINS entrées publiées,
+    de score ≥ seuil, meilleures d'abord. search(texte, n) renvoie des couples
+    (hash, score).
+
+    Incrémental : known donne les voisins de l'export précédent par id, et
+    searched les entrées déjà cherchées (sans eux : recalcul complet). Une
+    entrée déjà cherchée reprend ses voisins, filtrés (encore publiés, seuil
+    courant). Une entrée nouvelle X est cherchée ; chaque résultat retenu Y
+    reçoit aussi X parmi ses candidats (symétrie), puis garde ses MAX_VOISINS
+    meilleurs. Une entrée disparue est seulement retirée des listes.
+
+    Jamais bloquant : une recherche en échec, quelle que soit l'exception,
+    laisse l'entrée en attente ; après trois échecs consécutifs, ou au-delà de
+    budget secondes de recherche cumulées, le dashboard n'est plus interrogé.
+    allow_search=False (--dry-run) : aucune recherche.
+    """
+    known = known or {}
+    searched = searched or set()
+    candidates: dict[str, dict[str, float]] = {entry["id"]: {} for entry in entries}
+
+    def offer(target: str, other: str, score: float) -> None:
+        # « not score >= » : un NaN échoue à toute comparaison, il est donc écarté.
+        if target == other or target not in candidates or other not in candidates \
+                or not math.isfinite(score) or not score >= threshold:
+            return
+        score = round(score, 3)  # arrondi avant le tri : même ordre une fois relu depuis data.json
+        best = candidates[target].get(other)
+        if best is None or score > best:  # sans doublon : le meilleur score d'un même voisin
+            candidates[target][other] = score
+
     for entry in entries:
-        entry["voisins"] = []
-        if consecutive >= 3:
-            failures += 1
+        for neighbour in known.get(entry["id"], []):
+            offer(entry["id"], neighbour["id"], neighbour["score"])
+
+    searches = failures = consecutive = 0
+    spent = 0.0
+    out_of_time = False
+    pending = []
+    for entry in entries:
+        if entry["id"] in searched:
             continue
+        if allow_search and consecutive < 3 and spent >= budget:
+            out_of_time = True
+        if not allow_search or consecutive >= 3 or out_of_time:
+            pending.append(entry["id"])
+            continue
+        searches += 1
+        start = clock()
         try:
-            # Toute exception compte comme un échec : les voisins sont facultatifs
-            # et ne doivent jamais bloquer la publication.
             results = [(other, float(score)) for other, score in search(entry["contenu"], MAX_VOISINS + 3)
                        if isinstance(other, str)]
         except Exception:
+            # Toute exception compte comme un échec : les voisins sont facultatifs
+            # et ne doivent jamais bloquer la publication.
             failures += 1
             consecutive += 1
+            pending.append(entry["id"])
             continue
+        finally:
+            spent += clock() - start
         consecutive = 0
-        seen = set()
         for other, score in results:
-            # « not score >= » : un NaN échoue à toute comparaison, il est donc écarté.
-            if (other == entry["id"] or other not in published or other in seen
-                    or not math.isfinite(score) or not score >= threshold):
-                continue
-            seen.add(other)
-            entry["voisins"].append({"id": other, "score": round(float(score), 3)})
-        entry["voisins"] = entry["voisins"][:MAX_VOISINS]
+            offer(entry["id"], other, score)
+            offer(other, entry["id"], score)  # symétrie
+
+    linked = 0
+    for entry in entries:
+        best = sorted(candidates[entry["id"]].items(), key=lambda item: (-item[1], item[0]))[:MAX_VOISINS]
+        entry["voisins"] = [{"id": other, "score": score} for other, score in best]
         linked += bool(entry["voisins"])
-    return linked, failures
+    return NeighboursResult(linked, searches, failures, pending, out_of_time)
+
+
+def update_neighbours(payload: dict, previous: dict | None, search, recompute: bool = False,
+                      allow_search: bool = True) -> NeighboursResult:
+    """
+    Voisins des entrées de payload, repris de l'export précédent quand son
+    réglage est le même (sinon, ou avec recompute, recalcul complet) ; pose à
+    la racine « voisins_reglage » et « voisins_en_attente ».
+    """
+    setting = neighbours_setting()
+    reuse = None if recompute else previous_neighbours(previous, setting)
+    known, searched = reuse if reuse is not None else ({}, set())
+    result = add_neighbours(payload["entrees"], search, known, searched, allow_search=allow_search)
+    payload["voisins_reglage"] = setting
+    payload["voisins_en_attente"] = result.pending
+    return result._replace(full=reuse is None)
 
 
 # --------------------------------------------------------------------------
@@ -1139,6 +1253,8 @@ def main() -> int:
     parser.add_argument("--no-git", action="store_true", help="écrit data.json sans commit ni push")
     parser.add_argument("--no-push", action="store_true", help="commit sans push")
     parser.add_argument("--force", action="store_true", help="publie même si le nombre d'entrées chute")
+    parser.add_argument("--recalculer-voisins", action="store_true",
+                        help="recalcule les voisins de toutes les entrées (une recherche par entrée)")
     args = parser.parse_args()
 
     if hasattr(sys.stdout, "reconfigure"):
@@ -1159,21 +1275,16 @@ def main() -> int:
         print(f"Échec : {err}", file=sys.stderr)
         return 1
 
-    linked, failures = add_neighbours(payload["entrees"], api.search)
-
     nb_links = Counter(link["type"] for e in payload["entrees"] for link in e["liens"])
     print(f"  {len(raw)} entrées lues, {payload['nb_entrees']} publiables, "
           f"{report['excluded']} exclues par tag, {report['masquees']} masquées, "
           f"{len(payload['projets'])} projets, "
-          f"liens : {nb_links['en_ligne']} en ligne / {nb_links['local']} locaux, "
-          f"voisins : {linked} entrées reliées.")
+          f"liens : {nb_links['en_ligne']} en ligne / {nb_links['local']} locaux.")
     if report["redactions"]:
         print(f"  ! {report['redactions']} secret(s) masqué(s) dans : {', '.join(report['redacted_entries'])}")
     if report["liens_refuses"]:
         print("  ! Lien principal configuré refusé, calcul automatique à la place : "
               + ", ".join(report["liens_refuses"]))
-    if failures:
-        print(f"  ! {failures} recherche(s) de voisins en échec : publié sans ces voisins.")
     if report["orphelines"]:
         print(f"  ! Corrections sans entrée correspondante : {', '.join(report['orphelines'])}")
 
@@ -1187,6 +1298,30 @@ def main() -> int:
         print(f"Échec : {payload['nb_entrees']} entrées contre {previous_count} au dernier export. "
               "Vérifier la base ; --force pour publier quand même.", file=sys.stderr)
         return 1
+
+    # Voisins après les garde-fous : un export refusé ne lance aucune recherche
+    # (chacune écrit dans la mémoire partagée), et --dry-run n'en lance jamais.
+    neighbours = update_neighbours(payload, previous, api.search, recompute=args.recalculer_voisins,
+                                   allow_search=not args.dry_run)
+    waiting = len(neighbours.pending)
+    if args.dry_run:
+        print(f"  Voisins : {neighbours.linked} entrées reliées (voisins repris de l'export précédent) ; "
+              "aucune recherche en --dry-run.")
+        if waiting and neighbours.full:
+            print(f"  Recalcul complet des voisins à l'export réel : {waiting} recherche(s).")
+        elif waiting:
+            print(f"  {waiting} nouvelle(s) entrée(s) : voisins calculés au prochain export réel.")
+    else:
+        print(f"  Voisins : {neighbours.linked} entrées reliées, {neighbours.searches} recherche(s)"
+              + (" (recalcul complet)." if neighbours.full else "."))
+        if neighbours.failures:
+            print(f"  ! {neighbours.failures} recherche(s) de voisins en échec : publié sans ces voisins.")
+        if neighbours.out_of_time:
+            print(f"  ! Budget de temps des voisins ({VOISINS_BUDGET_S} s) épuisé.")
+        if waiting:
+            print(f"  ! {waiting} entrée(s) encore sans recherche de voisins : reprise au prochain export.")
+        if neighbours.searches and not neighbours.failures and not neighbours.linked:
+            print("  ! Recherches faites, mais aucune entrée reliée : dashboard sans modèle d'embedding ?")
 
     try:
         payload["empreinte"] = fingerprint(payload)

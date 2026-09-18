@@ -429,6 +429,8 @@ class Api:
                     detail = err.read()[:200].decode("utf-8", "replace").strip()
                 except (OSError, http.client.HTTPException):
                     detail = ""
+                finally:
+                    err.close()
                 problem = f"le dashboard répond HTTP {err.code}" + (f" : {detail}" if detail else "")
             except urllib.error.URLError as err:
                 if isinstance(err.reason, ExportError):

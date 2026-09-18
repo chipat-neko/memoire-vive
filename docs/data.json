@@ -1,13 +1,13 @@
 {
  "schema": 1,
- "genere_le": "2026-09-18T06:36:17Z",
+ "genere_le": "2026-09-18T06:47:22Z",
  "source": "mcp-memory-service",
- "nb_entrees": 62,
+ "nb_entrees": 69,
  "types": {
   "note": 41,
-  "milestone": 12,
+  "milestone": 13,
+  "reference": 9,
   "decision": 5,
-  "reference": 3,
   "error": 1
  },
  "ordre_types": [
@@ -20,6 +20,83 @@
   "error"
  ],
  "projets": [
+  {
+   "id": "memoire-vive",
+   "nom": "Mémoire Vive",
+   "nb": 1,
+   "types": {
+    "milestone": 1
+   },
+   "premiere": "2026-09-18T06:46:26.560365Z",
+   "derniere": "2026-09-18T06:46:26.560365Z"
+  },
+  {
+   "id": "ce-ventre",
+   "nom": "ce ventre",
+   "nb": 1,
+   "types": {
+    "reference": 1
+   },
+   "premiere": "2026-09-18T06:46:23.329283Z",
+   "derniere": "2026-09-18T06:46:23.329283Z"
+  },
+  {
+   "id": "opti-route",
+   "nom": "Opti Route",
+   "nb": 1,
+   "types": {
+    "reference": 1
+   },
+   "premiere": "2026-09-18T06:46:21.506807Z",
+   "derniere": "2026-09-18T06:46:21.506807Z"
+  },
+  {
+   "id": "wiki-star-citizen",
+   "nom": "Wiki Star Citizen",
+   "nb": 2,
+   "types": {
+    "reference": 1,
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:03.589911Z",
+   "derniere": "2026-09-18T06:46:19.617551Z"
+  },
+  {
+   "id": "cours-graph",
+   "nom": "Atelier Game Art / cours_graph",
+   "nb": 2,
+   "types": {
+    "reference": 1,
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:41:36.994268Z",
+   "derniere": "2026-09-18T06:46:18.000574Z"
+  },
+  {
+   "id": "my-watch",
+   "nom": "My Watch",
+   "nb": 4,
+   "types": {
+    "reference": 2,
+    "decision": 1,
+    "milestone": 1
+   },
+   "premiere": "2026-09-17T17:17:31.352835Z",
+   "derniere": "2026-09-18T06:46:16.027360Z"
+  },
+  {
+   "id": "plan-min",
+   "nom": "plan-min",
+   "nb": 4,
+   "types": {
+    "reference": 1,
+    "decision": 1,
+    "milestone": 1,
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:23:20.575778Z",
+   "derniere": "2026-09-18T06:46:14.313882Z"
+  },
   {
    "id": "pont-memoire",
    "nom": "Pont mémoire",
@@ -246,16 +323,6 @@
    "derniere": "2026-09-17T18:19:07.741165Z"
   },
   {
-   "id": "wiki-star-citizen",
-   "nom": "Wiki Star Citizen",
-   "nb": 1,
-   "types": {
-    "note": 1
-   },
-   "premiere": "2026-09-17T18:19:03.589911Z",
-   "derniere": "2026-09-17T18:19:03.589911Z"
-  },
-  {
    "id": "void-atlas",
    "nom": "VOID ATLAS",
    "nb": 1,
@@ -346,16 +413,6 @@
    "derniere": "2026-09-17T17:41:51.906031Z"
   },
   {
-   "id": "cours-graph",
-   "nom": "Atelier Game Art / cours_graph",
-   "nb": 1,
-   "types": {
-    "note": 1
-   },
-   "premiere": "2026-09-17T17:41:36.994268Z",
-   "derniere": "2026-09-17T17:41:36.994268Z"
-  },
-  {
    "id": "code-ai",
    "nom": "CodeAI",
    "nb": 1,
@@ -436,33 +493,215 @@
    },
    "premiere": "2026-09-17T17:24:12.861991Z",
    "derniere": "2026-09-17T17:24:18.423835Z"
-  },
-  {
-   "id": "plan-min",
-   "nom": "plan-min",
-   "nb": 3,
-   "types": {
-    "decision": 1,
-    "milestone": 1,
-    "note": 1
-   },
-   "premiere": "2026-09-17T17:23:20.575778Z",
-   "derniere": "2026-09-17T17:23:25.549623Z"
-  },
-  {
-   "id": "my-watch",
-   "nom": "My Watch",
-   "nb": 3,
-   "types": {
-    "decision": 1,
-    "milestone": 1,
-    "reference": 1
-   },
-   "premiere": "2026-09-17T17:17:31.352835Z",
-   "derniere": "2026-09-17T17:17:36.470086Z"
   }
  ],
  "entrees": [
+  {
+   "id": "405b50d3efc0c8668968690c9885d25d071c8adbe30b05f9deafe5dfb19e9d3d",
+   "titre": "Projet Mémoire Vive — jalon livré le 18/09/2026",
+   "resume": "Site statique public qui affiche, regroupe, cherche et filtre toute la mémoire partagée, en ligne sur https://chipat-neko.github.io/memoire-vive/ (GitHub Pages, dossier docs/).",
+   "contenu": "Projet Mémoire Vive (D:\\memoire_vive, dépôt public github.com/chipat-neko/memoire-vive) — jalon livré le 18/09/2026 : site statique public qui affiche, regroupe, cherche et filtre toute la mémoire partagée, en ligne sur https://chipat-neko.github.io/memoire-vive/ (GitHub Pages, dossier docs/). Architecture : HTML/CSS/JS vanilla sans dépendance, design repris de l'artifact « Bibliothèque Claude », une fiche par entrée (#/entree/<id>) avec ses liens ; aucun appel réseau hors data.json. scripts/export.py (Python, bibliothèque standard) lit le dashboard local (web/app.py, port 8000, clé dans un .env non commité), masque les secrets, dérive titres, résumés, projets et liens (en_ligne ou local), écrit docs/data.json puis commit et push. Mise à jour manuelle : python scripts/export.py. Phase 2 prévue : le même script en GitHub Action quotidienne via un tunnel Cloudflare à adresse fixe ; seules l'URL et la clé changent de provenance.",
+   "type": "milestone",
+   "tags": [
+    "memoire-vive",
+    "projet",
+    "architecture",
+    "jalon"
+   ],
+   "cree_le": "2026-09-18T06:46:26.560365Z",
+   "modifie_le": "2026-09-18T06:46:26.560365Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/memoire-vive"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://chipat-neko.github.io/memoire-vive/"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\memoire_vive"
+    },
+    {
+     "type": "local",
+     "valeur": "port 8000"
+    }
+   ],
+   "projet": "memoire-vive"
+  },
+  {
+   "id": "c00af4126b6ba44d74280e826af95d34808340b2827bf9f7a27ccd07f75cbc80",
+   "titre": "Projet « ce ventre »",
+   "resume": "Site vitrine statique, sans framework ni dépendance externe, qui présente des études de faisabilité, plans 2D et maquettes 3D pour des projets de rénovation, extension ou transformation.",
+   "contenu": "Projet « ce ventre » (dépôt public github.com/chipat-neko/ce-ventre-site) : site vitrine statique, sans framework ni dépendance externe, qui présente des études de faisabilité, plans 2D et maquettes 3D pour des projets de rénovation, extension ou transformation. En ligne : https://chipat-neko.github.io/ce-ventre-site/ (GitHub Pages, branche master).",
+   "type": "reference",
+   "tags": [
+    "ce-ventre",
+    "projet",
+    "architecture",
+    "lien"
+   ],
+   "cree_le": "2026-09-18T06:46:23.329283Z",
+   "modifie_le": "2026-09-18T06:46:23.329283Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/ce-ventre-site"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://chipat-neko.github.io/ce-ventre-site/"
+    }
+   ],
+   "projet": "ce-ventre"
+  },
+  {
+   "id": "e738ec80ec6a11a98881c66cb1d145b24c5de6f7e605bf179209c77cfae14690",
+   "titre": "Projet Opti Route : application mobile d'optimisation de tournées de livraison multi-points pour un livreur…",
+   "resume": "Page en ligne : https://chipat-neko.github.io/opti_route/ (GitHub Pages, branche main).",
+   "contenu": "Projet Opti Route (dépôt public github.com/chipat-neko/opti_route) : application mobile d'optimisation de tournées de livraison multi-points pour un livreur, en Flutter/Dart, Android d'abord puis iOS. Page en ligne : https://chipat-neko.github.io/opti_route/ (GitHub Pages, branche main).",
+   "type": "reference",
+   "tags": [
+    "opti-route",
+    "projet",
+    "architecture",
+    "lien"
+   ],
+   "cree_le": "2026-09-18T06:46:21.506807Z",
+   "modifie_le": "2026-09-18T06:46:21.506807Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/opti_route"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://chipat-neko.github.io/opti_route/"
+    }
+   ],
+   "projet": "opti-route"
+  },
+  {
+   "id": "1f51b8a88ecb031f92fd42fb3dedb033bd1e222770b70f14ae4a0c05c6fa95aa",
+   "titre": "Wiki Star Citizen — site en ligne",
+   "resume": "https://wiki-ultime.vercel.app (itération « wiki-ultime », dépôt public github.com/chipat-neko/wiki-ultime, déployée sur Vercel), publiée sous le titre « SC Companion — Wiki Star Citizen FR » : vaisseaux, commerce, missions et guides pour l'Alpha 4.6.",
+   "contenu": "Wiki Star Citizen — site en ligne : https://wiki-ultime.vercel.app (itération « wiki-ultime », dépôt public github.com/chipat-neko/wiki-ultime, déployée sur Vercel), publiée sous le titre « SC Companion — Wiki Star Citizen FR » : vaisseaux, commerce, missions et guides pour l'Alpha 4.6.",
+   "type": "reference",
+   "tags": [
+    "wiki-star-citizen",
+    "projet",
+    "architecture",
+    "lien"
+   ],
+   "cree_le": "2026-09-18T06:46:19.617551Z",
+   "modifie_le": "2026-09-18T06:46:19.617551Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://wiki-ultime.vercel.app"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/wiki-ultime"
+    }
+   ],
+   "projet": "wiki-star-citizen"
+  },
+  {
+   "id": "668c921f271f4320ba3aa20213dc9fb4dfd0791637eb5b72afdb35e5a260c131",
+   "titre": "Atelier Game Art — site en ligne",
+   "resume": "https://chipat-neko.github.io/atelier-game-art/ (GitHub Pages, branche main ; dépôt public github.com/chipat-neko/atelier-game-art, remote de D:\\cours_graph).",
+   "contenu": "Atelier Game Art (cours_graph) — site en ligne : https://chipat-neko.github.io/atelier-game-art/ (GitHub Pages, branche main ; dépôt public github.com/chipat-neko/atelier-game-art, remote de D:\\cours_graph).",
+   "type": "reference",
+   "tags": [
+    "cours-graph",
+    "projet",
+    "architecture",
+    "lien"
+   ],
+   "cree_le": "2026-09-18T06:46:18.000574Z",
+   "modifie_le": "2026-09-18T06:46:18.000574Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://chipat-neko.github.io/atelier-game-art/"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/atelier-game-art"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\cours_graph"
+    }
+   ],
+   "projet": "cours-graph"
+  },
+  {
+   "id": "2e3d1d41f24d97100fb0644d7bd075fb083b1e12ac882d4964aeda577e74b414",
+   "titre": "My Watch — site en ligne",
+   "resume": "https://chipat-neko.github.io/my-watch/ (GitHub Pages servi depuis le dossier docs/ de la branche main du dépôt public github.com/chipat-neko/my-watch, remote de d:\\my_watch), page « My Watch — Suivi de séries & films ».",
+   "contenu": "My Watch — site en ligne : https://chipat-neko.github.io/my-watch/ (GitHub Pages servi depuis le dossier docs/ de la branche main du dépôt public github.com/chipat-neko/my-watch, remote de d:\\my_watch), page « My Watch — Suivi de séries & films ». L'application web reste hébergée sur Firebase Hosting (device-streaming-5450fe88.web.app).",
+   "type": "reference",
+   "tags": [
+    "my-watch",
+    "projet",
+    "architecture",
+    "lien"
+   ],
+   "cree_le": "2026-09-18T06:46:16.027360Z",
+   "modifie_le": "2026-09-18T06:46:16.027360Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://chipat-neko.github.io/my-watch/"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/my-watch"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://device-streaming-5450fe88.web.app"
+    },
+    {
+     "type": "local",
+     "valeur": "d:\\my_watch"
+    }
+   ],
+   "projet": "my-watch"
+  },
+  {
+   "id": "d6cd979dfe077b228fcaaec0abd9ae5ed9d0b6219e5440cc8b18b6ac10fb86ca",
+   "titre": "plan-min — site en ligne",
+   "resume": "https://chipat-neko.github.io/codex-minecraft/ (GitHub Pages, branche main ; dépôt public github.com/chipat-neko/codex-minecraft, qui est le remote de d:\\plan-min).",
+   "contenu": "plan-min — site en ligne : https://chipat-neko.github.io/codex-minecraft/ (GitHub Pages, branche main ; dépôt public github.com/chipat-neko/codex-minecraft, qui est le remote de d:\\plan-min). Le site publié s'intitule « Codex Minecraft — tout ce qui est faisable en Java Edition ».",
+   "type": "reference",
+   "tags": [
+    "plan-min",
+    "projet",
+    "architecture",
+    "lien"
+   ],
+   "cree_le": "2026-09-18T06:46:14.313882Z",
+   "modifie_le": "2026-09-18T06:46:14.313882Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://chipat-neko.github.io/codex-minecraft/"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/codex-minecraft"
+    },
+    {
+     "type": "local",
+     "valeur": "d:\\plan-min"
+    }
+   ],
+   "projet": "plan-min"
+  },
   {
    "id": "e616d090729b1d1f66597356df1acdff8901a824d6be5bf94c011cf7707d3dd3",
    "titre": "Correction : Noah avait déjà appliqué la modification proposée à la règle CLAUDE.md avant la conclusion…",
@@ -1714,5 +1953,5 @@
    "projet": "my-watch"
   }
  ],
- "empreinte": "dd255b63d865a83e6d3b8381782295da9420753782a1ff2cf15c3b46b6f62f36"
+ "empreinte": "e320f4a5d712dd716eaf763c33d10bc7ddbf3da71514f70d334a0b4bb11f66ef"
 }

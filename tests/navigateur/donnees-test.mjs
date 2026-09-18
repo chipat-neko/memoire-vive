@@ -1,7 +1,7 @@
 /* Jeux de données synthétiques pour les tests (aucune donnée réelle de la
    mémoire). Même forme que docs/data.json produit par scripts/export.py. */
 
-export const SCHEMA_TEST = 1;
+export const SCHEMA_TEST = 2;
 export const MAINTENANT_TEST = '2026-09-20T12:00:00.000Z';
 const MAINTENANT = Date.parse(MAINTENANT_TEST);
 

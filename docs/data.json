@@ -1,5 +1,5 @@
 {
- "schema": 1,
+ "schema": 2,
  "genere_le": "2026-09-18T17:35:32Z",
  "source": "mcp-memory-service",
  "nb_entrees": 72,
@@ -2799,5 +2799,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "d468707a0391722281006ec2d457664e94f72bc1b13ff88041b179281df9dfbf"
+ "empreinte": "3a5ea61af4fb56a9b2bfb02d1468329b4ca8db4d30805b711a6a53de89c0410b"
 }

@@ -69,7 +69,7 @@ MAX_PAGES = 10_000       # garde-fou contre une pagination qui ne finirait pas
 HTTP_TIMEOUT = 30
 HTTP_RETRIES = 3
 SEARCH_TIMEOUT = 10      # délai d'une recherche de voisins (POST /api/search)
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 # En dessous de cette proportion de l'export précédent, on refuse de publier
 # sans --force : une base vide ou mal pointée ne doit pas écraser le site.

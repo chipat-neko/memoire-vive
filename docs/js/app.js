@@ -12,7 +12,6 @@ import { createResultsView } from './vues/resultats.js';
 
 const CONFIG = {
   dataUrl: 'data.json',
-  supportedSchema: 1,
   pageSize: 60,       // cartes affichées avant « Afficher plus »
   projectChips: 10,   // projets affichés avant « + N autres »
 };
@@ -63,7 +62,7 @@ ctx.results = createResultsView(ctx);
 async function load() {
   let data;
   try {
-    data = await loadData(CONFIG.dataUrl, CONFIG.supportedSchema);
+    data = await loadData(CONFIG.dataUrl);
   } catch (e) {
     if (e instanceof DataError) return fail(e.message);
     throw e;

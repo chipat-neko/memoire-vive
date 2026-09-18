@@ -152,7 +152,7 @@ class ProjetsEtRechercheTest(unittest.TestCase):
         payload, _ = export.build_payload(self.brut(), config(), search_config={"synonymes": [["ia", "llm"]]})
         self.assertEqual([f["id"] for f in payload["familles"]], ["jeux", "outils"])
         self.assertEqual(payload["synonymes"], [["ia", "llm"]])
-        self.assertEqual(payload["schema"], 1)
+        self.assertEqual(payload["schema"], 2)
 
     def test_normalisation_des_synonymes(self):
         self.assertEqual(export.normalize_term("  Modèle  Œuvre "), "modele oeuvre")

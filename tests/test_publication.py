@@ -144,7 +144,7 @@ class PublicationTest(unittest.TestCase):
         # 5 trouve 6 (0,9) ; 4 trouve 5 (0,9), donc 5 reçoit 4 par symétrie.
         self.assertEqual(self.entree(5)["voisins"], [{"id": hash_de(4), "score": 0.9},
                                                      {"id": hash_de(6), "score": 0.9}])
-        self.assertEqual(self.donnees()["schema"], 1)
+        self.assertEqual(self.donnees()["schema"], 2)
         self.assertEqual(self.donnees()["voisins_reglage"], {"seuil": 0.8, "max": 5})
         self.assertEqual(self.donnees()["voisins_en_attente"], [])
 

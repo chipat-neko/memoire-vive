@@ -3,6 +3,9 @@
 import { normalize, buildIndex } from './recherche.js';
 import { typeLabel, isWebUrl } from './composants.js';
 
+/* Version de data.json comprise par ce site (SCHEMA_VERSION de
+   scripts/export.py) : une version plus récente demande de recharger la page. */
+export const SUPPORTED_SCHEMA = 2;
 export const NO_PROJECT = '_aucun';
 export const NO_FAMILY = '_aucune';
 
@@ -11,7 +14,7 @@ export class DataError extends Error {}
 /* Chemin relatif et même origine : fonctionne sous github.io, sous un domaine
    personnalisé et derrière Cloudflare Access (le cookie de session part avec
    la requête), sans rien changer ici. */
-export async function loadData(url, supportedSchema, fetcher = fetch) {
+export async function loadData(url, supportedSchema = SUPPORTED_SCHEMA, fetcher = fetch) {
   let response;
   try {
     response = await fetcher(url, { cache: 'no-cache', credentials: 'same-origin' });

@@ -53,6 +53,10 @@ export function mainLink(value) {
   return { url: new URL(value.url).href, genre: value.genre === 'depot' ? 'depot' : 'site' };
 }
 
+function isRecord(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
 /* Familles dans l'ordre configuré ; couleur : entier de 1 à 6, sinon null. */
 function prepareFamilies(list) {
   const families = new Map();
@@ -68,18 +72,20 @@ export function prepare(data) {
   const families = prepareFamilies(data.familles);
   const projects = new Map();
   for (const project of Array.isArray(data.projets) ? data.projets : []) {
-    if (!project || !project.id) continue;
+    if (!isRecord(project) || !project.id) continue;
     projects.set(project.id, Object.assign({}, project, {
+      nom: typeof project.nom === 'string' && project.nom ? project.nom : String(project.id),
       _family: families.get(project.famille) || null,
       _mainLink: mainLink(project.lien_principal),
     }));
   }
 
-  const entries = data.entrees.map((entry) => {
+  // Une entrée qui n'est pas un objet (null, nombre, liste) est ignorée.
+  const entries = data.entrees.filter(isRecord).map((entry) => {
     const tags = Array.isArray(entry.tags) ? entry.tags.map(String) : [];
     const liens = Array.isArray(entry.liens) ? entry.liens.filter((l) => l && l.valeur) : [];
     const project = entry.projet ? projects.get(entry.projet) : null;
-    const projectName = project ? project.nom : (entry.projet || 'Sans projet');
+    const projectName = project ? project.nom : (entry.projet ? String(entry.projet) : 'Sans projet');
     return Object.assign({}, entry, {
       tags,
       liens,

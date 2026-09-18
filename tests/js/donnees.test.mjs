@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadData, prepare, mainLink, DataError, NO_PROJECT } from '../../docs/js/donnees.js';
 import { search } from '../../docs/js/recherche.js';
+import { typeLabel } from '../../docs/js/composants.js';
 
 function reponse(corps, { status = 200, type = 'application/json' } = {}) {
   return async () => new Response(corps, { status, headers: { 'Content-Type': type } });
@@ -49,6 +50,21 @@ test('prepare : champs dérivés, projets et ordre des types', () => {
   assert.deepEqual(model.typeOrder, ['note', 'zeta']);
   assert.equal(model.projects.get('alpha').nom, 'Alpha');
   assert.deepEqual(search(model.index, 'coeur alpha').hits.map((h) => h.doc), [0]);
+});
+
+test('prepare : entrées qui ne sont pas des objets ignorées, noms et types rendus textuels', () => {
+  const model = prepare({
+    projets: [null, 'x', { id: 'sans-nom' }, { id: 'p', nom: 42 }],
+    entrees: [null, 7, ['a'], 'texte',
+      { id: 'abcdef1234567890', titre: 'A', type: 5, projet: 'sans-nom', cree_le: '2026-09-18T00:00:00Z' },
+      { id: '1234567890abcdef', titre: 'B', type: 'note', projet: 12, cree_le: '2026-09-18T00:00:00Z' }],
+  });
+  assert.deepEqual(model.entries.map((e) => e.titre), ['A', 'B']);
+  assert.equal(model.projects.get('sans-nom').nom, 'sans-nom');
+  assert.equal(model.projects.get('p').nom, 'p');
+  assert.equal(model.entries[0]._projectName, 'sans-nom');
+  assert.equal(model.entries[1]._projectName, '12');
+  assert.equal(typeLabel(5), '5');
 });
 
 test('lien principal : URL http(s) seulement', () => {

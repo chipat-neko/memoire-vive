@@ -40,7 +40,7 @@ export function el(tag, attrs, ...children) {
 export function typeLabel(type) {
   if (TYPE_LABELS[type]) return TYPE_LABELS[type];
   if (!type) return 'Divers';
-  const text = type.replace(/_/g, ' ');
+  const text = String(type).replace(/_/g, ' ');
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 

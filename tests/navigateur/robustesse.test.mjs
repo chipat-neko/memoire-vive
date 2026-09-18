@@ -73,6 +73,31 @@ for (const [nom, gestion, attendu] of [
   });
 }
 
+test('données mal formées : entrée nulle ou type non textuel, le site s’affiche quand même', async () => {
+  const donnees = jeuDeTest();
+  donnees.entrees.splice(3, 0, null, 7, ['x']);
+  donnees.entrees[0].type = 5;
+  const page = await site.page({ donnees });
+  for (const [ancre, attendu] of [['#/', '.project-card'], ['#/entrees?tri=projet', '#grid .card'], ['#/entrees', '#grid .card']]) {
+    await page.goto(site.url(ancre));
+    await page.locator(attendu).first().waitFor();
+  }
+  assert.match(await page.textContent('#stats'), /^70\sentrées/);
+  assert.equal(await page.locator('#grid .type-badge', { hasText: /^5$/ }).count(), 1);
+  await terminer(page);
+});
+
+test('données mal formées que la préparation ne sait pas lire : message clair, pas de chargement sans fin', async () => {
+  const donnees = jeuDeTest();
+  donnees.entrees[0].tags = [{ toString: 0 }]; // String() lève une exception
+  const page = await site.page({ donnees });
+  await page.goto(site.url());
+  await page.locator('#status.error').waitFor();
+  assert.match(await page.textContent('#status'), /format inattendu/);
+  assert.equal(await page.getByRole('button', { name: 'Recharger la page' }).count(), 1);
+  await terminer(page);
+});
+
 test('« coeur » trouve « cœur » (surligné) ; l’apostrophe droite trouve l’apostrophe typographique', async () => {
   const page = await site.page({ donnees: jeuDeTest() });
   await page.goto(site.url('#/recherche?q=coeur'));

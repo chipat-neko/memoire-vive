@@ -80,7 +80,15 @@ function fail(message) {
 }
 
 function init(data) {
-  const model = prepare(data);
+  let model;
+  try {
+    model = prepare(data);
+  } catch (e) {
+    // Données lisibles mais mal formées (fichier modifié à la main) : un
+    // message clair plutôt qu'un « Chargement… » sans fin.
+    fail('Le fichier de données a un format inattendu.');
+    return;
+  }
   state.data = model.data;
   state.entries = model.entries;
   state.projects = model.projects;

@@ -48,6 +48,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA_FILE = ROOT / "docs" / "data.json"
 PROJECTS_CONFIG = ROOT / "config" / "projets.json"
+ENTRIES_CONFIG = ROOT / "config" / "entrees.json"
+SEARCH_CONFIG = ROOT / "config" / "recherche.json"
 ENV_FILE = ROOT / ".env"
 
 DEFAULT_API_URL = "http://127.0.0.1:8000"
@@ -290,6 +292,13 @@ def normalize_projects_config(raw: dict) -> dict:
 
 def load_projects_config() -> dict:
     return normalize_projects_config(_read_json_config(PROJECTS_CONFIG))
+
+
+def load_entry_overrides() -> dict[str, dict]:
+    """Corrections par entrée, indexées par les 12 premiers caractères du hash."""
+    data = _read_json_config(ENTRIES_CONFIG)
+    return {str(key).lower()[:12]: value for key, value in data.items()
+            if not str(key).startswith("_") and isinstance(value, dict)}
 
 
 # --------------------------------------------------------------------------
@@ -738,35 +747,55 @@ def iso(value) -> str | None:
     return str(value)
 
 
-def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] = ()) -> tuple[dict, dict]:
+def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] = (),
+                   overrides: dict | None = None, search_config: dict | None = None) -> tuple[dict, dict]:
+    overrides = overrides or {}
     excluded_tags = EXCLUDED_TAGS | {slug(t) for t in config["tags_exclus"]}
-    report = {"excluded": 0, "redactions": 0, "redacted_entries": []}
+    report = {"excluded": 0, "masquees": 0, "redactions": 0, "redacted_entries": [], "orphelines": []}
     entries = []
+    seen_keys = set()
 
     for item in raw:
+        key = item["content_hash"][:12].lower()
+        seen_keys.add(key)
+        override = overrides.get(key, {})
         tags = [str(t).strip() for t in (item.get("tags") or []) if str(t).strip()]
         tags_slug = [slug(t) for t in tags]
         if excluded_tags.intersection(tags_slug):
             report["excluded"] += 1
             continue
+        if override.get("masquer"):
+            report["masquees"] += 1
+            continue
         content, hits = redact(str(item.get("content") or ""), known_secrets)
         if hits:
             report["redactions"] += hits
-            report["redacted_entries"].append(item["content_hash"][:12])
+            report["redacted_entries"].append(key)
         title, rest = split_title(content, tags)
+        summary = derive_summary(rest)
+        corrected = False
+        if str(override.get("titre") or "").strip():
+            title, _ = redact(str(override["titre"]).strip(), known_secrets)
+            corrected = True
+        if str(override.get("resume") or "").strip():
+            summary, _ = redact(str(override["resume"]).strip(), known_secrets)
+            corrected = True
         # Liste blanche : rien d'autre ne sort (ni metadata, ni access_queries).
         entries.append({
             "id": item["content_hash"],
             "titre": title,
-            "resume": derive_summary(rest),
+            "resume": summary,
             "contenu": content,
             "type": (item.get("memory_type") or "note").strip().lower(),
             "tags": tags,
             "cree_le": iso(item.get("created_at_iso") or item.get("created_at")),
             "modifie_le": iso(item.get("updated_at_iso") or item.get("updated_at")),
             "liens": detect_links(content),
+            "corrige": corrected,
             "_tags_slug": tags_slug,
         })
+
+    report["orphelines"] = sorted(set(overrides) - seen_keys)
 
     assign_projects(entries, config)
     names = project_names(entries, config)

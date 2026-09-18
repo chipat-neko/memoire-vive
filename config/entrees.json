@@ -1,0 +1,3 @@
+{
+  "_aide": "Corrections par entrée, indexées par les 12 premiers caractères de l'identifiant (celui de l'URL #/entree/…). Clés : titre, resume, masquer (true pour retirer l'entrée du site)."
+}

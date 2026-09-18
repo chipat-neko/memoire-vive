@@ -16,7 +16,8 @@ from urllib.parse import parse_qs, urlparse
 
 RACINE = Path(__file__).resolve().parent.parent
 CLE = "cle-de-test-123"
-ETAT = {"n": 130, "mode": "ok", "cle": CLE, "recherche": True}
+ETAT = {"n": 130, "mode": "ok", "cle": CLE, "recherche": True, "posts": 0}
+VERROU = threading.Lock()
 
 
 def fausse_memoire(i):
@@ -54,6 +55,15 @@ class FauxDashboard(BaseHTTPRequestHandler):
                             "has_more": page * taille < total and bool(items)})
 
     def do_POST(self):
+        # Chaque POST /api/search écrit dans la vraie mémoire (historique d'accès) : on les compte.
+        with VERROU:
+            ETAT["posts"] += 1
+        if urlparse(self.path).path != "/api/search":
+            return self.repondre(404, {"detail": "inconnu"})
+        if self.headers.get("X-API-Key") != ETAT["cle"]:
+            return self.repondre(401, {"detail": "non"})
+        if self.headers.get("Content-Type") != "application/json":
+            return self.repondre(415, {"detail": "JSON attendu"})
         if not ETAT["recherche"]:
             return self.repondre(404, {"detail": "pas de recherche"})
         longueur = int(self.headers.get("Content-Length") or 0)
@@ -92,9 +102,11 @@ class PublicationTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.serveur.shutdown()
+        cls.serveur.server_close()
         shutil.rmtree(cls.dossier, ignore_errors=True)
 
     def exporter(self, *options):
+        ETAT["posts"] = 0
         env = dict(os.environ, MEMOIRE_API_URL=f"http://127.0.0.1:{self.serveur.server_address[1]}",
                    MEMOIRE_API_KEY=CLE, PYTHONIOENCODING="utf-8")
         r = subprocess.run([sys.executable, "scripts/export.py", *options], cwd=self.projet, env=env, text=True,
@@ -107,19 +119,64 @@ class PublicationTest(unittest.TestCase):
     def donnees(self):
         return json.loads((self.projet / "docs" / "data.json").read_text(encoding="utf-8"))
 
+    def entree(self, i):
+        return next(e for e in self.donnees()["entrees"] if e["id"] == f"{i:064x}")
+
     # Les scénarios s'enchaînent : unittest les trie par nom, d'où la numérotation.
+    def test_00_dry_run_sans_recherche(self):
+        code, sortie = self.exporter("--dry-run")
+        self.assertEqual(code, 0, sortie)
+        self.assertEqual(ETAT["posts"], 0, "--dry-run ne lance aucune recherche")
+        self.assertIn("Recalcul complet des voisins à l'export réel : 130 recherche(s).", sortie)
+        self.assertFalse((self.projet / "docs" / "data.json").exists())
+
     def test_01_premier_export_sans_amont(self):
         code, sortie = self.exporter()
         self.assertEqual(code, 0, sortie)
         self.assertTrue(self.distant_dernier().startswith("Export mémoire : 130"))
+        self.assertEqual(ETAT["posts"], 130, "premier export : une recherche par entrée")
 
     def test_02_liste_blanche_et_voisins(self):
         texte = json.dumps(self.donnees(), ensure_ascii=False)
         self.assertNotIn("requête secrète", texte)
-        premiere = next(e for e in self.donnees()["entrees"] if e["id"] == f"{5:064x}")
         # 5 trouve 6 (0,9) ; 4 trouve 5 (0,9), donc 5 reçoit 4 par symétrie.
-        self.assertEqual(premiere["voisins"], [{"id": f"{4:064x}", "score": 0.9}, {"id": f"{6:064x}", "score": 0.9}])
+        self.assertEqual(self.entree(5)["voisins"], [{"id": f"{4:064x}", "score": 0.9},
+                                                     {"id": f"{6:064x}", "score": 0.9}])
         self.assertEqual(self.donnees()["schema"], 1)
+        self.assertEqual(self.donnees()["voisins_reglage"], {"seuil": 0.8, "max": 5})
+        self.assertEqual(self.donnees()["voisins_en_attente"], [])
+
+    def test_02b_dry_run_avec_une_entree_nouvelle(self):
+        avant = (self.projet / "docs" / "data.json").read_bytes()
+        ETAT["n"] = 131
+        code, sortie = self.exporter("--dry-run")
+        ETAT["n"] = 130
+        self.assertEqual(code, 0, sortie)
+        self.assertEqual(ETAT["posts"], 0, "--dry-run ne lance aucune recherche")
+        self.assertIn("1 nouvelle(s) entrée(s) : voisins calculés au prochain export réel.", sortie)
+        self.assertEqual((self.projet / "docs" / "data.json").read_bytes(), avant)
+
+    def test_02c_sans_entree_nouvelle_aucune_recherche(self):
+        code, sortie = self.exporter()
+        self.assertEqual(code, 0, sortie)
+        self.assertEqual(ETAT["posts"], 0, sortie)
+        self.assertIn("Contenu identique au dernier export", sortie)
+
+    def test_02d_une_entree_nouvelle_une_recherche(self):
+        ETAT["n"] = 131
+        code, sortie = self.exporter("--no-git")
+        self.assertEqual(code, 0, sortie)
+        self.assertEqual(ETAT["posts"], 1, sortie)
+        # 130 trouve 0 (131 % 131) : l'ancienne entrée 0 la reçoit par symétrie.
+        self.assertEqual(self.entree(130)["voisins"], [{"id": f"{0:064x}", "score": 0.9}])
+        self.assertIn({"id": f"{130:064x}", "score": 0.9}, self.entree(0)["voisins"])
+        self.assertIn({"id": f"{1:064x}", "score": 0.9}, self.entree(0)["voisins"], "les anciens restent")
+
+    def test_02e_recalculer_voisins(self):
+        code, sortie = self.exporter("--no-git", "--recalculer-voisins")
+        self.assertEqual(code, 0, sortie)
+        self.assertEqual(ETAT["posts"], 131, sortie)
+        self.assertIn("recalcul complet", sortie)
 
     def test_03_no_git_puis_rattrapage(self):
         ETAT["n"] = 140
@@ -171,6 +228,7 @@ class PublicationTest(unittest.TestCase):
         code, sortie = self.exporter()
         self.assertEqual(code, 1, sortie)
         self.assertIn("contre 160", sortie)
+        self.assertEqual(ETAT["posts"], 0, "un export refusé ne lance aucune recherche")
 
     def test_08_recherche_absente_non_bloquante(self):
         ETAT.update(n=160, recherche=False)
@@ -178,7 +236,9 @@ class PublicationTest(unittest.TestCase):
         code, sortie = self.exporter("--no-git")
         self.assertEqual(code, 0, sortie)
         self.assertIn("recherche(s) de voisins en échec", sortie)
+        self.assertEqual(ETAT["posts"], 3, "abandon après trois échecs consécutifs")
         self.assertTrue(all(e["voisins"] == [] for e in self.donnees()["entrees"]))
+        self.assertEqual(len(self.donnees()["voisins_en_attente"]), 160, "toutes à chercher au prochain export")
         ETAT["recherche"] = True
 
     def test_09_mauvaise_cle(self):
@@ -199,6 +259,7 @@ class PublicationTest(unittest.TestCase):
         finally:
             reglages.write_text(avant, encoding="utf-8")
         self.assertEqual(code, 0, sortie)
+        self.assertEqual(ETAT["posts"], 0)
         self.assertIn("Lien principal configuré refusé, calcul automatique à la place : test3 (adresse locale)",
                       sortie)
 

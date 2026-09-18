@@ -666,6 +666,29 @@ def detect_links(text: str) -> list[dict[str, str]]:
     return links
 
 
+CODE_HOSTS = ("github.com", "gitlab.com", "bitbucket.org", "codeberg.org")
+
+
+def link_kind(url: str) -> str:
+    """« depot » pour un hébergeur de code, « site » pour tout le reste."""
+    host = _host_of(url).lower()
+    if host.startswith("www."):
+        host = host[4:]
+    if host in CODE_HOSTS or host.endswith(tuple("." + h for h in CODE_HOSTS)):
+        return "depot"
+    return "site"
+
+
+def main_link(liens: list[dict]) -> dict | None:
+    """Premier site déployé, sinon premier dépôt, sinon rien."""
+    online = [link["valeur"] for link in liens if link["type"] == "en_ligne"]
+    for wanted in ("site", "depot"):
+        for url in online:
+            if link_kind(url) == wanted:
+                return {"url": url, "genre": wanted}
+    return None
+
+
 # --------------------------------------------------------------------------
 # Projets
 # --------------------------------------------------------------------------
@@ -780,6 +803,7 @@ def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] 
         if str(override.get("resume") or "").strip():
             summary, _ = redact(str(override["resume"]).strip(), known_secrets)
             corrected = True
+        liens = detect_links(content)
         # Liste blanche : rien d'autre ne sort (ni metadata, ni access_queries).
         entries.append({
             "id": item["content_hash"],
@@ -790,7 +814,8 @@ def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] 
             "tags": tags,
             "cree_le": iso(item.get("created_at_iso") or item.get("created_at")),
             "modifie_le": iso(item.get("updated_at_iso") or item.get("updated_at")),
-            "liens": detect_links(content),
+            "liens": liens,
+            "lien_principal": main_link(liens),
             "corrige": corrected,
             "_tags_slug": tags_slug,
         })

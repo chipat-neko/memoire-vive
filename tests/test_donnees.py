@@ -42,5 +42,33 @@ class CorrectionsTest(unittest.TestCase):
         self.assertNotIn("Hunter22", payload["entrees"][0]["titre"])
 
 
+class LienPrincipalTest(unittest.TestCase):
+    def test_genre(self):
+        self.assertEqual(export.link_kind("https://github.com/a/b"), "depot")
+        self.assertEqual(export.link_kind("https://www.github.com/a/b"), "depot")
+        self.assertEqual(export.link_kind("https://gist.github.com/a/1"), "depot")
+        self.assertEqual(export.link_kind("https://gitlab.com/a/b"), "depot")
+        self.assertEqual(export.link_kind("https://chipat-neko.github.io/x/"), "site")
+        self.assertEqual(export.link_kind("https://claude.ai/artifact/abc"), "site")
+
+    def test_site_avant_depot(self):
+        liens = [{"type": "en_ligne", "valeur": "https://github.com/a/b"},
+                 {"type": "en_ligne", "valeur": "https://a.github.io/b/"},
+                 {"type": "local", "valeur": "D:\\b"}]
+        self.assertEqual(export.main_link(liens), {"url": "https://a.github.io/b/", "genre": "site"})
+
+    def test_depot_a_defaut(self):
+        self.assertEqual(export.main_link([{"type": "en_ligne", "valeur": "https://github.com/a/b"}]),
+                         {"url": "https://github.com/a/b", "genre": "depot"})
+
+    def test_aucun(self):
+        self.assertIsNone(export.main_link([{"type": "local", "valeur": "D:\\b"}]))
+
+    def test_present_dans_l_export(self):
+        brut = [memoire(1, "Projet Alpha : en ligne sur https://a.github.io/alpha/ et github.com/a/alpha. Fin.", ["alpha"])]
+        payload, _ = export.build_payload(brut, config())
+        self.assertEqual(payload["entrees"][0]["lien_principal"]["url"], "https://a.github.io/alpha/")
+
+
 if __name__ == "__main__":
     unittest.main()

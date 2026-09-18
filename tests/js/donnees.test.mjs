@@ -76,3 +76,16 @@ test('familles : ordre, couleur valide, rattachement aux projets et aux entrées
   assert.equal(model.entries[0]._family.couleur, 1);
   assert.deepEqual(model.entries[0]._mainLink, { url: 'https://github.com/a/depths', genre: 'depot' });
 });
+
+test('voisins : entrées publiées seulement, score numérique fini', () => {
+  const model = prepare({
+    entrees: [
+      { id: 'aaaaaaaaaaaa0000', titre: 'a', type: 'note', voisins: [
+        { id: 'bbbbbbbbbbbb0000', score: 0.9 }, { id: 'inconnu', score: 0.9 }, { id: 'bbbbbbbbbbbb0000', score: '1' },
+        { id: 'aaaaaaaaaaaa0000', score: 0.99 }, null] },
+      { id: 'bbbbbbbbbbbb0000', titre: 'b', type: 'note' },
+    ],
+  });
+  assert.deepEqual(model.entries[0]._neighbours.map((v) => [v.entry.titre, v.score]), [['b', 0.9]]);
+  assert.deepEqual(model.entries[1]._neighbours, []);
+});

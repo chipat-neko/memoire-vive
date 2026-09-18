@@ -68,9 +68,7 @@ export function createListView(ctx) {
   }
 
   function showList(restoreScroll) {
-    dom.entryView.hidden = true;
-    dom.entryView.replaceChildren();
-    dom.listView.hidden = false;
+    ctx.show(dom.listView);
     document.title = 'Mémoire Vive';
     renderList();
     if (restoreScroll) {

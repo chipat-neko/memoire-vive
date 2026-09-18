@@ -62,7 +62,7 @@ test('« Retour à la liste » : filtres et recherche conservés', async () => {
   await page.goto(site.url('#/recherche?q=jarvis'));
   await page.locator(CARTES).first().click();
   await page.locator('#entry-title').waitFor();
-  await page.getByRole('link', { name: '← Retour à la liste' }).click();
+  await page.getByRole('link', { name: '← Retour aux résultats' }).click();
   await page.locator(CARTES).first().waitFor();
   assert.ok(page.url().endsWith('#/recherche?q=jarvis'), page.url());
   assert.equal(await page.inputValue('#search-input'), 'jarvis');

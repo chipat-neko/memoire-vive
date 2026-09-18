@@ -62,15 +62,13 @@ test('filtre Jalon : que des jalons', async () => {
   await terminer(page);
 });
 
-test('clic sur le projet d’une carte : filtre ce projet', async () => {
+test('pastille de projet : filtre ce projet', async () => {
   const page = await liste();
-  const bouton = page.locator('#grid .project-tag').first();
-  const nom = (await bouton.textContent()).replace(/^\S+\s/, '');
-  await bouton.click();
-  await attendreAncre(page, 'projet=');
+  await page.locator('#project-chips .chip', { hasText: 'Depths' }).click();
+  await attendreAncre(page, 'projet=depths');
   const projets = await page.locator('#grid .project-tag').allTextContents();
   assert.ok(projets.length > 0);
-  assert.ok(projets.every((t) => t.endsWith(nom)), nom);
+  assert.ok(projets.every((t) => t.endsWith('Depths')), projets.join(', '));
   await terminer(page);
 });
 

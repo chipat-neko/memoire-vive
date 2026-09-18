@@ -6,6 +6,7 @@ import { parseHash, searchHash, defaultFilters } from './routes.js';
 import { el, plural, formatLong, lastVisit } from './composants.js';
 import { createListView } from './vues/entrees.js';
 import { createEntryView } from './vues/fiche.js';
+import { createProjectView } from './vues/projet.js';
 
 const CONFIG = {
   dataUrl: 'data.json',
@@ -27,17 +28,18 @@ const state = {
   filters: { q: '', ...defaultFilters() },
   shown: CONFIG.pageSize,
   showAllProjects: false,
-  lastList: [],          // résultat affiché, pour « précédente / suivante »
-  lastListHash: '#/',
-  scroll: new Map(),     // position de défilement par état de liste
+  lastList: [],          // entrées de la vue affichée, pour « précédente / suivante »
+  lastListHash: '#/',    // ancre de la dernière vue qui n'est pas une fiche
+  scroll: new Map(),     // position de défilement par ancre
   route: null,
-  entryDepth: 0,         // fiches ouvertes depuis la liste (pour « Retour »)
+  entryDepth: 0,         // fiches ouvertes depuis la vue d'origine (pour « Retour »)
   openedId: '',          // dernière fiche ouverte, pour lui rendre le focus au retour
+  firstRender: true,     // premier affichage : le focus reste en haut de page
 };
 
 const $ = (id) => document.getElementById(id);
 const dom = {
-  stats: $('stats'), listView: $('list-view'), entryView: $('entry-view'),
+  stats: $('stats'), listView: $('list-view'), entryView: $('entry-view'), pageView: $('page-view'),
   search: $('search-input'), sort: $('sort-select'),
   typeChips: $('type-chips'), projectChips: $('project-chips'), activeFilters: $('active-filters'),
   resultCount: $('result-count'), status: $('status'), grid: $('grid'), groups: $('groups'),
@@ -45,9 +47,10 @@ const dom = {
   themeToggle: $('theme-toggle'),
 };
 
-const ctx = { config: CONFIG, state, dom, route, setFilters };
+const ctx = { config: CONFIG, state, dom, route, setFilters, show, focusView };
 ctx.list = createListView(ctx);
 ctx.entry = createEntryView(ctx);
+ctx.project = createProjectView(ctx);
 
 // ------------------------------------------------------------ données
 
@@ -87,6 +90,7 @@ function init(data) {
   renderStats();
   dom.status.hidden = true;
   route();
+  state.firstRender = false;
 }
 
 function renderStats() {
@@ -100,21 +104,51 @@ function renderStats() {
   dom.stats.textContent = parts.join(' · ');
 }
 
+// ------------------------------------------------------------ vues
+
+/* Affiche une des trois zones (liste, fiche, page) ; vide la fiche et la
+   page quand elles sont masquées (identifiants de titres uniques). */
+function show(section) {
+  for (const zone of [dom.listView, dom.entryView, dom.pageView]) {
+    zone.hidden = zone !== section;
+    if (zone.hidden && zone !== dom.listView) zone.replaceChildren();
+  }
+}
+
+/* Focus après l'affichage d'une page : au retour d'une fiche, sur le lien de
+   cette fiche ; sinon sur le titre de la page, sauf au premier affichage et
+   pendant la frappe dans la recherche. */
+function focusView(returning) {
+  if (returning && state.openedId) {
+    const link = dom.pageView.querySelector('a[href="#/entree/' + state.openedId + '"]');
+    if (link) { link.focus({ preventScroll: true }); return; }
+  }
+  if (state.firstRender || document.activeElement === dom.search) return;
+  const title = dom.pageView.querySelector('#titre-vue');
+  if (title) title.focus({ preventScroll: true });
+}
+
 // ------------------------------------------------------------ routage
 
-/* Filtres de la liste pour une route autre qu'une fiche. En attendant leurs
-   vues (accueil : Task 9, projet : Task 8, recherche : Task 11), l'accueil,
-   la page projet et la recherche affichent la liste filtrée. */
+/* Filtres de la liste pour une route qui l'affiche. En attendant leurs vues
+   (accueil : Task 9, recherche : Task 11), l'accueil et la recherche
+   affichent la liste filtrée. */
 function listFilters(target) {
   const filters = { q: '', ...defaultFilters() };
   if (target.view === 'entries') Object.assign(filters, target.filters);
   if (target.view === 'search') filters.q = target.q;
-  if (target.view === 'project') filters.projet = target.id;
   return filters;
 }
 
 function sameFilters(a, b) {
   return Object.keys(a).every((key) => a[key] === b[key]);
+}
+
+/* Entrées affichées par la vue d'une ancre, dans l'ordre (Précédente/Suivante). */
+function sequenceFor(origin) {
+  if (origin.view === 'project') return ctx.project.projectEntries(origin.id);
+  state.filters = listFilters(origin);
+  return ctx.list.filtered().list;
 }
 
 function route() {
@@ -128,29 +162,15 @@ function route() {
     state.scroll.set(state.lastListHash, window.scrollY);
   }
   state.route = next;
-
   if (next.view === 'entry') {
-    // Le contexte (liste d'origine, nombre de fiches ouvertes depuis elle)
-    // vit dans history.state : il survit au rechargement et au retour
-    // arrière, et Précédente/Suivante le reprennent tel quel.
-    const saved = history.state && typeof history.state.list === 'string' ? history.state : null;
-    if (saved) {
-      state.entryDepth = Number(saved.depth) || 0;
-      const origin = parseHash(saved.list);
-      if (saved.list !== state.lastListHash && origin.view !== 'entry' && origin.view !== 'redirect') {
-        state.filters = listFilters(origin);
-        state.lastListHash = saved.list;
-        state.lastList = ctx.list.filtered().list;
-      }
-    } else if (previous && previous.view !== 'entry') {
-      state.entryDepth = 1;
-    } else if (previous && previous.view === 'entry') {
-      state.entryDepth = state.entryDepth > 0 ? state.entryDepth + 1 : 0;
-    } else {
-      state.entryDepth = 0;
-    }
-    history.replaceState({ list: state.lastListHash, depth: state.entryDepth }, '');
-    ctx.entry.showEntry(next.id);
+    openEntry(next, previous);
+    return;
+  }
+  const returning = Boolean(previous && previous.view === 'entry' && !state.typing);
+  state.lastListHash = location.hash || '#/';
+  if (next.view === 'project') {
+    ctx.project.showProject(next.id, { returning });
+    window.scrollTo(0, returning ? state.scroll.get(state.lastListHash) || 0 : 0);
     return;
   }
   const filters = listFilters(next);
@@ -158,8 +178,30 @@ function route() {
     state.filters = filters;
     state.shown = CONFIG.pageSize;
   }
-  state.lastListHash = location.hash || '#/';
-  ctx.list.showList(previous && previous.view === 'entry' && !state.typing);
+  ctx.list.showList(returning);
+}
+
+function openEntry(next, previous) {
+  // Le contexte (vue d'origine, nombre de fiches ouvertes depuis elle) vit
+  // dans history.state : il survit au rechargement et au retour arrière, et
+  // Précédente/Suivante le reprennent tel quel.
+  const saved = history.state && typeof history.state.list === 'string' ? history.state : null;
+  if (saved) {
+    state.entryDepth = Number(saved.depth) || 0;
+    const origin = parseHash(saved.list);
+    if (saved.list !== state.lastListHash && origin.view !== 'entry' && origin.view !== 'redirect') {
+      state.lastListHash = saved.list;
+      state.lastList = sequenceFor(origin);
+    }
+  } else if (previous && previous.view !== 'entry') {
+    state.entryDepth = 1;
+  } else if (previous && previous.view === 'entry') {
+    state.entryDepth = state.entryDepth > 0 ? state.entryDepth + 1 : 0;
+  } else {
+    state.entryDepth = 0;
+  }
+  history.replaceState({ list: state.lastListHash, depth: state.entryDepth }, '');
+  ctx.entry.showEntry(next.id);
 }
 
 /* Frappe dans la barre de recherche : la première frappe ouvre #/recherche
@@ -280,24 +322,21 @@ function bind() {
     if (link) link.focus();
   });
 
-  // Délégation : projets et tags, dans la liste comme sur une fiche.
+  // Délégation : tags (cartes, fiches) et groupes de la vue « Par projet ».
   document.addEventListener('click', (event) => {
     const target = event.target.closest('[data-action]');
     if (!target || !state.data) return;
     const action = target.dataset.action;
-    if (action !== 'project' && action !== 'tag' && action !== 'group') return;
+    if (action !== 'tag' && action !== 'group') return;
     event.preventDefault();
     if (action === 'group') {
       setFilters({ projet: target.dataset.project });
       window.scrollTo(0, 0);
       return;
     }
-    const patch = action === 'project'
-      ? { projet: target.dataset.project, type: '', tag: '', q: '' }
-      : { tag: target.dataset.tag, type: '', projet: '', q: '' };
-    if (state.route && state.route.view === 'entry') {
-      const filters = Object.assign({}, state.filters, patch);
-      location.hash = ctx.list.listHash(filters);
+    const patch = { tag: target.dataset.tag, type: '', projet: '', q: '' };
+    if (dom.listView.hidden) {
+      location.hash = ctx.list.listHash(Object.assign({}, state.filters, patch));
     } else {
       setFilters(patch);
       window.scrollTo(0, 0);

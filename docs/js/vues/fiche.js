@@ -1,7 +1,16 @@
 /* Fiche d'une entrée : navigation (retour, précédente, suivante), liens,
    texte intégral, tags, entrées du même projet, détails. */
-import { entryHash } from '../routes.js';
+import { entryHash, projectHash, parseHash } from '../routes.js';
 import { el, typeBadge, projectButton, typeLabel, formatLong, isWebUrl, copy } from '../composants.js';
+
+/* Libellé du lien de retour selon la vue d'origine. */
+export function backLabel(hash) {
+  const origin = parseHash(hash);
+  if (origin.view === 'project') return '← Retour au projet';
+  if (origin.view === 'search') return '← Retour aux résultats';
+  if (origin.view === 'home') return '← Retour à l’accueil';
+  return '← Retour à la liste';
+}
 
 export function createEntryView(ctx) {
   const { state, dom } = ctx;
@@ -11,8 +20,7 @@ export function createEntryView(ctx) {
   }
 
   function showEntry(prefix) {
-    dom.listView.hidden = true;
-    dom.entryView.hidden = false;
+    ctx.show(dom.entryView);
     window.scrollTo(0, 0);
 
     const entry = findEntry(prefix);
@@ -33,7 +41,7 @@ export function createEntryView(ctx) {
     const previous = position > 0 ? sequence[position - 1] : null;
     const next = position >= 0 && position < sequence.length - 1 ? sequence[position + 1] : null;
 
-    const back = el('a', { class: 'btn-secondary', href: state.lastListHash }, '← Retour à la liste');
+    const back = el('a', { class: 'btn-secondary', href: state.lastListHash }, backLabel(state.lastListHash));
     back.addEventListener('click', (event) => {
       // Revenir sur l'entrée d'historique de la liste plutôt qu'en créer une.
       if (state.entryDepth > 0) { event.preventDefault(); history.go(-state.entryDepth); }
@@ -131,9 +139,8 @@ export function createEntryView(ctx) {
       el('h3', { id: 'h-projet' }, 'Dans le même projet · ' + entry._projectName),
       el('ul', { class: 'siblings' }, siblings.slice(0, 15).map((s) =>
         el('li', null, typeBadge(s.type), el('a', { href: entryHash(s) }, s.titre)))),
-      siblings.length > 15 ? el('p', null, el('button', {
-        type: 'button', class: 'link-button', 'data-action': 'project', 'data-project': entry._project,
-      }, 'Voir les ' + (siblings.length + 1) + ' entrées du projet')) : null);
+      siblings.length > 15 ? el('p', null, el('a', { href: projectHash(entry.projet) },
+        'Voir les ' + (siblings.length + 1) + ' entrées du projet')) : null);
   }
 
   function detailsSection(entry) {

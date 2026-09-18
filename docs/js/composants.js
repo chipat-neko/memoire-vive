@@ -2,7 +2,7 @@
    libellés, dates, cartes, pastilles, copie, message éphémère. Aucun accès
    au DOM au chargement du module : les fonctions pures se testent sous Node. */
 import { highlightRanges } from './recherche.js';
-import { entryHash } from './routes.js';
+import { entryHash, projectHash } from './routes.js';
 
 const TYPE_LABELS = {
   note: 'Note', milestone: 'Jalon', decision: 'Décision', reference: 'Référence',
@@ -174,10 +174,10 @@ export function typeBadge(type) {
   return el('span', { class: 'type-badge', 'data-type': type }, typeLabel(type));
 }
 
+/* Lien vers la page du projet de l'entrée. */
 export function projectButton(entry) {
-  return el('button', {
-    type: 'button', class: 'project-tag', 'data-action': 'project', 'data-project': entry._project,
-    title: 'Voir toutes les entrées de ce projet',
+  return el('a', {
+    class: 'project-tag', href: projectHash(entry.projet), title: 'Page du projet ' + entry._projectName,
   }, '📁︎ ' + entry._projectName);
 }
 
@@ -189,12 +189,13 @@ export function linksInfo(entry) {
   return parts.length ? el('span', { class: 'links-info' }, parts.join(' · ')) : null;
 }
 
-/* Carte d'une entrée. options : targets (surlignage), since (dernière visite). */
-export function card(entry, { targets = null, since = null } = {}) {
+/* Carte d'une entrée. options : targets (surlignage), since (dernière
+   visite), showProject (lien vers le projet, inutile sur sa propre page). */
+export function card(entry, { targets = null, since = null, showProject = true } = {}) {
   const tagsShown = entry.tags.slice(0, 5);
   const extraTags = entry.tags.length - tagsShown.length;
   return el('article', { class: 'card', 'data-couleur': entry._family ? entry._family.couleur : null },
-    el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet ? projectButton(entry) : null,
+    el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet && showProject ? projectButton(entry) : null,
       isNew(entry, since) ? newBadge() : null),
     el('h3', null, el('a', { href: entryHash(entry) }, highlight(entry.titre, targets))),
     entry.resume ? el('p', { class: 'resume' }, highlight(entry.resume, targets)) : null,

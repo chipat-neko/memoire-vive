@@ -92,6 +92,15 @@ export function prepare(data) {
     });
   });
 
+  // Voisins (calculés à l'export) : entrées publiées, score numérique fini.
+  const byId = new Map(entries.map((e) => [String(e.id), e]));
+  for (const entry of entries) {
+    entry._neighbours = (Array.isArray(entry.voisins) ? entry.voisins : [])
+      .filter((v) => v && typeof v.score === 'number' && Number.isFinite(v.score))
+      .map((v) => ({ entry: byId.get(String(v.id)), score: v.score }))
+      .filter((v) => v.entry && v.entry !== entry);
+  }
+
   const known = Array.isArray(data.ordre_types) ? data.ordre_types : [];
   const present = Array.from(new Set(entries.map((e) => e.type)));
   const typeOrder = known.filter((t) => present.includes(t)).concat(present.filter((t) => !known.includes(t)).sort());

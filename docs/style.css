@@ -335,6 +335,7 @@ select {
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .project-tag:hover { color: var(--text); border-color: var(--border-strong); }
+a.project-tag { display: inline-block; }
 
 .card h3 {
   font-family: var(--serif);
@@ -403,6 +404,50 @@ select {
 .group-head .group-title:hover { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 4px; }
 .group-meta { font-size: 13px; color: var(--text-muted); }
 .group-more { margin-top: 12px; }
+
+/* ------------------------------------------------------------ page projet */
+
+.page-nav { margin-bottom: 22px; }
+
+.project-head {
+  border-left: 4px solid var(--famille);
+  padding: 4px 0 4px 18px;
+  margin-bottom: 34px;
+}
+.project-family { font: 600 13px var(--sans); color: var(--text-muted); margin: 0 0 6px; }
+.project-head[data-couleur] .project-family { color: var(--famille); }
+.project-head h2 {
+  font-family: var(--serif); font-weight: 600; font-size: 34px; line-height: 1.2;
+  margin: 0 0 10px; overflow-wrap: anywhere;
+}
+.project-head h2:focus { outline: none; }
+.project-description { font-family: var(--serif); font-size: 18px; line-height: 1.55; margin: 0 0 16px; max-width: 70ch; }
+.project-links { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.project-links a { overflow-wrap: anywhere; }
+.project-dates { font-size: 13px; color: var(--text-muted); margin: 0; }
+
+.project-section { margin-bottom: 34px; }
+.project-section > h3 {
+  font: 700 12px var(--sans); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-strong); margin: 0 0 14px;
+}
+.project-section > h3 .count { color: var(--text-muted); }
+
+.timeline { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 2px solid var(--border-strong); display: grid; gap: 16px; }
+.timeline li { display: grid; grid-template-columns: 8.5em 1fr; gap: 4px 14px; align-items: baseline; }
+.timeline time { font-size: 13px; color: var(--text-muted); }
+.timeline a { font-family: var(--serif); font-weight: 600; font-size: 17px; overflow-wrap: anywhere; }
+.timeline .new-badge { margin-left: 8px; }
+.timeline p { margin: 4px 0 0; font-size: 14px; color: var(--text-muted); overflow-wrap: anywhere; }
+
+.related-projects { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.related-projects li {
+  display: inline-flex; flex-direction: column; gap: 2px;
+  background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--famille);
+  border-radius: 12px; padding: 8px 14px; min-width: 0;
+}
+.related-projects a { font-weight: 600; overflow-wrap: anywhere; }
+.related-family { font-size: 12px; color: var(--text-muted); }
 
 /* ----------------------------------------------------------------- états */
 
@@ -537,4 +582,6 @@ select {
   .entry-content { padding: 16px; font-size: 15px; }
   .facts { grid-template-columns: 1fr; }
   .facts dd { margin-bottom: 6px; }
+  .project-head h2 { font-size: 27px; }
+  .timeline li { grid-template-columns: 1fr; }
 }

@@ -166,7 +166,7 @@ des données plus récentes demande de recharger la page.
 | --- | --- |
 | `#/` | Accueil : les projets par famille (ordre de `config/projets.json`, puis « Sans famille »), activité la plus récente d'abord |
 | `#/entrees?type=&famille=&projet=&tag=&tri=&vue=grille\|liste` | Toutes les entrées : filtres, tri, grille ou liste, « Afficher plus » |
-| `#/recherche?q=…` | Résultats : projets, entrées, « En rapport » (voisins des meilleurs résultats) |
+| `#/recherche?q=…` | Résultats : projets (les six meilleurs, puis « Afficher les N projets »), entrées, « En rapport » (voisins des meilleurs résultats) |
 | `#/projet/<id>` | Page projet : liens, entrées par nature, jalons en chronologie, adresses locales, projets proches |
 | `#/entree/<id court>` | Fiche : lien principal, texte intégral, « Voir aussi » (voisins) |
 
@@ -179,9 +179,12 @@ d'origine.
 
 - tous les mots doivent être présents ; majuscules, accents, `œ` et apostrophes ignorés ;
 - pluriels confondus (`jeux` = `jeu`, `réseaux` = `réseau`, `animaux` = `animal`) ;
-- fautes de frappe tolérées : une pour un mot de 5 à 7 lettres, deux à partir de 8 ;
-  aucune en dessous de 5 lettres ;
-- synonymes de `config/recherche.json` ;
+- fautes de frappe tolérées sur les dix premiers mots : une pour un mot de 5 à 7 lettres,
+  deux à partir de 8, longueur comptée sans la marque du pluriel ; aucune en dessous de
+  5 lettres (`cours` ne trouve pas « pour ») ;
+- synonymes de `config/recherche.json`, y compris ceux de plusieurs mots tapés avec une
+  espace (`hors ligne` vaut `offline`, `intelligence artificielle` vaut `ia`) ;
+- article élidé ignoré hors guillemets : `l'IA` cherche `IA` ;
 - `"expression exacte"` ; `-mot` écarte les entrées qui contiennent ce mot ; le dernier
   mot (en cours de frappe) vaut aussi pour les mots qui commencent ainsi, dès 2 lettres ;
 - score : titre ×6, projet, tags et type ×3, résumé ×2, texte ×1 (plafonné) ; une
@@ -196,6 +199,16 @@ entrées créées après elle portent la pastille, et les projets qui en ont un 
 contraste d'au moins 4,5 sur les fonds (`tests/js/couleurs.test.mjs`). La couleur n'est
 jamais la seule information : le nom de la famille est écrit sur l'accueil, la page projet
 et dans les filtres.
+
+**Cache du navigateur** : GitHub Pages sert chaque fichier avec `Cache-Control:
+max-age=600`, et un rechargement ne revalide que la page. `index.html` charge donc
+`style.css?v=…` et `theme.js?v=…`, où `v` est l'empreinte du fichier :
+`tests/js/cache.test.mjs` échoue tant qu'elle n'est pas à jour et donne la bonne valeur.
+Les modules `js/` n'ont pas de version (leurs imports relatifs ne peuvent pas en porter
+sans outil de construction) : une publication qui les modifie peut, pendant dix minutes,
+servir à un visiteur revenu entre-temps un mélange d'anciens et de nouveaux modules ; pour
+l'éviter, publier les modules modifiés dans un nouveau dossier (`js/v2/…`, chemin de
+`index.html` compris).
 
 ## Régler les projets, les entrées et la recherche
 

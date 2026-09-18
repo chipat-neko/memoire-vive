@@ -48,3 +48,26 @@ test('contraste AA (≥ 4,5) sur les fonds, dans les deux thèmes', () => {
     }
   }
 });
+
+test('contraste AA (≥ 4,5) des textes d’accent : liens et texte sur fond d’accent doux', () => {
+  for (const [nom, theme] of [['clair', clair], ['sombre auto', sombreAuto], ['sombre', sombre]]) {
+    const paires = [['--accent-on-soft', '--accent-soft']]
+      .concat(['--bg', '--surface', '--surface-2'].map((fond) => ['--accent-strong', fond]));
+    for (const [texte, fond] of paires) {
+      const ratio = contraste(theme[texte], theme[fond]);
+      assert.ok(ratio >= 4.5, `${nom} : ${texte} sur ${fond} = ${ratio.toFixed(2)}`);
+    }
+  }
+});
+
+test('pastille de tag, survol des boutons secondaires et de l’icône : --accent-on-soft ; survol des liens sans --accent', () => {
+  const regle = (selecteur) => {
+    const debut = css.indexOf('\n' + selecteur + ' {');
+    assert.notEqual(debut, -1, 'règle introuvable : ' + selecteur);
+    return css.slice(debut, css.indexOf('}', debut));
+  };
+  for (const selecteur of ['.filter-pill', '.btn-secondary:hover', '.main-link-icon:hover']) {
+    assert.match(regle(selecteur), /[^-]color: var\(--accent-on-soft\)/, selecteur);
+  }
+  assert.doesNotMatch(regle('a:hover'), /color: var\(--accent\)/);
+});

@@ -133,3 +133,32 @@ test('niveaux de titres : le titre d’une carte est un niveau sous celui de sa 
   }
   await terminer(page);
 });
+
+test('contraste ≥ 4,5 des états actifs et survolés : pastille de tag, bouton secondaire, lien, icône (clair et sombre)', async () => {
+  const page = await site.page({ donnees });
+  // Couleur du texte et fond effectif (premier ancêtre au fond opaque).
+  const couleurs = (selecteur) => page.evaluate((sel) => {
+    const e = document.querySelector(sel);
+    let fond = e;
+    while (fond && getComputedStyle(fond).backgroundColor.replace(/\s/g, '').match(/rgba\(0,0,0,0\)|transparent/)) fond = fond.parentElement;
+    return [getComputedStyle(e).color, getComputedStyle(fond || document.body).backgroundColor];
+  }, selecteur);
+  const cas = [
+    ['#/entrees?tag=jalon', '.filter-pill', false],
+    ['#/projet/jarvis', '.page-nav .btn-secondary', true],
+    ['#/', '.home-intro a', true],
+    ['#/entrees?vue=liste', '.main-link-icon', true],
+  ];
+  for (const [ancre, selecteur, survol] of cas) {
+    await page.goto(site.url(ancre));
+    await page.locator(selecteur).first().waitFor();
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+      if (survol) await page.locator(selecteur).first().hover();
+      const [texte, fond] = await couleurs(selecteur);
+      assert.ok(contraste(texte, fond) >= 4.5, `${selecteur} (${theme}${survol ? ', survol' : ''}) : ${texte} sur ${fond} = ${contraste(texte, fond).toFixed(2)}`);
+      await page.mouse.move(0, 0);
+    }
+  }
+  await terminer(page);
+});

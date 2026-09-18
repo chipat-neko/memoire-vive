@@ -32,6 +32,7 @@ import argparse
 import hashlib
 import ipaddress
 import json
+import math
 import os
 import re
 import subprocess
@@ -424,6 +425,10 @@ class Api:
                 score = float(result.get("similarity_score") or 0)
             except (TypeError, ValueError):
                 continue
+            if not math.isfinite(score):
+                # « nan », « inf », 1e999, jetons NaN/Infinity : publiés, ils
+                # rendraient data.json illisible pour JSON.parse (site cassé).
+                continue
             pairs.append((memory["content_hash"], score))
         return pairs
 
@@ -784,7 +789,9 @@ def add_neighbours(entries: list[dict], search, threshold: float = SEUIL_VOISINS
         consecutive = 0
         seen = set()
         for other, score in results:
-            if other == entry["id"] or other not in published or other in seen or score < threshold:
+            # « not score >= » : un NaN échoue à toute comparaison, il est donc écarté.
+            if (other == entry["id"] or other not in published or other in seen
+                    or not math.isfinite(score) or not score >= threshold):
                 continue
             seen.add(other)
             entry["voisins"].append({"id": other, "score": round(float(score), 3)})
@@ -978,7 +985,8 @@ def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] 
 
 def fingerprint(payload: dict) -> str:
     stable = {k: v for k, v in payload.items() if k not in ("genere_le", "empreinte")}
-    blob = json.dumps(stable, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    # allow_nan=False : NaN et Infinity ne sont pas du JSON (JSON.parse les refuse).
+    blob = json.dumps(stable, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
@@ -996,10 +1004,13 @@ def read_previous() -> dict | None:
 
 
 def write_payload(payload: dict) -> None:
+    # Sérialisé avant d'ouvrir quoi que ce soit : une valeur non finie lève
+    # ValueError sans laisser de fichier (ni data.json invalide, ni .tmp).
+    text = json.dumps(payload, ensure_ascii=False, indent=1, allow_nan=False) + "\n"
     DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     tmp = DATA_FILE.with_suffix(".json.tmp")
     with open(tmp, "w", encoding="utf-8", newline="\n") as handle:
-        handle.write(json.dumps(payload, ensure_ascii=False, indent=1) + "\n")
+        handle.write(text)
     os.replace(tmp, DATA_FILE)
 
 
@@ -1098,7 +1109,11 @@ def main() -> int:
               "Vérifier la base ; --force pour publier quand même.", file=sys.stderr)
         return 1
 
-    payload["empreinte"] = fingerprint(payload)
+    try:
+        payload["empreinte"] = fingerprint(payload)
+    except ValueError as err:  # NaN ou infini : data.json serait illisible pour le site
+        print(f"Échec : valeur non finie dans les données ({err}) ; data.json non écrit.", file=sys.stderr)
+        return 1
     unchanged = bool(previous) and previous.get("empreinte") == payload["empreinte"]
     if args.dry_run:
         print("  Contenu identique au dernier export." if unchanged else "  --dry-run : rien n'est écrit.")

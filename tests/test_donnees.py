@@ -1,4 +1,9 @@
+import json
+import math
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
 from tests.aides import config, export, memoire
 
@@ -178,6 +183,44 @@ class ApiSearchTest(unittest.TestCase):
         api = self._api({"autre_chose": []})
         with self.assertRaises(export.ExportError):
             api.search("texte", 5)
+
+    def test_scores_non_finis_ignores(self):
+        # json.loads accepte les jetons NaN et Infinity, et 1e999 devient l'infini :
+        # publiés, ils rendraient data.json illisible pour JSON.parse (site cassé).
+        brut = ('{"results": ['
+                '{"memory": {"content_hash": "a"}, "similarity_score": "nan"},'
+                '{"memory": {"content_hash": "b"}, "similarity_score": "inf"},'
+                '{"memory": {"content_hash": "c"}, "similarity_score": 1e999},'
+                '{"memory": {"content_hash": "d"}, "similarity_score": NaN},'
+                '{"memory": {"content_hash": "e"}, "similarity_score": -Infinity},'
+                '{"memory": {"content_hash": "f"}, "similarity_score": 0.85}]}')
+        api = self._api(json.loads(brut))
+        self.assertEqual(api.search("texte", 5), [("f", 0.85)])
+
+
+class ValeursNonFiniesTest(unittest.TestCase):
+    def test_voisin_nan_ou_infini_ecarte(self):
+        liste = entrees(4)
+        def search(query, n):
+            return [(f"{2:064x}", float("nan")), (f"{3:064x}", float("inf")), (f"{4:064x}", 0.9)]
+        export.add_neighbours(liste, search)
+        for entree in liste:
+            for voisin in entree["voisins"]:
+                self.assertTrue(math.isfinite(voisin["score"]), entree["voisins"])
+        self.assertEqual([v["id"] for v in liste[0]["voisins"]], [f"{4:064x}"])
+
+    def test_empreinte_refuse_nan(self):
+        with self.assertRaises(ValueError):
+            export.fingerprint({"entrees": [{"voisins": [{"id": "a", "score": float("nan")}]}]})
+
+    def test_ecriture_refuse_infini(self):
+        with tempfile.TemporaryDirectory() as dossier:
+            cible = Path(dossier) / "docs" / "data.json"
+            with mock.patch.object(export, "DATA_FILE", cible):
+                with self.assertRaises(ValueError):
+                    export.write_payload({"score": float("inf")})
+            self.assertFalse(cible.exists(), "aucun data.json invalide ne doit être écrit")
+            self.assertFalse(cible.with_suffix(".json.tmp").exists(), "ni fichier temporaire")
 
 
 if __name__ == "__main__":

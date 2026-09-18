@@ -17,6 +17,9 @@ Prérequis : le dashboard mcp-memory-service tourne en local sur le port 8000
 python scripts/export.py
 ```
 
+Ou double-cliquer sur `exporter.cmd` (raccourci « Mettre à jour Mémoire Vive » sur le Bureau),
+qui affiche le résultat et attend une touche.
+
 La commande lit toutes les entrées, écrit `docs/data.json`, fait un commit et pousse.
 GitHub Pages republie le site en une à deux minutes. Si la mémoire n'a pas changé,
 `data.json` n'est pas réécrit, mais un commit ou un push resté en attente (export
@@ -107,6 +110,7 @@ docs/               site publié par GitHub Pages (branche main, dossier /docs)
   theme.js          thème clair/sombre mémorisé, appliqué avant le rendu
   data.json         généré par l'export, ne pas modifier à la main
 scripts/export.py   export + commit + push
+exporter.cmd        la même chose en double-clic (Windows)
 config/projets.json réglages facultatifs des projets
 phase2/             modèle de workflow GitHub Actions, inactif
 .env                clé locale (ignoré par git) — modèle : .env.example

@@ -2,3 +2,5 @@
 # une conversion CRLF produirait des différences parasites.
 * text=auto eol=lf
 *.svg text eol=lf
+# Scripts batch Windows : cmd.exe exige des fins de ligne CRLF.
+*.cmd text eol=crlf

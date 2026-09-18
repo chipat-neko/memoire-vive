@@ -1317,12 +1317,13 @@ def main() -> int:
     neighbours = update_neighbours(payload, previous, api.search, recompute=args.recalculer_voisins,
                                    allow_search=not args.dry_run)
     waiting = len(neighbours.pending)
-    if args.dry_run:
+    if args.dry_run and neighbours.full:
+        print(f"  Voisins : aucune recherche en --dry-run ; recalcul complet à l'export réel "
+              f"({waiting} recherche(s)).")
+    elif args.dry_run:
         print(f"  Voisins : {neighbours.linked} entrées reliées (voisins repris de l'export précédent) ; "
               "aucune recherche en --dry-run.")
-        if waiting and neighbours.full:
-            print(f"  Recalcul complet des voisins à l'export réel : {waiting} recherche(s).")
-        elif waiting:
+        if waiting:
             print(f"  {waiting} nouvelle(s) entrée(s) : voisins calculés au prochain export réel.")
     else:
         print(f"  Voisins : {neighbours.linked} entrées reliées, {neighbours.searches} recherche(s)"

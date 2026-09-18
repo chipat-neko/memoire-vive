@@ -127,7 +127,7 @@ class PublicationTest(unittest.TestCase):
         code, sortie = self.exporter("--dry-run")
         self.assertEqual(code, 0, sortie)
         self.assertEqual(ETAT["posts"], 0, "--dry-run ne lance aucune recherche")
-        self.assertIn("Recalcul complet des voisins à l'export réel : 130 recherche(s).", sortie)
+        self.assertIn("aucune recherche en --dry-run ; recalcul complet à l'export réel (130 recherche(s)).", sortie)
         self.assertFalse((self.projet / "docs" / "data.json").exists())
 
     def test_01_premier_export_sans_amont(self):

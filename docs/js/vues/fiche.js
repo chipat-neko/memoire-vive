@@ -1,7 +1,9 @@
 /* Fiche d'une entrée : navigation (retour, précédente, suivante), liens,
    texte intégral, tags, entrées du même projet, détails. */
 import { entryHash, projectHash, parseHash } from '../routes.js';
-import { el, typeBadge, projectButton, typeLabel, formatLong, isWebUrl, copy } from '../composants.js';
+import {
+  el, typeBadge, projectButton, typeLabel, formatLong, isWebUrl, copy, mainLinkButton, isNew, newBadge,
+} from '../composants.js';
 
 /* Libellé du lien de retour selon la vue d'origine. */
 export function backLabel(hash) {
@@ -71,8 +73,10 @@ export function createEntryView(ctx) {
 
     const children = [
       nav,
-      el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet ? projectButton(entry) : null),
+      el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet ? projectButton(entry) : null,
+        isNew(entry, state.since) ? newBadge() : null),
       el('h2', { id: 'entry-title', tabindex: '-1' }, entry.titre),
+      entry._mainLink ? el('p', { class: 'entry-main-link' }, mainLinkButton(entry._mainLink, entry.titre)) : null,
       el('p', { class: 'entry-dates' },
         created ? 'Créée le ' + created : '',
         updated ? ' · modifiée le ' + updated : ''),
@@ -85,6 +89,7 @@ export function createEntryView(ctx) {
         el('h3', { id: 'h-tags' }, 'Tags'),
         el('ul', { class: 'tags' }, entry.tags.map((tag) => el('li', null,
           el('button', { type: 'button', class: 'tag', 'data-action': 'tag', 'data-tag': tag }, tag))))) : null,
+      seeAlsoSection(entry),
       siblingsSection(entry),
       detailsSection(entry),
     ];
@@ -127,6 +132,21 @@ export function createEntryView(ctx) {
       })));
     }
     return section;
+  }
+
+  /* Voisins calculés à l'export (proches par le sens), du plus proche au
+     moins proche, avec leur type et leur projet. */
+  function seeAlsoSection(entry) {
+    if (!entry._neighbours.length) return null;
+    const neighbours = entry._neighbours.slice().sort((a, b) => b.score - a.score);
+    return el('section', { 'aria-labelledby': 'h-voir-aussi' },
+      el('h3', { id: 'h-voir-aussi' }, 'Voir aussi'),
+      el('ul', { class: 'see-also' }, neighbours.map(({ entry: other }) => el('li', {
+        'data-couleur': other._family ? other._family.couleur : null,
+      },
+      typeBadge(other.type),
+      el('a', { href: entryHash(other) }, other.titre),
+      el('span', { class: 'see-also-project' }, other.projet ? other._projectName : 'Sans projet')))));
   }
 
   function siblingsSection(entry) {

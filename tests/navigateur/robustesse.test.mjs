@@ -46,7 +46,8 @@ async function sansInjection(page) {
 test('données piégées (XSS) : aucune balise injectée, aucun lien javascript: ou data:', async () => {
   const page = await site.page({ donnees: donneesPiegees() });
   for (const [ancre, attendu] of [['#/', '.project-card'], ['#/entrees', '#grid .card'], ['#/entrees?vue=liste', '.entry-line'],
-    ['#/entree/abcdef123456', '#entry-title'], ['#/projet/x', '#titre-vue'], ['#/recherche?q=voisine', '#page-view .card']]) {
+    ['#/entree/abcdef123456', '#entry-title'], ['#/entree/abcdef000000', '#h-voir-aussi'], ['#/projet/x', '#titre-vue'],
+    ['#/recherche?q=voisine', '#page-view .card']]) {
     await page.goto(site.url(ancre));
     await page.locator(attendu).first().waitFor();
     assert.ok(await sansInjection(page), ancre);

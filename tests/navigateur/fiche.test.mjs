@@ -155,3 +155,32 @@ test('lien « en ligne » invalide : non cliquable, pas étiqueté « adresse lo
   assert.equal(await page.locator('.local-label', { hasText: 'adresse locale' }).count(), 1);
   await terminer(page);
 });
+
+test('fiche : bouton du lien principal en tête', async () => {
+  const page = await ouvrir('#/entree/' + archi.id.slice(0, 12), '#entry-title');
+  const bouton = page.locator('#entry-title + .entry-main-link a');
+  assert.equal(await bouton.getAttribute('aria-label'), 'Ouvrir le site : Jarvis — architecture (nouvel onglet)');
+  assert.equal(await bouton.getAttribute('href'), 'https://exemple.github.io/jarvis/');
+  assert.equal(await bouton.getAttribute('rel'), 'noopener noreferrer');
+  const sans = entreeTitree(donnees, 'Note sans projet');
+  await page.goto(site.url('#/entree/' + sans.id.slice(0, 12)));
+  await page.locator('#entry-title', { hasText: 'Note sans projet' }).waitFor();
+  assert.equal(await page.locator('.entry-main-link').count(), 0);
+  await terminer(page);
+});
+
+test('fiche : « Voir aussi » (voisins avec type et projet), puis retour à la vue d’origine', async () => {
+  const page = await ouvrir('#/projet/jarvis', '#titre-vue');
+  await page.getByRole('link', { name: 'Jarvis — architecture', exact: true }).click();
+  await page.locator('#entry-title').waitFor();
+  const lignes = page.locator('#h-voir-aussi + .see-also li');
+  assert.deepEqual(await lignes.locator('a').allTextContents(), ['Jarvis — premier réveil vocal', 'Jarvis — pas de service en ligne']);
+  assert.deepEqual(await lignes.locator('.type-badge').allTextContents(), ['Jalon', 'Décision']);
+  assert.deepEqual(await lignes.locator('.see-also-project').allTextContents(), ['Jarvis', 'Jarvis']);
+  await lignes.locator('a').first().click();
+  await page.locator('#entry-title', { hasText: 'Jarvis — premier réveil vocal' }).waitFor();
+  await page.getByRole('link', { name: '← Retour au projet' }).click();
+  await page.locator('#titre-vue', { hasText: 'Jarvis' }).waitFor();
+  assert.ok(page.url().endsWith('#/projet/jarvis'), page.url());
+  await terminer(page);
+});

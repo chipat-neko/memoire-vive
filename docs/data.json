@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "genere_le": "2026-09-18T06:47:22Z",
+ "genere_le": "2026-09-18T17:28:02Z",
  "source": "mcp-memory-service",
- "nb_entrees": 69,
+ "nb_entrees": 71,
  "types": {
   "note": 41,
-  "milestone": 13,
+  "milestone": 15,
   "reference": 9,
   "decision": 5,
   "error": 1
@@ -19,10 +19,117 @@
   "observation",
   "error"
  ],
+ "familles": [
+  {
+   "id": "jeux",
+   "nom": "Jeux & univers de jeu",
+   "couleur": 1
+  },
+  {
+   "id": "cours",
+   "nom": "Cours & savoir",
+   "couleur": 2
+  },
+  {
+   "id": "ia",
+   "nom": "IA & simulations",
+   "couleur": 3
+  },
+  {
+   "id": "outils-claude",
+   "nom": "Outils Claude",
+   "couleur": 4
+  },
+  {
+   "id": "sites",
+   "nom": "Sites & applis",
+   "couleur": 5
+  }
+ ],
+ "synonymes": [
+  [
+   "ia",
+   "intelligence artificielle",
+   "llm",
+   "modele",
+   "modeles"
+  ],
+  [
+   "local",
+   "locale",
+   "hors-ligne",
+   "hors ligne",
+   "offline"
+  ],
+  [
+   "jeu",
+   "game",
+   "gameplay",
+   "jeu video"
+  ],
+  [
+   "site",
+   "page",
+   "web"
+  ],
+  [
+   "depot",
+   "repo",
+   "github"
+  ],
+  [
+   "cours",
+   "apprentissage",
+   "formation",
+   "tutoriel"
+  ],
+  [
+   "bug",
+   "erreur",
+   "correctif",
+   "probleme"
+  ],
+  [
+   "3d",
+   "three.js",
+   "threejs",
+   "webgpu"
+  ],
+  [
+   "claude",
+   "claude code",
+   "anthropic"
+  ],
+  [
+   "memoire",
+   "mcp-memory-service",
+   "pont memoire"
+  ]
+ ],
  "projets": [
+  {
+   "id": "depths",
+   "nom": "Depths",
+   "famille": "jeux",
+   "description": "Jalon 1 livré le 2026-09-18 sur la branche feat/dungeon-generation (non fusionnée dans master) : génération procédurale de donjon (salles préfabriquées sur grille 9×8, croissance aléatoire avec budget de 12 salles, boss/trésor/boutique placés dans les…",
+   "lien_principal": null,
+   "nb": 4,
+   "types": {
+    "milestone": 3,
+    "note": 1
+   },
+   "premiere": "2026-09-17T20:01:49.317405Z",
+   "derniere": "2026-09-18T10:32:10.997005Z"
+  },
   {
    "id": "memoire-vive",
    "nom": "Mémoire Vive",
+   "famille": "outils-claude",
+   "description": "Site statique public qui affiche, regroupe, cherche et filtre toute la mémoire partagée, en ligne sur https://chipat-neko.github.io/memoire-vive/ (GitHub Pages, dossier docs/).",
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/memoire-vive/",
+    "genre": "site"
+   },
    "nb": 1,
    "types": {
     "milestone": 1
@@ -33,6 +140,12 @@
   {
    "id": "ce-ventre",
    "nom": "ce ventre",
+   "famille": "sites",
+   "description": "Site vitrine statique, sans framework ni dépendance externe, qui présente des études de faisabilité, plans 2D et maquettes 3D pour des projets de rénovation, extension ou transformation.",
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/ce-ventre-site/",
+    "genre": "site"
+   },
    "nb": 1,
    "types": {
     "reference": 1
@@ -43,6 +156,12 @@
   {
    "id": "opti-route",
    "nom": "Opti Route",
+   "famille": "sites",
+   "description": "Page en ligne : https://chipat-neko.github.io/opti_route/ (GitHub Pages, branche main).",
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/opti_route/",
+    "genre": "site"
+   },
    "nb": 1,
    "types": {
     "reference": 1
@@ -53,6 +172,12 @@
   {
    "id": "wiki-star-citizen",
    "nom": "Wiki Star Citizen",
+   "famille": "jeux",
+   "description": "Site statique HTML/CSS/JS en français, données par catégorie dans data/*.js (vaisseaux, systèmes, boutiques, patch notes, consommables), localisé pour l'Alpha 4.6.",
+   "lien_principal": {
+    "url": "https://wiki-ultime.vercel.app",
+    "genre": "site"
+   },
    "nb": 2,
    "types": {
     "reference": 1,
@@ -64,6 +189,12 @@
   {
    "id": "cours-graph",
    "nom": "Atelier Game Art / cours_graph",
+   "famille": "cours",
+   "description": "Site web statique, 100 % local et hors-ligne, pour apprendre la création de graphismes et d'assets de jeu vidéo, des fondamentaux jusqu'à l'intégration dans Unity 6.3 LTS, Unreal Engine 5.7 et Godot 4.x, avec un parcours complet dédié à Blender (5.0 / 4.5…",
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/atelier-game-art/",
+    "genre": "site"
+   },
    "nb": 2,
    "types": {
     "reference": 1,
@@ -75,6 +206,12 @@
   {
    "id": "my-watch",
    "nom": "My Watch",
+   "famille": "sites",
+   "description": "Pile : React Native 0.74.5 / Expo SDK 51, Expo Router (routes dans app/), Firebase (Auth, Firestore, Hosting sur device-streaming-5450fe88.web.app), TMDb pour le catalogue, Trakt en import optionnel.",
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/my-watch/",
+    "genre": "site"
+   },
    "nb": 4,
    "types": {
     "reference": 2,
@@ -87,6 +224,12 @@
   {
    "id": "plan-min",
    "nom": "plan-min",
+   "famille": "jeux",
+   "description": "Architecture : JS classique (var, pas de modules ES) pour fonctionner en file:// ; données dans assets/data/*.js (PLANS, USINES, CRAFTS…), rendu dans assets/core.js.",
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/codex-minecraft/",
+    "genre": "site"
+   },
    "nb": 4,
    "types": {
     "reference": 1,
@@ -100,6 +243,9 @@
   {
    "id": "pont-memoire",
    "nom": "Pont mémoire",
+   "famille": "outils-claude",
+   "description": null,
+   "lien_principal": null,
    "nb": 3,
    "types": {
     "note": 3
@@ -108,19 +254,11 @@
    "derniere": "2026-09-18T05:14:25.483180Z"
   },
   {
-   "id": "depths",
-   "nom": "Depths",
-   "nb": 2,
-   "types": {
-    "milestone": 1,
-    "note": 1
-   },
-   "premiere": "2026-09-17T20:01:49.317405Z",
-   "derniere": "2026-09-18T05:07:21.419860Z"
-  },
-  {
    "id": "tour-de-controle",
    "nom": "Tour de contrôle",
+   "famille": "outils-claude",
+   "description": null,
+   "lien_principal": null,
    "nb": 7,
    "types": {
     "milestone": 5,
@@ -133,6 +271,9 @@
   {
    "id": "jarvis",
    "nom": "Jarvis",
+   "famille": "ia",
+   "description": "Assistant personnel 100 % local, gratuit et open source, sous Windows 11 avec une RTX 5070 Ti. Modèle servi par Ollama ; OpenCode sert de moteur d'agents, avec trois agents cloisonnés par leurs permissions (journee, memoire, atelier) et des skills par tâche…",
+   "lien_principal": null,
    "nb": 4,
    "types": {
     "milestone": 2,
@@ -145,6 +286,9 @@
   {
    "id": "presentation",
    "nom": "Présentations PowerPoint",
+   "famille": "sites",
+   "description": null,
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "milestone": 1
@@ -155,6 +299,9 @@
   {
    "id": "voxelcraft",
    "nom": "VoxelCraft",
+   "famille": "jeux",
+   "description": "Clone de Minecraft en Three.js, voxel/procédural. Rendu : textures pixel-art procédurales 16×16 générées sur canvas (top/side/bottom différents par bloc), atlas de textures compilé pour la performance, ambient occlusion aux coins.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -165,6 +312,9 @@
   {
    "id": "trading-alert-bot",
    "nom": "Bot d'alertes trading",
+   "famille": "sites",
+   "description": "Bot Node.js 18+ sans dépendance externe (built-ins uniquement), livré en trois fichiers (bot.js, config.example.json, README.md).",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -175,6 +325,9 @@
   {
    "id": "pipeline-securite-n8n-ollama",
    "nom": "Pipeline sécurité n8n + Ollama",
+   "famille": "ia",
+   "description": "Open WebUI (interface de pilotage, installé et connecté à Ollama via http://host.docker.internal:11434) → N8N en chef d'orchestre (conteneur Docker, port 5678, volume persistant ~/.n8n) → 4 agents locaux spécialisés servis par Ollama (analyse, sécurité…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -185,6 +338,9 @@
   {
    "id": "deadline-command",
    "nom": "/deadline",
+   "famille": "outils-claude",
+   "description": "Commande manuelle (pas une compétence à déclenchement automatique) pour cadrer et exécuter une tâche bornée par une deadline, choisie délibérément pour rester à 0 token tant qu'elle n'est pas appelée et ne jamais partir seule.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -195,6 +351,9 @@
   {
    "id": "multi-claude-orchestrator",
    "nom": "Multi-Claude Orchestrator",
+   "famille": "outils-claude",
+   "description": "Système d'orchestration multi-IA utilisant uniquement des modèles Anthropic (décision durable : GPT écarté, abandon d'une version précédente combinant GPT+Claude).",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -205,6 +364,9 @@
   {
    "id": "jeu-claude",
    "nom": "Workspace jeu_claude",
+   "famille": "jeux",
+   "description": "Monorepo partagé par tous les jeux 3D de Noah (VOID ATLAS, TACTICAL OPS, etc.), pas un jeu en soi mais le socle commun. Racine avec _tools/ (npm-global, npm-cache, gradle, android-sdk, java — tout confiné sur D: via .npmrc + variables d'environnement, jamais…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -215,6 +377,9 @@
   {
    "id": "yuei-heroes-battle",
    "nom": "Yuei Heroes Battle",
+   "famille": "jeux",
+   "description": "Recréation en React JSX du jeu de cartes holographique de l'OVA My Hero Academia \"U.A. Heroes Battle\". Deck des élèves de la classe 1-A (stats ATK/DEF, Quirk spécial, Ultimate Move par carte) avec portraits SVG faits maison pour les 28 personnages, plus un…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -225,6 +390,9 @@
   {
    "id": "claude-learning-apps",
    "nom": "Applis d'apprentissage Claude",
+   "famille": "cours",
+   "description": "Suivi hors-ligne (~62 Ko), thème sombre \"Atelier nuit\", système XP/rang, export JSON, fiches de cours françaises embarquées.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -235,6 +403,12 @@
   {
    "id": "bibliotheque-claude",
    "nom": "Bibliothèque Claude",
+   "famille": "outils-claude",
+   "description": "Page HTML publiée avec une petite base de données embarquée (collection \"decks\") qui recense les créations de Noah sur claude.ai (titre, description, type, date, champ \"projet\" optionnel pour regrouper plusieurs entrées liées, ex. \"Agent IA Minecraft\").",
+   "lien_principal": {
+    "url": "https://claude.ai/artifact/Frho2SpSD9LFzrQFhdarfq",
+    "genre": "site"
+   },
    "nb": 1,
    "types": {
     "note": 1
@@ -245,6 +419,9 @@
   {
    "id": "uiverse-components",
    "nom": "uiverse-components",
+   "famille": "outils-claude",
+   "description": "Sourcing et prévisualisation de composants UI open-source depuis le mirroir GitHub uiverse-io/galaxy (environ 3800 composants sous licence MIT : boutons, cartes, loaders, cases à cocher, toggles, inputs, formulaires, tooltips, notifications, motifs de fond…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -255,6 +432,9 @@
   {
    "id": "design-studio",
    "nom": "design-studio",
+   "famille": "outils-claude",
+   "description": "Réplique le workflow de Claude Design dans Claude Code, avec trois piliers : génération de vrai code (pas des images), application d'un design system, et une boucle d'auto-critique par capture d'écran (génère → screenshot via Playwright headless → critique…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -265,6 +445,12 @@
   {
    "id": "antigravity-skills",
    "nom": "Antigravity Skills",
+   "famille": "outils-claude",
+   "description": "Environ 138 compétences réparties en 19 plugins/domaines (game design, web, sécurité, IA, Claude Code, apps desktop/mobile, backend/API, devops, documentation, données, tests, etc.), chaque domaine ayant sa propre compétence d'orchestration (\"par où…",
+   "lien_principal": {
+    "url": "https://github.com/sickn33/antigravity-skills",
+    "genre": "depot"
+   },
    "nb": 1,
    "types": {
     "note": 1
@@ -275,6 +461,9 @@
   {
    "id": "roberta",
    "nom": "Roberta v4",
+   "famille": "ia",
+   "description": "Assistant IA local combinant chat, recherche web, APIs finance et génération d'images locale par Stable Diffusion, dans une plateforme assistant unifiée.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -285,6 +474,9 @@
   {
    "id": "clipcoach",
    "nom": "ClipCoach",
+   "famille": "ia",
+   "description": "Application locale d'analyse de gameplay par vision par ordinateur, principe cœur 100% local sans dépendance API externe.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -295,6 +487,9 @@
   {
    "id": "decoupe-videos",
    "nom": "Découpe Vidéos",
+   "famille": "sites",
+   "description": "Application d'édition qui coupe automatiquement les vidéos gaming en clips en filtrant les passages lobby/menu, pour automatiser le nettoyage de contenu gaming.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -305,6 +500,9 @@
   {
    "id": "codelyngo",
    "nom": "CodeLyngo v3",
+   "famille": "cours",
+   "description": "Plateforme React d'apprentissage du code par parcours progressifs. Langages cœur : HTML, CSS, JavaScript, Python ; TypeScript et SQL en contenu complémentaire.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -315,6 +513,9 @@
   {
    "id": "devpath",
    "nom": "DevPath",
+   "famille": "cours",
+   "description": "Plateforme d'apprentissage web, 221 fichiers HTML statiques (modules de cours + pages de projets), sans framework, index de navigation.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -325,6 +526,9 @@
   {
    "id": "void-atlas",
    "nom": "VOID ATLAS",
+   "famille": "jeux",
+   "description": "RPG d'exploration spatiale en React/JSX, un seul composant avec rendu Canvas (navigation temps réel, commerce, combat, minage, missions, personnalisation de vaisseau, génération procédurale de systèmes stellaires par seed).",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -335,6 +539,9 @@
   {
    "id": "speedrush-dofus",
    "nom": "SpeedRush DOFUS / Optimiseur duo",
+   "famille": "jeux",
+   "description": "(1) SpeedRush v10 : outil HTML autonome livré via claude.ai, fichier unique, toutes les données (674 items, 18 classes, compos prédéfinies) encodées en base64 dans window._D64, zéro dépendance externe, pensé pour fonctionner hors-ligne le jour de la…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -345,6 +552,9 @@
   {
    "id": "tactical-ops",
    "nom": "TACTICAL OPS",
+   "famille": "jeux",
+   "description": "Jeu de tir top-down vanilla HTML/CSS/JS, rendu Canvas, aucun framework ni dépendance externe. Contenu livré : 3 armes (M4A1 automatique, M9 pistolet, fusil à pompe M870), 4 types d'ennemis avec IA à états (patrouille → poursuite → attaque/strafing), 8 vagues…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -355,6 +565,9 @@
   {
    "id": "religions",
    "nom": "Religions",
+   "famille": "cours",
+   "description": "Recensement encyclopédique de 1553 religions, confessions, écoles, obédiences et courants du monde, répartis en 12 familles (abrahamiques, indiennes/dharmiques, est-asiatiques, iraniennes/Proche-Orient ancien, antiques Europe-Méditerranée, africaines et…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -365,6 +578,12 @@
   {
    "id": "dosoft",
    "nom": "Dosoft / orga_dof",
+   "famille": "jeux",
+   "description": "Outil Windows distribué sur https://dosoft.fr, code source public pour reconstruire l'application. Menu radial (radial_menu.py) déclenché par raccourci clavier (bibliothèque keyboard), icône dans la barre système (pystray), interface Tkinter/customtkinter.",
+   "lien_principal": {
+    "url": "https://dosoft.fr",
+    "genre": "site"
+   },
    "nb": 1,
    "types": {
     "note": 1
@@ -375,6 +594,12 @@
   {
    "id": "jsl-metal",
    "nom": "JLS Metal / jsl_metal",
+   "famille": "sites",
+   "description": "Site vitrine statique, professionnel, 100 % autonome (HTML/CSS/JS, aucune dépendance, aucun framework). Recréé pour un PROJET PERSONNEL à partir des informations publiques de l'entreprise JLS Metal (métallerie, chaudronnerie, serrurerie…",
+   "lien_principal": {
+    "url": "https://jls-metal.fr/",
+    "genre": "site"
+   },
    "nb": 1,
    "types": {
     "note": 1
@@ -385,6 +610,9 @@
   {
    "id": "nova",
    "nom": "Nova / jeu_nova",
+   "famille": "jeux",
+   "description": "Socle moteur d'un jeu d'action 3ᵉ personne en monde ouvert, TypeScript strict, Vite 8 + three/webgpu 0.184 (WebGPU natif, repli WebGL2 automatique).",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -395,6 +623,9 @@
   {
    "id": "help-code-ai",
    "nom": "Help_Code",
+   "famille": "ia",
+   "description": "Assistant de codage IA local, à entraîner. GPU RTX 5070 Ti (16 Go VRAM), CUDA 13.1, Python 3.10.6. Flux : activer le venv (venv\\Scripts\\activate), installer les dépendances (python installer.py, 10-20 min, 5-8 Go), vérifier le GPU (config_gpu.py), créer le…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -405,6 +636,9 @@
   {
    "id": "orbis",
    "nom": "Orbis / courss",
+   "famille": "cours",
+   "description": "Plateforme de cours ambitieuse couvrant toutes les matières, du CP à Bac+8, pour plusieurs systèmes éducatifs, traduisible dans n'importe quelle langue.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -415,6 +649,9 @@
   {
    "id": "code-ai",
    "nom": "CodeAI",
+   "famille": "ia",
+   "description": "Une IA de code complète construite de zéro, 100 % locale (aucune API distante, aucun quota, aucune connexion requise, aucune bibliothèque haut niveau comme transformers), en français commenté intégralement.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -425,6 +662,9 @@
   {
    "id": "ai-creator",
    "nom": "AI Creator",
+   "famille": "ia",
+   "description": "Chat web qui orchestre 19 modèles IA locaux (texte, code, image, vidéo, musique, voix) sur un GPU 16 Go (RTX 5070 Ti). Serveur FastAPI (router.py, ~2500 lignes), routing automatique intelligent par patterns regex vers le bon modèle, 73 plugins slash commands…",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -435,6 +675,9 @@
   {
    "id": "amalia",
    "nom": "Amalia",
+   "famille": "ia",
+   "description": "Petite conscience artificielle dans un environnement clos (un \"bocal\" numérique), pas un chatbot mais une boucle cognitive observable.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -445,6 +688,9 @@
   {
    "id": "un-monde-sans",
    "nom": "Un Monde Sans",
+   "famille": "cours",
+   "description": null,
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -455,6 +701,9 @@
   {
    "id": "le-bocal",
    "nom": "Le Bocal",
+   "famille": "ia",
+   "description": "Simulation de planète vivante hors-ligne, Terre photoréaliste, 15 597 événements historiques réels datés, 23 civilisations, taille de simulation 240.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -465,6 +714,9 @@
   {
    "id": "check-code",
    "nom": "Check_Code",
+   "famille": "cours",
+   "description": "Vérificateur de code hors ligne, zéro dépendance, pour auditer automatiquement les exercices, QCM et fils rouges de sites éducatifs comme Syntaxe.",
+   "lien_principal": null,
    "nb": 1,
    "types": {
     "note": 1
@@ -475,6 +727,12 @@
   {
    "id": "syntaxe",
    "nom": "Syntaxe",
+   "famille": "cours",
+   "description": "Site éducatif statique 100 % file:// (aucun serveur, aucun module ES, aucun build, aucune dépendance installée). Un dossier par cours sous pages/, HTML et CSS séparés, liens \"related\" entre cours.",
+   "lien_principal": {
+    "url": "https://github.com/chipat-neko/devpath",
+    "genre": "depot"
+   },
    "nb": 2,
    "types": {
     "note": 2
@@ -485,6 +743,9 @@
   {
    "id": "mcai",
    "nom": "mcai",
+   "famille": "ia",
+   "description": "Environnement CraftGround 2.7.4 (mod Fabric + Gymnasium, ActionSpaceVersion.V2_MINERL_HUMAN). Chaîne : collecte de démonstrations par un expert scripté (scripts/demonstrate.py) → tri des mondes stériles (scripts/curate.py) → clonage comportemental…",
+   "lien_principal": null,
    "nb": 3,
    "types": {
     "milestone": 1,
@@ -496,6 +757,76 @@
   }
  ],
  "entrees": [
+  {
+   "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
+   "titre": "Projet Depths — jalon 3 « étages » livré le 2026-09-18 sur la branche feat/floors",
+   "resume": "Une run compte trois étages ; le boss des étages 1-2 ouvre un escalier, celui de l'étage 3 gagne la run. Décision durable : passage d'étage par rechargement de scène avec un report statique (RunCarry : étage, seed de run, santé, pièces, objets), seed d'étage…",
+   "contenu": "Projet Depths (D:\\depths) — jalon 3 « étages » livré le 2026-09-18 sur la branche feat/floors (depuis master, qui contient les jalons 1 à 2C). Une run compte trois étages ; le boss des étages 1-2 ouvre un escalier, celui de l'étage 3 gagne la run. Décision durable : passage d'étage par rechargement de scène avec un report statique (RunCarry : étage, seed de run, santé, pièces, objets), seed d'étage dérivée de la seed de run (étage 1 = seed de run), difficulté +(n−1) ennemi par salle et +(n−1) PV par ennemi. Non joué par un humain ; détails dans docs/journal-de-decisions.md.",
+   "type": "milestone",
+   "tags": [
+    "depths",
+    "rogue-lite",
+    "unity",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-18T10:32:10.997005Z",
+   "modifie_le": "2026-09-18T10:32:10.997005Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\depths"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "depths",
+   "voisins": [
+    {
+     "id": "32208d4756bde309ae0ef35e719ec89a411d429e30921a64d90471bf437fdee7",
+     "score": 0.896
+    },
+    {
+     "id": "12cf6e49728f062fd83d1ce91883ea74988229a19a3c3858ff008ac99168d376",
+     "score": 0.859
+    }
+   ]
+  },
+  {
+   "id": "32208d4756bde309ae0ef35e719ec89a411d429e30921a64d90471bf437fdee7",
+   "titre": "Projet Depths — jalons 2A, 2B et 2C livrés le 2026-09-18, chacun sur sa branche empilée sur la précédente",
+   "resume": "2A combat : corps à corps, deux ennemis (chasseur, chargeur), salles verrouillées jusqu'au nettoyage, cœurs, mort/victoire sur le boss, relance par rechargement de scène.",
+   "contenu": "Projet Depths (D:\\depths) — jalons 2A, 2B et 2C livrés le 2026-09-18, chacun sur sa branche empilée sur la précédente (feat/combat → feat/loot → feat/meta-progression, aucune fusionnée dans master). 2A combat : corps à corps, deux ennemis (chasseur, chargeur), salles verrouillées jusqu'au nettoyage, cœurs, mort/victoire sur le boss, relance par rechargement de scène. 2B loot : une pièce par ennemi tué, cinq objets passifs (catalogue en données pures), trésor gratuit, boutique à trois offres, statistiques toujours recalculées depuis une base + la liste des objets. 2C méta-progression : éclats persistants (pièces non dépensées + 10 en victoire), trois objets à débloquer depuis l'écran de fin, sauvegarde texte depths-meta.txt dans persistentDataPath. Décision durable : tirage du loot déterministe par salle depuis la seed effective et les déblocages. Aucun jalon n'a encore été joué par un humain (tout vérifié en mode batch). Détails dans docs/journal-de-decisions.md.",
+   "type": "milestone",
+   "tags": [
+    "depths",
+    "rogue-lite",
+    "unity",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-18T09:31:08.355901Z",
+   "modifie_le": "2026-09-18T09:31:08.355901Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\depths"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "depths",
+   "voisins": [
+    {
+     "id": "12cf6e49728f062fd83d1ce91883ea74988229a19a3c3858ff008ac99168d376",
+     "score": 0.903
+    },
+    {
+     "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
+     "score": 0.896
+    }
+   ]
+  },
   {
    "id": "405b50d3efc0c8668968690c9885d25d071c8adbe30b05f9deafe5dfb19e9d3d",
    "titre": "Projet Mémoire Vive — jalon livré le 18/09/2026",
@@ -528,7 +859,13 @@
      "valeur": "port 8000"
     }
    ],
-   "projet": "memoire-vive"
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/memoire-vive/",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "memoire-vive",
+   "voisins": []
   },
   {
    "id": "c00af4126b6ba44d74280e826af95d34808340b2827bf9f7a27ccd07f75cbc80",
@@ -554,7 +891,13 @@
      "valeur": "https://chipat-neko.github.io/ce-ventre-site/"
     }
    ],
-   "projet": "ce-ventre"
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/ce-ventre-site/",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "ce-ventre",
+   "voisins": []
   },
   {
    "id": "e738ec80ec6a11a98881c66cb1d145b24c5de6f7e605bf179209c77cfae14690",
@@ -580,7 +923,13 @@
      "valeur": "https://chipat-neko.github.io/opti_route/"
     }
    ],
-   "projet": "opti-route"
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/opti_route/",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "opti-route",
+   "voisins": []
   },
   {
    "id": "1f51b8a88ecb031f92fd42fb3dedb033bd1e222770b70f14ae4a0c05c6fa95aa",
@@ -606,7 +955,18 @@
      "valeur": "https://github.com/chipat-neko/wiki-ultime"
     }
    ],
-   "projet": "wiki-star-citizen"
+   "lien_principal": {
+    "url": "https://wiki-ultime.vercel.app",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "wiki-star-citizen",
+   "voisins": [
+    {
+     "id": "42f6eb780298f523fe9d7ced7199756a93ad4d87b3473c58970aae84558807f0",
+     "score": 0.832
+    }
+   ]
   },
   {
    "id": "668c921f271f4320ba3aa20213dc9fb4dfd0791637eb5b72afdb35e5a260c131",
@@ -636,7 +996,18 @@
      "valeur": "D:\\cours_graph"
     }
    ],
-   "projet": "cours-graph"
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/atelier-game-art/",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "cours-graph",
+   "voisins": [
+    {
+     "id": "e1c782d02eb9333960079bfa833588cab7d54b5c1a13ebccf33e8cbf55188fd2",
+     "score": 0.893
+    }
+   ]
   },
   {
    "id": "2e3d1d41f24d97100fb0644d7bd075fb083b1e12ac882d4964aeda577e74b414",
@@ -670,7 +1041,18 @@
      "valeur": "d:\\my_watch"
     }
    ],
-   "projet": "my-watch"
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/my-watch/",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "my-watch",
+   "voisins": [
+    {
+     "id": "d3f1660aba1ab45e610e38c992006c1980de9abda2ceb0567f8e266cef22ce81",
+     "score": 0.85
+    }
+   ]
   },
   {
    "id": "d6cd979dfe077b228fcaaec0abd9ae5ed9d0b6219e5440cc8b18b6ac10fb86ca",
@@ -700,7 +1082,18 @@
      "valeur": "d:\\plan-min"
     }
    ],
-   "projet": "plan-min"
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/codex-minecraft/",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "plan-min",
+   "voisins": [
+    {
+     "id": "02a39a4c84a5a7f37d75aeda3890195a1de9cd8094d9ba5f3d55b3decd55db0a",
+     "score": 0.848
+    }
+   ]
   },
   {
    "id": "e616d090729b1d1f66597356df1acdff8901a824d6be5bf94c011cf7707d3dd3",
@@ -717,7 +1110,15 @@
    "cree_le": "2026-09-18T05:14:25.483180Z",
    "modifie_le": "2026-09-18T05:14:25.483180Z",
    "liens": [],
-   "projet": "pont-memoire"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "pont-memoire",
+   "voisins": [
+    {
+     "id": "f457b69a1f1df490b0721ec559087c3a8747e96209c3590e7ffb06ed3daf7b7a",
+     "score": 0.809
+    }
+   ]
   },
   {
    "id": "f457b69a1f1df490b0721ec559087c3a8747e96209c3590e7ffb06ed3daf7b7a",
@@ -735,7 +1136,15 @@
    "cree_le": "2026-09-18T05:11:19.498974Z",
    "modifie_le": "2026-09-18T05:11:19.498974Z",
    "liens": [],
-   "projet": "pont-memoire"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "pont-memoire",
+   "voisins": [
+    {
+     "id": "e616d090729b1d1f66597356df1acdff8901a824d6be5bf94c011cf7707d3dd3",
+     "score": 0.809
+    }
+   ]
   },
   {
    "id": "12cf6e49728f062fd83d1ce91883ea74988229a19a3c3858ff008ac99168d376",
@@ -759,7 +1168,19 @@
      "valeur": "D:\\depths"
     }
    ],
-   "projet": "depths"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "depths",
+   "voisins": [
+    {
+     "id": "32208d4756bde309ae0ef35e719ec89a411d429e30921a64d90471bf437fdee7",
+     "score": 0.903
+    },
+    {
+     "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
+     "score": 0.859
+    }
+   ]
   },
   {
    "id": "b99d614f74a845a7da521b8f089d4b17ad0411bbce9a41e8ee2fe57fa21d0ad9",
@@ -783,7 +1204,10 @@
      "valeur": "~/.claude/settings.json"
     }
    ],
-   "projet": "tour-de-controle"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "tour-de-controle",
+   "voisins": []
   },
   {
    "id": "5e7eba3ad60d6bcc465fc7b1e8f3339635024eca9fe89ba0b6fa0bb8928f574a",
@@ -803,7 +1227,10 @@
    "cree_le": "2026-09-18T04:41:49.041752Z",
    "modifie_le": "2026-09-18T04:41:49.041752Z",
    "liens": [],
-   "projet": "tour-de-controle"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "tour-de-controle",
+   "voisins": []
   },
   {
    "id": "c331b254b6f9376ff932b629ec727bf31ce3d1521bc869b467d241567353d8ab",
@@ -823,7 +1250,23 @@
    "cree_le": "2026-09-17T21:40:09.669631Z",
    "modifie_le": "2026-09-17T21:40:09.669631Z",
    "liens": [],
-   "projet": "tour-de-controle"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "tour-de-controle",
+   "voisins": [
+    {
+     "id": "b708603901a54dcc3e3e09a1c6439db582b93e62f051c3e35aa0c2b45c9d118f",
+     "score": 0.833
+    },
+    {
+     "id": "b5ef55b1b1ced9b3dded0dea3f8ce1f26942ea981f927cc76e4e673e452d6987",
+     "score": 0.827
+    },
+    {
+     "id": "8a09c9f4ee5d3f8c77018f3c83352de6146743208fb6c1a36f5a29b3b27fcf71",
+     "score": 0.805
+    }
+   ]
   },
   {
    "id": "8a09c9f4ee5d3f8c77018f3c83352de6146743208fb6c1a36f5a29b3b27fcf71",
@@ -843,7 +1286,23 @@
    "cree_le": "2026-09-17T21:23:21.473561Z",
    "modifie_le": "2026-09-17T21:23:21.473561Z",
    "liens": [],
-   "projet": "tour-de-controle"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "tour-de-controle",
+   "voisins": [
+    {
+     "id": "b708603901a54dcc3e3e09a1c6439db582b93e62f051c3e35aa0c2b45c9d118f",
+     "score": 0.822
+    },
+    {
+     "id": "b5ef55b1b1ced9b3dded0dea3f8ce1f26942ea981f927cc76e4e673e452d6987",
+     "score": 0.808
+    },
+    {
+     "id": "c331b254b6f9376ff932b629ec727bf31ce3d1521bc869b467d241567353d8ab",
+     "score": 0.805
+    }
+   ]
   },
   {
    "id": "b5ef55b1b1ced9b3dded0dea3f8ce1f26942ea981f927cc76e4e673e452d6987",
@@ -863,7 +1322,23 @@
    "cree_le": "2026-09-17T21:10:40.629261Z",
    "modifie_le": "2026-09-17T21:10:40.629261Z",
    "liens": [],
-   "projet": "tour-de-controle"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "tour-de-controle",
+   "voisins": [
+    {
+     "id": "777576fc697e8ebfd62ef4678a7100391abe92c37c484dc9f5ec52c0b391d217",
+     "score": 0.875
+    },
+    {
+     "id": "c331b254b6f9376ff932b629ec727bf31ce3d1521bc869b467d241567353d8ab",
+     "score": 0.827
+    },
+    {
+     "id": "8a09c9f4ee5d3f8c77018f3c83352de6146743208fb6c1a36f5a29b3b27fcf71",
+     "score": 0.808
+    }
+   ]
   },
   {
    "id": "b708603901a54dcc3e3e09a1c6439db582b93e62f051c3e35aa0c2b45c9d118f",
@@ -883,7 +1358,19 @@
    "cree_le": "2026-09-17T20:55:45.808509Z",
    "modifie_le": "2026-09-17T20:55:45.808509Z",
    "liens": [],
-   "projet": "tour-de-controle"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "tour-de-controle",
+   "voisins": [
+    {
+     "id": "c331b254b6f9376ff932b629ec727bf31ce3d1521bc869b467d241567353d8ab",
+     "score": 0.833
+    },
+    {
+     "id": "8a09c9f4ee5d3f8c77018f3c83352de6146743208fb6c1a36f5a29b3b27fcf71",
+     "score": 0.822
+    }
+   ]
   },
   {
    "id": "b95b2dcf280bcee876ed719453c5c0c9f7f5f89f8520d3d99d419b40dc1b1653",
@@ -900,7 +1387,15 @@
    "cree_le": "2026-09-17T20:50:10.170233Z",
    "modifie_le": "2026-09-17T20:50:10.170233Z",
    "liens": [],
-   "projet": "jarvis"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "jarvis",
+   "voisins": [
+    {
+     "id": "82d85ac082ff5bd0d622edaece79bca186ccd9d4905cd7ab7a1ee15712b8dc16",
+     "score": 0.869
+    }
+   ]
   },
   {
    "id": "777576fc697e8ebfd62ef4678a7100391abe92c37c484dc9f5ec52c0b391d217",
@@ -929,7 +1424,15 @@
      "valeur": "~/.claude/projects/*/*.jsonl"
     }
    ],
-   "projet": "tour-de-controle"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "tour-de-controle",
+   "voisins": [
+    {
+     "id": "b5ef55b1b1ced9b3dded0dea3f8ce1f26942ea981f927cc76e4e673e452d6987",
+     "score": 0.875
+    }
+   ]
   },
   {
    "id": "efa989c7ef659ce2777e78c279052afca1c571bfc34cbc2d283cb9fa2ff2b46c",
@@ -946,7 +1449,10 @@
    "cree_le": "2026-09-17T20:30:21.550345Z",
    "modifie_le": "2026-09-17T20:30:21.550345Z",
    "liens": [],
-   "projet": "presentation"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "presentation",
+   "voisins": []
   },
   {
    "id": "7b727d0b21eb029dafc3d42094fa9e5ddd7f6ea4425aa51820ed25bd9f25c4a4",
@@ -963,7 +1469,10 @@
    "cree_le": "2026-09-17T20:01:49.317405Z",
    "modifie_le": "2026-09-17T20:01:49.317405Z",
    "liens": [],
-   "projet": "depths"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "depths",
+   "voisins": []
   },
   {
    "id": "ac884104a17c1cbc9359a6162f2439386f22959470d1d4e0bf6743d041c0c9e4",
@@ -980,7 +1489,10 @@
    "cree_le": "2026-09-17T19:28:22.934111Z",
    "modifie_le": "2026-09-17T19:28:22.934111Z",
    "liens": [],
-   "projet": "pont-memoire"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "pont-memoire",
+   "voisins": []
   },
   {
    "id": "7fa528017982435f0c665f550f2a794dc6dea80a2d7d6864e8dd3bdcf3c51161",
@@ -996,7 +1508,10 @@
    "cree_le": "2026-09-17T18:46:15.099437Z",
    "modifie_le": "2026-09-17T18:46:15.099437Z",
    "liens": [],
-   "projet": "voxelcraft"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "voxelcraft",
+   "voisins": []
   },
   {
    "id": "690c9ab5c0b8f1374831b66977460dad52911965e45be978b5883c2b1003d53d",
@@ -1012,7 +1527,10 @@
    "cree_le": "2026-09-17T18:36:49.471912Z",
    "modifie_le": "2026-09-17T18:36:49.471912Z",
    "liens": [],
-   "projet": "trading-alert-bot"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trading-alert-bot",
+   "voisins": []
   },
   {
    "id": "d122e88368e830f9086af2a069727fe471397ed4dbce878678acfddac28f0a74",
@@ -1045,7 +1563,10 @@
      "valeur": "localhost:11434"
     }
    ],
-   "projet": "pipeline-securite-n8n-ollama"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "pipeline-securite-n8n-ollama",
+   "voisins": []
   },
   {
    "id": "9ff666669458a1afe90cea3f2700a251dfa48b42401d17393053943c9fa3e4de",
@@ -1067,7 +1588,10 @@
      "valeur": "~/.claude/commands/deadline.md"
     }
    ],
-   "projet": "deadline-command"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "deadline-command",
+   "voisins": []
   },
   {
    "id": "938efab7f9807bf3f3037ebb08ea249b7da3627a3af60773738e516f77f34c7c",
@@ -1083,7 +1607,10 @@
    "cree_le": "2026-09-17T18:30:48.197238Z",
    "modifie_le": "2026-09-17T18:30:48.197238Z",
    "liens": [],
-   "projet": "multi-claude-orchestrator"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "multi-claude-orchestrator",
+   "voisins": []
   },
   {
    "id": "55329ddab3808a89f785f27b23f21440da6d109bf26b75fa7e5e073f8827e519",
@@ -1109,7 +1636,15 @@
      "valeur": "C:\\Users\\"
     }
    ],
-   "projet": "jeu-claude"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "jeu-claude",
+   "voisins": [
+    {
+     "id": "3866617ece98438eef5b2563d9beb1f1da5a91c679924fef85fe28a376567d6b",
+     "score": 0.809
+    }
+   ]
   },
   {
    "id": "42d52fd89ef850982a55f04f82d9090316c8fe12fb0516b72c69d2ac2357da33",
@@ -1125,7 +1660,10 @@
    "cree_le": "2026-09-17T18:19:52.577071Z",
    "modifie_le": "2026-09-17T18:19:52.577071Z",
    "liens": [],
-   "projet": "yuei-heroes-battle"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "yuei-heroes-battle",
+   "voisins": []
   },
   {
    "id": "3a730e4480ac70aaf65424eec9f7a7c2d7f70609f64d45f149ec6180cc7fc968",
@@ -1141,7 +1679,10 @@
    "cree_le": "2026-09-17T18:19:48.525415Z",
    "modifie_le": "2026-09-17T18:19:48.525415Z",
    "liens": [],
-   "projet": "claude-learning-apps"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "claude-learning-apps",
+   "voisins": []
   },
   {
    "id": "e1e7fd05fceaec87c86a8d0168cc1d2162a0af8e8410998fa48d75d29d572f88",
@@ -1162,7 +1703,13 @@
      "valeur": "https://claude.ai/artifact/Frho2SpSD9LFzrQFhdarfq"
     }
    ],
-   "projet": "bibliotheque-claude"
+   "lien_principal": {
+    "url": "https://claude.ai/artifact/Frho2SpSD9LFzrQFhdarfq",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "bibliotheque-claude",
+   "voisins": []
   },
   {
    "id": "d13d7d51402b9ff505ebf2924cb53bb4649fcd345b834c06cc3918f2eab964e5",
@@ -1178,7 +1725,15 @@
    "cree_le": "2026-09-17T18:19:40.003797Z",
    "modifie_le": "2026-09-17T18:19:40.003797Z",
    "liens": [],
-   "projet": "uiverse-components"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "uiverse-components",
+   "voisins": [
+    {
+     "id": "bcec10fd6f6f557e9d8e3204e737b9989b2f0f2489cf3a6e04f5df74eb9cc0f1",
+     "score": 0.808
+    }
+   ]
   },
   {
    "id": "bcec10fd6f6f557e9d8e3204e737b9989b2f0f2489cf3a6e04f5df74eb9cc0f1",
@@ -1194,7 +1749,19 @@
    "cree_le": "2026-09-17T18:19:35.951572Z",
    "modifie_le": "2026-09-17T18:19:35.951572Z",
    "liens": [],
-   "projet": "design-studio"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "design-studio",
+   "voisins": [
+    {
+     "id": "a713bd8e280021d4f9ad11d958e7c82b1aa69d2a8bddd422dc15f343a62bb0d5",
+     "score": 0.83
+    },
+    {
+     "id": "d13d7d51402b9ff505ebf2924cb53bb4649fcd345b834c06cc3918f2eab964e5",
+     "score": 0.808
+    }
+   ]
   },
   {
    "id": "a713bd8e280021d4f9ad11d958e7c82b1aa69d2a8bddd422dc15f343a62bb0d5",
@@ -1219,7 +1786,18 @@
      "valeur": "D:\\claude\\antigravity-skills"
     }
    ],
-   "projet": "antigravity-skills"
+   "lien_principal": {
+    "url": "https://github.com/sickn33/antigravity-skills",
+    "genre": "depot"
+   },
+   "corrige": false,
+   "projet": "antigravity-skills",
+   "voisins": [
+    {
+     "id": "bcec10fd6f6f557e9d8e3204e737b9989b2f0f2489cf3a6e04f5df74eb9cc0f1",
+     "score": 0.83
+    }
+   ]
   },
   {
    "id": "28a5cb560ae54f9ca0b3fbbacdb97b8dc8601d00c03a6d275c973079b7087063",
@@ -1235,7 +1813,10 @@
    "cree_le": "2026-09-17T18:19:25.905771Z",
    "modifie_le": "2026-09-17T18:19:25.905771Z",
    "liens": [],
-   "projet": "roberta"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "roberta",
+   "voisins": []
   },
   {
    "id": "20af390e46bbccf24e8beabbe77d5f7fc3d606ddcedf4e22ca8a75a2a8d9e943",
@@ -1251,7 +1832,10 @@
    "cree_le": "2026-09-17T18:19:21.338522Z",
    "modifie_le": "2026-09-17T18:19:21.338522Z",
    "liens": [],
-   "projet": "clipcoach"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "clipcoach",
+   "voisins": []
   },
   {
    "id": "aee46307c01dd6b807708b521519a9b3799c702d793ba38a848fa3fa450d9114",
@@ -1267,7 +1851,10 @@
    "cree_le": "2026-09-17T18:19:16.760344Z",
    "modifie_le": "2026-09-17T18:19:16.760344Z",
    "liens": [],
-   "projet": "decoupe-videos"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "decoupe-videos",
+   "voisins": []
   },
   {
    "id": "6526db2ad549a355f638de6000476fc90fa02e23f12d4495ba0d10ec12a56e6a",
@@ -1283,7 +1870,10 @@
    "cree_le": "2026-09-17T18:19:12.031241Z",
    "modifie_le": "2026-09-17T18:19:12.031241Z",
    "liens": [],
-   "projet": "codelyngo"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "codelyngo",
+   "voisins": []
   },
   {
    "id": "6ac7990aaeb3db4ca6d870a8bc4d6f9f550532e01ed039cf92f539714ab50ebb",
@@ -1299,7 +1889,15 @@
    "cree_le": "2026-09-17T18:19:07.741165Z",
    "modifie_le": "2026-09-17T18:19:07.741165Z",
    "liens": [],
-   "projet": "devpath"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "devpath",
+   "voisins": [
+    {
+     "id": "18b70df146c2884cfa2b97b6b38a6892faac6fed58c85f3ff9c3053c93cd7cee",
+     "score": 0.814
+    }
+   ]
   },
   {
    "id": "42f6eb780298f523fe9d7ced7199756a93ad4d87b3473c58970aae84558807f0",
@@ -1315,7 +1913,15 @@
    "cree_le": "2026-09-17T18:19:03.589911Z",
    "modifie_le": "2026-09-17T18:19:03.589911Z",
    "liens": [],
-   "projet": "wiki-star-citizen"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "wiki-star-citizen",
+   "voisins": [
+    {
+     "id": "1f51b8a88ecb031f92fd42fb3dedb033bd1e222770b70f14ae4a0c05c6fa95aa",
+     "score": 0.832
+    }
+   ]
   },
   {
    "id": "59c53bab1630e685a16f045aa6eba249965c6f6b392000384571a88e0de9461a",
@@ -1331,7 +1937,15 @@
    "cree_le": "2026-09-17T18:18:58.623299Z",
    "modifie_le": "2026-09-17T18:18:58.623299Z",
    "liens": [],
-   "projet": "void-atlas"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "void-atlas",
+   "voisins": [
+    {
+     "id": "3866617ece98438eef5b2563d9beb1f1da5a91c679924fef85fe28a376567d6b",
+     "score": 0.802
+    }
+   ]
   },
   {
    "id": "629fe62b7d3b5d8af6d200163f4d8e3df1468e2594d6eb23ea69b1189b478f15",
@@ -1353,7 +1967,10 @@
      "valeur": "D:\\jeu_claude\\optimiseur-duo"
     }
    ],
-   "projet": "speedrush-dofus"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "speedrush-dofus",
+   "voisins": []
   },
   {
    "id": "275d86a39ee6af55f551a9dc15699d93a2350cd90fe8c62b9a877a63c87f5547",
@@ -1369,7 +1986,10 @@
    "cree_le": "2026-09-17T18:18:48.620406Z",
    "modifie_le": "2026-09-17T18:18:48.620406Z",
    "liens": [],
-   "projet": "tactical-ops"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "tactical-ops",
+   "voisins": []
   },
   {
    "id": "659ba5799329be2499319c9b910419bae9325f0e0459dd048b4f4afa495da188",
@@ -1390,7 +2010,10 @@
      "valeur": "D:\\religions"
     }
    ],
-   "projet": "religions"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "religions",
+   "voisins": []
   },
   {
    "id": "1d926f327a8a3a7598326fcd45b619fd68ca2a694645749d4bf0d596f932175d",
@@ -1420,7 +2043,13 @@
      "valeur": "D:\\orga_dof"
     }
    ],
-   "projet": "dosoft"
+   "lien_principal": {
+    "url": "https://dosoft.fr",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "dosoft",
+   "voisins": []
   },
   {
    "id": "f9ca1cb5cac4215401503c4d50b10ef2d0ac072c2168d77800d8739aa78a8ea6",
@@ -1445,7 +2074,13 @@
      "valeur": "D:\\jsl_metal"
     }
    ],
-   "projet": "jsl-metal"
+   "lien_principal": {
+    "url": "https://jls-metal.fr/",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "jsl-metal",
+   "voisins": []
   },
   {
    "id": "3866617ece98438eef5b2563d9beb1f1da5a91c679924fef85fe28a376567d6b",
@@ -1467,7 +2102,23 @@
      "valeur": "D:\\jeu_nova"
     }
    ],
-   "projet": "nova"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "nova",
+   "voisins": [
+    {
+     "id": "55329ddab3808a89f785f27b23f21440da6d109bf26b75fa7e5e073f8827e519",
+     "score": 0.809
+    },
+    {
+     "id": "59c53bab1630e685a16f045aa6eba249965c6f6b392000384571a88e0de9461a",
+     "score": 0.802
+    },
+    {
+     "id": "37a595d6ac70dda293bf914bb40e8837b27a1df4705249fe65887e1ee89b2d2f",
+     "score": 0.8
+    }
+   ]
   },
   {
    "id": "1a807abf5e6a69ad4f991aa391e290c8bda83116f77f8346dce438a9226f76c0",
@@ -1492,7 +2143,15 @@
      "valeur": "E:\\help_code_ai\\"
     }
    ],
-   "projet": "help-code-ai"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "help-code-ai",
+   "voisins": [
+    {
+     "id": "aaddadb03ce563b421eb7d57d73772f68d6ee9cc4de395b20ee86bddbb79d50d",
+     "score": 0.819
+    }
+   ]
   },
   {
    "id": "e17863e59c822085d7bdef4eee15f658f12886cbf1634ba33a8ceb8ec12346de",
@@ -1514,7 +2173,10 @@
      "valeur": "D:\\courss"
     }
    ],
-   "projet": "orbis"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "orbis",
+   "voisins": []
   },
   {
    "id": "e1c782d02eb9333960079bfa833588cab7d54b5c1a13ebccf33e8cbf55188fd2",
@@ -1535,7 +2197,15 @@
      "valeur": "D:\\cours_graph"
     }
    ],
-   "projet": "cours-graph"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "cours-graph",
+   "voisins": [
+    {
+     "id": "668c921f271f4320ba3aa20213dc9fb4dfd0791637eb5b72afdb35e5a260c131",
+     "score": 0.893
+    }
+   ]
   },
   {
    "id": "aaddadb03ce563b421eb7d57d73772f68d6ee9cc4de395b20ee86bddbb79d50d",
@@ -1556,7 +2226,15 @@
      "valeur": "D:\\code_ai"
     }
    ],
-   "projet": "code-ai"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "code-ai",
+   "voisins": [
+    {
+     "id": "1a807abf5e6a69ad4f991aa391e290c8bda83116f77f8346dce438a9226f76c0",
+     "score": 0.819
+    }
+   ]
   },
   {
    "id": "37a595d6ac70dda293bf914bb40e8837b27a1df4705249fe65887e1ee89b2d2f",
@@ -1581,7 +2259,23 @@
      "valeur": "http://localhost:8001/v2"
     }
    ],
-   "projet": "ai-creator"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ai-creator",
+   "voisins": [
+    {
+     "id": "82d85ac082ff5bd0d622edaece79bca186ccd9d4905cd7ab7a1ee15712b8dc16",
+     "score": 0.808
+    },
+    {
+     "id": "aa1870c9bd2f9cef0be9bcc22ba54bbb479cfa1980b2c2e9def946aafe6934b5",
+     "score": 0.802
+    },
+    {
+     "id": "3866617ece98438eef5b2563d9beb1f1da5a91c679924fef85fe28a376567d6b",
+     "score": 0.8
+    }
+   ]
   },
   {
    "id": "aa1870c9bd2f9cef0be9bcc22ba54bbb479cfa1980b2c2e9def946aafe6934b5",
@@ -1602,7 +2296,15 @@
      "valeur": "D:\\Amalia"
     }
    ],
-   "projet": "amalia"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "amalia",
+   "voisins": [
+    {
+     "id": "37a595d6ac70dda293bf914bb40e8837b27a1df4705249fe65887e1ee89b2d2f",
+     "score": 0.802
+    }
+   ]
   },
   {
    "id": "ae91b83a34c92affece378a9491f8d0dbe912933a5cdb0ab091a9f0973c869dc",
@@ -1623,7 +2325,10 @@
      "valeur": "D:\\probleme"
     }
    ],
-   "projet": "un-monde-sans"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "un-monde-sans",
+   "voisins": []
   },
   {
    "id": "45593cab5b9fb6906613cc7aae78f3f9955ffa0328fb82388a39cbf25fdd526a",
@@ -1644,7 +2349,10 @@
      "valeur": "D:\\probleme"
     }
    ],
-   "projet": "le-bocal"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "le-bocal",
+   "voisins": []
   },
   {
    "id": "7513532a7487253f86e4b212f9aca01eb21d6926cfe1dfc8cfa3606f9ce9ea60",
@@ -1665,7 +2373,10 @@
      "valeur": "D:\\check_code"
     }
    ],
-   "projet": "check-code"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "check-code",
+   "voisins": []
   },
   {
    "id": "4a0f5060f050fc2ee6066dc7f26c56bd686573a5d00cb0c90519de2319e557ee",
@@ -1682,7 +2393,10 @@
    "cree_le": "2026-09-17T17:29:43.099700Z",
    "modifie_le": "2026-09-17T17:29:43.099700Z",
    "liens": [],
-   "projet": "syntaxe"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "syntaxe",
+   "voisins": []
   },
   {
    "id": "18b70df146c2884cfa2b97b6b38a6892faac6fed58c85f3ff9c3053c93cd7cee",
@@ -1715,7 +2429,18 @@
      "valeur": "D:\\probleme"
     }
    ],
-   "projet": "syntaxe"
+   "lien_principal": {
+    "url": "https://github.com/chipat-neko/devpath",
+    "genre": "depot"
+   },
+   "corrige": false,
+   "projet": "syntaxe",
+   "voisins": [
+    {
+     "id": "6ac7990aaeb3db4ca6d870a8bc4d6f9f550532e01ed039cf92f539714ab50ebb",
+     "score": 0.814
+    }
+   ]
   },
   {
    "id": "5d8c7ed5ab9af8b2734c0d22607544fa67afdb85f1abffe9b2c255cf31718bf9",
@@ -1731,7 +2456,10 @@
    "cree_le": "2026-09-17T17:24:18.423835Z",
    "modifie_le": "2026-09-17T17:24:18.423835Z",
    "liens": [],
-   "projet": "mcai"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "mcai",
+   "voisins": []
   },
   {
    "id": "268fb4b2d6fe667095be2b1785efdb238467ab29e8801afff97acdcdee9b37f3",
@@ -1747,7 +2475,10 @@
    "cree_le": "2026-09-17T17:24:16.538502Z",
    "modifie_le": "2026-09-17T17:24:16.538502Z",
    "liens": [],
-   "projet": "mcai"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "mcai",
+   "voisins": []
   },
   {
    "id": "1e7a5183dbe3e71d42f29a7d4ab5a88645963ee05998b0b1a95e589299246177",
@@ -1780,7 +2511,10 @@
      "valeur": "port 8800"
     }
    ],
-   "projet": "mcai"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "mcai",
+   "voisins": []
   },
   {
    "id": "16f5678871c8f6fb5cbe1b69915346c0988db344486ab7a57bb85957d742c81d",
@@ -1796,7 +2530,15 @@
    "cree_le": "2026-09-17T17:23:25.549623Z",
    "modifie_le": "2026-09-17T17:23:25.549623Z",
    "liens": [],
-   "projet": "plan-min"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "plan-min",
+   "voisins": [
+    {
+     "id": "e475b170310c845daa4461a99b93714b0c7b312f5c2623d78ad95847c5ca29cf",
+     "score": 0.838
+    }
+   ]
   },
   {
    "id": "e475b170310c845daa4461a99b93714b0c7b312f5c2623d78ad95847c5ca29cf",
@@ -1812,7 +2554,19 @@
    "cree_le": "2026-09-17T17:23:23.857518Z",
    "modifie_le": "2026-09-17T17:23:23.857518Z",
    "liens": [],
-   "projet": "plan-min"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "plan-min",
+   "voisins": [
+    {
+     "id": "16f5678871c8f6fb5cbe1b69915346c0988db344486ab7a57bb85957d742c81d",
+     "score": 0.838
+    },
+    {
+     "id": "02a39a4c84a5a7f37d75aeda3890195a1de9cd8094d9ba5f3d55b3decd55db0a",
+     "score": 0.815
+    }
+   ]
   },
   {
    "id": "02a39a4c84a5a7f37d75aeda3890195a1de9cd8094d9ba5f3d55b3decd55db0a",
@@ -1837,7 +2591,19 @@
      "valeur": "D:\\plan-min-banc"
     }
    ],
-   "projet": "plan-min"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "plan-min",
+   "voisins": [
+    {
+     "id": "d6cd979dfe077b228fcaaec0abd9ae5ed9d0b6219e5440cc8b18b6ac10fb86ca",
+     "score": 0.848
+    },
+    {
+     "id": "e475b170310c845daa4461a99b93714b0c7b312f5c2623d78ad95847c5ca29cf",
+     "score": 0.815
+    }
+   ]
   },
   {
    "id": "82d85ac082ff5bd0d622edaece79bca186ccd9d4905cd7ab7a1ee15712b8dc16",
@@ -1858,7 +2624,19 @@
      "valeur": "D:\\jarvis2\\creation"
     }
    ],
-   "projet": "jarvis"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "jarvis",
+   "voisins": [
+    {
+     "id": "b95b2dcf280bcee876ed719453c5c0c9f7f5f89f8520d3d99d419b40dc1b1653",
+     "score": 0.869
+    },
+    {
+     "id": "37a595d6ac70dda293bf914bb40e8837b27a1df4705249fe65887e1ee89b2d2f",
+     "score": 0.808
+    }
+   ]
   },
   {
    "id": "4c85ec1e8e565f91b4e2b731a59482fec45e03e836de213c79e19f9520193d51",
@@ -1878,7 +2656,15 @@
      "valeur": "port 8766"
     }
    ],
-   "projet": "jarvis"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "jarvis",
+   "voisins": [
+    {
+     "id": "53b605648976f61e3c8c45e5685e7ffb730eb12941a3175c5d4c25dba024b000",
+     "score": 0.841
+    }
+   ]
   },
   {
    "id": "53b605648976f61e3c8c45e5685e7ffb730eb12941a3175c5d4c25dba024b000",
@@ -1893,7 +2679,15 @@
    "cree_le": "2026-09-17T17:18:00.013209Z",
    "modifie_le": "2026-09-17T17:18:00.013209Z",
    "liens": [],
-   "projet": "jarvis"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "jarvis",
+   "voisins": [
+    {
+     "id": "4c85ec1e8e565f91b4e2b731a59482fec45e03e836de213c79e19f9520193d51",
+     "score": 0.841
+    }
+   ]
   },
   {
    "id": "a8317b386241305594a08c440fab6a1c8943e1917a59157c8bcdb651cacb25c0",
@@ -1909,7 +2703,15 @@
    "cree_le": "2026-09-17T17:17:36.470086Z",
    "modifie_le": "2026-09-17T17:17:36.470086Z",
    "liens": [],
-   "projet": "my-watch"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "my-watch",
+   "voisins": [
+    {
+     "id": "11dee436b678aef57ebe2cbf37ba077f4a5ac583375d6002f76b4dc4997aae70",
+     "score": 0.843
+    }
+   ]
   },
   {
    "id": "11dee436b678aef57ebe2cbf37ba077f4a5ac583375d6002f76b4dc4997aae70",
@@ -1925,7 +2727,15 @@
    "cree_le": "2026-09-17T17:17:34.828813Z",
    "modifie_le": "2026-09-17T17:17:34.828813Z",
    "liens": [],
-   "projet": "my-watch"
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "my-watch",
+   "voisins": [
+    {
+     "id": "a8317b386241305594a08c440fab6a1c8943e1917a59157c8bcdb651cacb25c0",
+     "score": 0.843
+    }
+   ]
   },
   {
    "id": "d3f1660aba1ab45e610e38c992006c1980de9abda2ceb0567f8e266cef22ce81",
@@ -1950,8 +2760,24 @@
      "valeur": "d:\\my_watch"
     }
    ],
-   "projet": "my-watch"
+   "lien_principal": {
+    "url": "https://device-streaming-5450fe88.web.app",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "my-watch",
+   "voisins": [
+    {
+     "id": "2e3d1d41f24d97100fb0644d7bd075fb083b1e12ac882d4964aeda577e74b414",
+     "score": 0.85
+    }
+   ]
   }
  ],
- "empreinte": "e320f4a5d712dd716eaf763c33d10bc7ddbf3da71514f70d334a0b4bb11f66ef"
+ "voisins_reglage": {
+  "seuil": 0.8,
+  "max": 5
+ },
+ "voisins_en_attente": [],
+ "empreinte": "96fcdb431189042c2f01748d76e3ca63c7a4080e8bf97f42ef877b84073fa14f"
 }

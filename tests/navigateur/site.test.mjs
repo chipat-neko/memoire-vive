@@ -32,6 +32,21 @@ test('modules ES chargés sous le sous-chemin, CSP inchangée', async () => {
   await terminer(page);
 });
 
+test('feuille de style et thème demandés avec l’empreinte de leur contenu (même origine, CSP respectée)', async () => {
+  const page = await site.page({ donnees: jeuDeTest() });
+  const demandes = [];
+  page.on('request', (r) => demandes.push(new URL(r.url())));
+  await page.goto(site.url());
+  await page.locator('.project-card').first().waitFor();
+  for (const fichier of ['style.css', 'theme.js']) {
+    const demande = demandes.find((u) => u.pathname.endsWith('/' + fichier));
+    assert.match(demande ? demande.search : '', /^\?v=[0-9a-f]{10}$/, fichier);
+  }
+  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--famille-1').trim()), '#7A4FB0');
+  assert.equal(await page.locator('.project-grid').first().evaluate((e) => getComputedStyle(e).display), 'grid');
+  await terminer(page);
+});
+
 test('jeu de test : identifiants courts distincts, projets cohérents', () => {
   const donnees = jeuDeTest();
   const courts = new Set(donnees.entrees.map((e) => e.id.slice(0, 12)));

@@ -1,0 +1,12 @@
+{
+  "name": "memoire-vive-tests-navigateur",
+  "private": true,
+  "description": "Tests navigateur du site Mémoire Vive (Chrome installé piloté par playwright-core). Dépendance de développement uniquement : le site n'en a aucune.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 \"*.test.mjs\""
+  },
+  "devDependencies": {
+    "playwright-core": "1.63.0"
+  }
+}

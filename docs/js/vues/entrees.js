@@ -53,7 +53,7 @@ export function createListView(ctx) {
     if (restoreScroll) {
       window.scrollTo(0, state.scroll.get(state.lastListHash) || 0);
       // Au retour d'une fiche, le focus revient sur son lien.
-      const link = state.openedId && dom.listView.querySelector('a.entry-link[href="#/entree/' + state.openedId + '"]');
+      const link = state.openedId && dom.listView.querySelector('a.entry-link[href="#/entree/' + CSS.escape(state.openedId) + '"]');
       if (link) link.focus({ preventScroll: true });
     }
   }

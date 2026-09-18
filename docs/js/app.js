@@ -140,7 +140,7 @@ function show(section) {
    pendant la frappe dans la recherche. */
 function focusView(returning) {
   if (returning && state.openedId) {
-    const link = dom.pageView.querySelector('a[href="#/entree/' + state.openedId + '"]');
+    const link = dom.pageView.querySelector('a[href="#/entree/' + CSS.escape(state.openedId) + '"]');
     if (link) { link.focus({ preventScroll: true }); return; }
   }
   if (state.firstRender || document.activeElement === dom.search) return;

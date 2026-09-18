@@ -98,6 +98,24 @@ test('données mal formées que la préparation ne sait pas lire : message clair
   await terminer(page);
 });
 
+test('identifiant avec un guillemet : retour de fiche sans erreur, focus rendu (sélecteur échappé)', async () => {
+  const donnees = jeuDeTest();
+  const id = 'abcdef"]xffc' + '0'.repeat(52);
+  donnees.entrees[0].id = id; // entrée la plus récente : première carte de la liste
+  const page = await site.page({ donnees });
+  for (const [ancre, attendu] of [['#/', '.project-card'], ['#/entrees', '#grid .card']]) {
+    await page.goto(site.url(ancre));
+    await page.locator(attendu).first().waitFor();
+    await page.evaluate(() => { location.hash = '#/entree/abcdef'; });
+    await page.locator('#entry-title').waitFor();
+    await page.goBack();
+    await page.locator(attendu).first().waitFor();
+    await page.waitForFunction(() => document.activeElement !== document.body);
+  }
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('href')), '#/entree/' + id.slice(0, 12));
+  await terminer(page);
+});
+
 test('frappe dans la recherche après un échec de chargement : ni erreur ni entrée d’historique', async () => {
   const page = await site.page({ donnees: (r) => r.fulfill({ status: 404, body: 'absent' }) });
   await page.goto(site.url());

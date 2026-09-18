@@ -3,7 +3,8 @@
 Site statique qui affiche, regroupe et permet de chercher dans la mémoire partagée
 (mcp-memory-service), sans passer par Claude Code ni claude.ai.
 
-- **Site** : `docs/` (HTML/CSS/JS vanilla, aucune dépendance), publié par GitHub Pages.
+- **Site** : `docs/` (HTML/CSS/JS vanilla en modules ES, aucune dépendance), publié par
+  GitHub Pages.
 - **Données** : `docs/data.json`, généré à l'avance. Le site ne fait aucun appel réseau
   en dehors de ce fichier.
 - **Export** : `scripts/export.py` (Python 3.9+, bibliothèque standard uniquement).
@@ -33,7 +34,11 @@ précédent en `--no-git`, push refusé) est rattrapé.
 | `--force` | publie même si le nombre d'entrées a chuté de plus de moitié |
 | `--recalculer-voisins` | recherche les voisins de toutes les entrées, pas seulement des nouvelles (une recherche par entrée) |
 
-Tester le site en local : `python -m http.server 8080 -d docs` puis <http://localhost:8080>.
+Tester le site en local : `node tests/navigateur/serveur.mjs` puis
+<http://127.0.0.1:8080/memoire-vive/> (même sous-chemin que GitHub Pages ; Node seul, sans
+installation ; Ctrl+C pour arrêter). `python -m http.server 8080 -d docs` convient aussi
+(site à la racine) tant que Python sert les `.js` en `text/javascript`, condition du
+chargement des modules ES.
 
 ## Première mise en place (déjà faite pour ce dépôt)
 
@@ -150,7 +155,47 @@ le tag), `nb`, `types`, `premiere`, `derniere`, et :
 À la racine : `familles` (copie ordonnée de celles de `config/projets.json`),
 `synonymes` (groupes de `config/recherche.json`, normalisés), `voisins_reglage` et
 `voisins_en_attente` (voir les voisins ci-dessus). Tous ces champs sont des ajouts
-compatibles : `schema` reste à 1 et le site actuel les ignore.
+compatibles avec la version 1 ; depuis le chantier B, `data.json` porte `"schema": 2`.
+`SCHEMA_VERSION` (export) et `SUPPORTED_SCHEMA` (`docs/js/donnees.js`) changent ensemble,
+dans le même push (`tests/js/schema.test.mjs` le vérifie) : un site plus ancien qui reçoit
+des données plus récentes demande de recharger la page.
+
+## Le site
+
+| Ancre | Page |
+| --- | --- |
+| `#/` | Accueil : les projets par famille (ordre de `config/projets.json`, puis « Sans famille »), activité la plus récente d'abord |
+| `#/entrees?type=&famille=&projet=&tag=&tri=&vue=grille\|liste` | Toutes les entrées : filtres, tri, grille ou liste, « Afficher plus » |
+| `#/recherche?q=…` | Résultats : projets, entrées, « En rapport » (voisins des meilleurs résultats) |
+| `#/projet/<id>` | Page projet : liens, entrées par nature, jalons en chronologie, adresses locales, projets proches |
+| `#/entree/<id court>` | Fiche : lien principal, texte intégral, « Voir aussi » (voisins) |
+
+Les anciennes ancres (`#/?q=…&type=…`) redirigent vers leur équivalent : `#/recherche`
+s'il y avait une recherche, sinon `#/entrees` avec les mêmes filtres.
+
+**Recherche** (barre présente sur toutes les pages, touche `/`) : taper ouvre
+`#/recherche`, sans créer une entrée d'historique par touche ; Échap revient à la page
+d'origine.
+
+- tous les mots doivent être présents ; majuscules, accents, `œ` et apostrophes ignorés ;
+- pluriels confondus (`jeux` = `jeu`, `réseaux` = `réseau`, `animaux` = `animal`) ;
+- fautes de frappe tolérées : une pour un mot de 5 à 7 lettres, deux à partir de 8 ;
+  aucune en dessous de 5 lettres ;
+- synonymes de `config/recherche.json` ;
+- `"expression exacte"` ; `-mot` écarte les entrées qui contiennent ce mot ; le dernier
+  mot (en cours de frappe) vaut aussi pour les mots qui commencent ainsi, dès 2 lettres ;
+- score : titre ×6, projet, tags et type ×3, résumé ×2, texte ×1 (plafonné) ; une
+  correspondance exacte compte plus qu'une approchée.
+
+**Pastille « nouveau »** : le navigateur mémorise (`localStorage`, clé
+`memoire-vive:derniere-visite`) la date de l'export affiché ; à la visite suivante, les
+entrées créées après elle portent la pastille, et les projets qui en ont un point
+« nouveau ». Sans stockage (navigation privée stricte), aucune pastille.
+
+**Couleurs de famille** : indice 1 à 6 de `config/projets.json`, en clair et en sombre,
+contraste d'au moins 4,5 sur les fonds (`tests/js/couleurs.test.mjs`). La couleur n'est
+jamais la seule information : le nom de la famille est écrit sur l'accueil, la page projet
+et dans les filtres.
 
 ## Régler les projets, les entrées et la recherche
 
@@ -230,26 +275,55 @@ est ignoré) et les copie dans `data.json`.
 Depuis la racine du dépôt :
 
 ```powershell
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -v   # export (Python, bibliothèque standard)
+node --test "tests/js/*.test.mjs"         # logique du site (Node 22+, sans installation)
 ```
 
-Bibliothèque standard uniquement ; ni la mémoire réelle ni le réseau extérieur ne sont
-touchés : `tests/test_publication.py` lance l'export contre un faux dashboard local, dans
-un dépôt git temporaire relié à un dépôt distant local.
+Ni la mémoire réelle ni le réseau extérieur ne sont touchés : `tests/test_publication.py`
+lance l'export contre un faux dashboard local, dans un dépôt git temporaire relié à un
+dépôt distant local.
+
+Tests navigateur : le Chrome installé, piloté par `playwright-core`, seule dépendance de
+développement, isolée dans `tests/navigateur/` (le site n'en a aucune) :
+
+```powershell
+cd tests/navigateur
+npm install   # une fois
+npm test
+```
+
+Chaque fichier de test démarre son propre serveur statique sur un port libre (`docs/` servi
+sous `/memoire-vive/`, comme GitHub Pages) et l'arrête à la fin. Les données viennent de
+jeux synthétiques (`donnees-test.mjs`), sauf `reel.test.mjs` qui lit le vrai `data.json`.
+
+| Variable | Effet |
+| --- | --- |
+| `MEMOIRE_CHROME` | chemin de Chrome (défaut : `C:/Program Files/Google/Chrome/Application/chrome.exe`) |
+| `MEMOIRE_SITE_URL` | rejoue la suite sur un site publié au lieu du serveur local |
+
+Rejouer la suite sur le site publié : `$env:MEMOIRE_SITE_URL = 'https://chipat-neko.github.io/memoire-vive/'; npm test`.
 
 ## Structure
 
 ```text
 docs/               site publié par GitHub Pages (branche main, dossier /docs)
-  index.html        page unique ; les fiches ont leur URL : #/entree/<id>
-  app.js            recherche, filtres, vues, fiches
+  index.html        page unique ; routes #/, #/entrees, #/recherche, #/projet/<id>, #/entree/<id>
+  js/app.js         démarrage, routage, événements, thème
+  js/donnees.js     chargement de data.json, modèle, index de recherche
+  js/recherche.js   recherche tolérante et surlignage (module pur)
+  js/routes.js      analyse et construction des ancres (module pur)
+  js/composants.js  cartes, pastilles, boutons de lien, dates relatives
+  js/vues/          accueil, entrees, resultats, projet, fiche
+  js/package.json   « type: module » : les tests Node lisent ces fichiers comme modules
   style.css         palette et proportions de l'artifact « Bibliothèque Claude »
   theme.js          thème clair/sombre mémorisé, appliqué avant le rendu
   data.json         généré par l'export, ne pas modifier à la main
 scripts/export.py   export + commit + push
 exporter.cmd        la même chose en double-clic (Windows)
 config/             réglages facultatifs : projets.json, entrees.json, recherche.json
-tests/              tests unitaires et d'intégration de l'export
+tests/              tests unitaires et d'intégration de l'export (Python)
+  js/               tests unitaires du site (node --test)
+  navigateur/       tests navigateur (playwright-core, Chrome installé)
 phase2/             modèle de workflow GitHub Actions, inactif
 .env                clé locale (ignoré par git) — modèle : .env.example
 ```

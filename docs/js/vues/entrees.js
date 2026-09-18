@@ -119,7 +119,9 @@ export function createListView(ctx) {
     for (const entry of pool) counts.set(entry.type, (counts.get(entry.type) || 0) + 1);
     const current = state.filters.type;
     const chips = [chip('Tous', pool.length, !current, () => ctx.setFilters({ type: '' }), 'type:')];
-    for (const type of state.typeOrder) {
+    // Type absent des données (lien ancien) : sa pastille active montre le filtre.
+    const types = current && !state.typeOrder.includes(current) ? state.typeOrder.concat(current) : state.typeOrder;
+    for (const type of types) {
       chips.push(chip(typeLabel(type), counts.get(type) || 0, current === type,
         () => ctx.setFilters({ type: current === type ? '' : type }), 'type:' + type));
     }
@@ -127,9 +129,12 @@ export function createListView(ctx) {
   }
 
   /* Familles dans l'ordre configuré, puis « Sans famille » ; le nom est écrit
-     (la couleur n'est jamais la seule information). */
+     (la couleur n'est jamais la seule information). Une famille de l'ancre
+     inconnue des données (lien ancien, famille renommée) a sa pastille active,
+     comme un projet inconnu. */
   function renderFamilyChips() {
-    if (!state.families.size) {
+    const current = state.filters.famille;
+    if (!state.families.size && !current) {
       dom.familyChips.hidden = true;
       dom.familyChips.replaceChildren();
       return;
@@ -137,13 +142,14 @@ export function createListView(ctx) {
     const pool = state.entries.filter((e) => matches(e, 'famille'));
     const counts = new Map();
     for (const entry of pool) counts.set(familyKey(entry), (counts.get(familyKey(entry)) || 0) + 1);
-    const current = state.filters.famille;
     const keys = Array.from(state.families.keys());
     if (counts.has(NO_FAMILY) || current === NO_FAMILY) keys.push(NO_FAMILY);
+    if (current && !keys.includes(current)) keys.push(current);
     const chips = [chip('Toutes les familles', pool.length, !current, () => ctx.setFilters({ famille: '' }), 'famille:')];
     for (const key of keys) {
       const family = state.families.get(key);
-      const button = chip(family ? family.nom : 'Sans famille', counts.get(key) || 0, current === key,
+      const label = family ? family.nom : (key === NO_FAMILY ? 'Sans famille' : key);
+      const button = chip(label, counts.get(key) || 0, current === key,
         () => ctx.setFilters({ famille: current === key ? '' : key }), 'famille:' + key);
       if (family && family.couleur) button.setAttribute('data-couleur', family.couleur);
       button.prepend(el('span', { class: 'family-dot', 'aria-hidden': 'true' }));

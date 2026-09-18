@@ -106,3 +106,20 @@ test('clic sur un tag : pastille de filtre', async () => {
   assert.ok(await page.locator('.filter-pill').isVisible());
   await terminer(page);
 });
+
+test('famille ou type inconnu dans l’ancre (lien ancien) : une pastille active le montre et le retire', async () => {
+  const page = await site.page({ donnees });
+  await page.goto(site.url('#/entrees?famille=jeux-video&type=idee'));
+  await page.locator('#empty:not([hidden])').waitFor();
+  const actives = async (zone) => (await page.locator(zone + ' .chip[aria-pressed="true"]').allTextContents()).map((t) => t.replace(/\s/g, ' '));
+  assert.deepEqual(await actives('#family-chips'), ['jeux-video0']);
+  assert.deepEqual(await actives('#type-chips'), ['Idee0']);
+  await page.locator('#family-chips .chip[aria-pressed="true"]').click();
+  await attendreAncre(page, '#/entrees?type=idee');
+  assert.deepEqual(await actives('#family-chips'), ['Toutes les familles0']);
+  await page.locator('#type-chips .chip[aria-pressed="true"]').click();
+  await page.waitForFunction(() => location.hash === '#/entrees');
+  await page.locator('#grid .card').first().waitFor();
+  assert.equal(await page.locator('#family-chips .chip', { hasText: 'jeux-video' }).count(), 0);
+  await terminer(page);
+});

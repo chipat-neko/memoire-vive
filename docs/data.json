@@ -1,11 +1,11 @@
 {
  "schema": 1,
- "genere_le": "2026-09-18T17:28:02Z",
+ "genere_le": "2026-09-18T17:35:32Z",
  "source": "mcp-memory-service",
- "nb_entrees": 71,
+ "nb_entrees": 72,
  "types": {
   "note": 41,
-  "milestone": 15,
+  "milestone": 16,
   "reference": 9,
   "decision": 5,
   "error": 1
@@ -108,6 +108,22 @@
  ],
  "projets": [
   {
+   "id": "memoire-vive",
+   "nom": "Mémoire Vive",
+   "famille": "outils-claude",
+   "description": "Site statique public qui affiche, regroupe, cherche et filtre toute la mémoire partagée, en ligne sur https://chipat-neko.github.io/memoire-vive/ (GitHub Pages, dossier docs/).",
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/memoire-vive/",
+    "genre": "site"
+   },
+   "nb": 2,
+   "types": {
+    "milestone": 2
+   },
+   "premiere": "2026-09-18T06:46:26.560365Z",
+   "derniere": "2026-09-18T17:35:27.368665Z"
+  },
+  {
    "id": "depths",
    "nom": "Depths",
    "famille": "jeux",
@@ -120,22 +136,6 @@
    },
    "premiere": "2026-09-17T20:01:49.317405Z",
    "derniere": "2026-09-18T10:32:10.997005Z"
-  },
-  {
-   "id": "memoire-vive",
-   "nom": "Mémoire Vive",
-   "famille": "outils-claude",
-   "description": "Site statique public qui affiche, regroupe, cherche et filtre toute la mémoire partagée, en ligne sur https://chipat-neko.github.io/memoire-vive/ (GitHub Pages, dossier docs/).",
-   "lien_principal": {
-    "url": "https://chipat-neko.github.io/memoire-vive/",
-    "genre": "site"
-   },
-   "nb": 1,
-   "types": {
-    "milestone": 1
-   },
-   "premiere": "2026-09-18T06:46:26.560365Z",
-   "derniere": "2026-09-18T06:46:26.560365Z"
   },
   {
    "id": "ce-ventre",
@@ -757,6 +757,26 @@
   }
  ],
  "entrees": [
+  {
+   "id": "23d37afa7ffc0148c1ed57e73149eea60fec02d76ac6958082b492385ea90b71",
+   "titre": "Mémoire Vive — jalon livré le 18/09/2026",
+   "resume": "Chantier A (données enrichies) fusionné dans main et publié. scripts/export.py écrit désormais dans docs/data.json (schema 1, ajouts compatibles) : 5 familles de projets (Jeux & univers de jeu, Cours & savoir, IA & simulations, Outils Claude, Sites & applis)…",
+   "contenu": "Mémoire Vive — jalon livré le 18/09/2026 : chantier A (données enrichies) fusionné dans main et publié. scripts/export.py écrit désormais dans docs/data.json (schema 1, ajouts compatibles) : 5 familles de projets (Jeux & univers de jeu, Cours & savoir, IA & simulations, Outils Claude, Sites & applis) réglées dans config/projets.json v2, corrections par entrée (config/entrees.json : titre, résumé, masquer), synonymes de recherche (config/recherche.json), lien principal de chaque entrée et projet (site déployé avant dépôt), et voisins par le sens via POST /api/search du dashboard (seuil 0,80). Décision durable : les voisins sont incrémentaux — seules les entrées nouvelles sont cherchées, car chaque recherche met à jour l'historique d'accès de la mémoire partagée ; --dry-run n'en fait aucune. 86 tests unittest (Python 3.9 à 3.14). Prochaine étape : chantier B (site public : catalogue par famille, pages projet, recherche tolérante).",
+   "type": "milestone",
+   "tags": [
+    "memoire-vive",
+    "projet",
+    "jalon",
+    "decision"
+   ],
+   "cree_le": "2026-09-18T17:35:27.368665Z",
+   "modifie_le": "2026-09-18T17:35:27.368665Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "memoire-vive",
+   "voisins": []
+  },
   {
    "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
    "titre": "Projet Depths — jalon 3 « étages » livré le 2026-09-18 sur la branche feat/floors",
@@ -2779,5 +2799,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "96fcdb431189042c2f01748d76e3ca63c7a4080e8bf97f42ef877b84073fa14f"
+ "empreinte": "d468707a0391722281006ec2d457664e94f72bc1b13ff88041b179281df9dfbf"
 }

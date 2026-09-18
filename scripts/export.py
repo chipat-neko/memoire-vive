@@ -301,6 +301,25 @@ def load_entry_overrides() -> dict[str, dict]:
             if not str(key).startswith("_") and isinstance(value, dict)}
 
 
+def normalize_term(text: str) -> str:
+    """Même normalisation que la recherche du site : minuscules, sans accents."""
+    decomposed = unicodedata.normalize("NFD", str(text)).lower()
+    plain = "".join(char for char in decomposed if not unicodedata.combining(char))
+    plain = plain.replace("œ", "oe").replace("æ", "ae").replace("’", "'").replace("‘", "'")
+    return " ".join(plain.split())
+
+
+def load_search_config() -> dict:
+    data = _read_json_config(SEARCH_CONFIG)
+    groups = []
+    for group in data.get("synonymes") or []:
+        if isinstance(group, list):
+            terms = list(dict.fromkeys(normalize_term(t) for t in group if str(t).strip()))
+            if len(terms) >= 2:
+                groups.append(terms)
+    return {"synonymes": groups}
+
+
 # --------------------------------------------------------------------------
 # Accès à l'API du dashboard
 # --------------------------------------------------------------------------
@@ -689,6 +708,17 @@ def main_link(liens: list[dict]) -> dict | None:
     return None
 
 
+def project_main_link(members: list[dict]) -> dict | None:
+    """Premier site parmi les entrées (de la plus récente à la plus ancienne), sinon premier dépôt."""
+    recent_first = sorted(members, key=lambda e: e["cree_le"] or "", reverse=True)
+    for wanted in ("site", "depot"):
+        for entry in recent_first:
+            link = entry.get("lien_principal")
+            if link and link["genre"] == wanted:
+                return link
+    return None
+
+
 # --------------------------------------------------------------------------
 # Projets
 # --------------------------------------------------------------------------
@@ -833,9 +863,23 @@ def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] 
     for key, name in names.items():
         members = [e for e in entries if e["projet"] == key]
         dates = [e["cree_le"] for e in members if e["cree_le"]]
+        settings = config["projets"].get(key) or {}
+        architecture = sorted(
+            (e for e in members if e["type"] in ("reference", "architecture")
+             or "architecture" in (slug(t) for t in e["tags"])),
+            key=lambda e: e["cree_le"] or "")
+        description = settings.get("description") or (architecture[0]["resume"] if architecture else None) or None
+        configured = settings.get("lien_principal")
+        if configured and _is_valid_web_url(str(configured)):
+            lien = {"url": str(configured), "genre": link_kind(str(configured))}
+        else:
+            lien = project_main_link(members)
         projects.append({
             "id": key,
             "nom": name,
+            "famille": settings.get("famille"),
+            "description": description,
+            "lien_principal": lien,
             "nb": len(members),
             "types": dict(Counter(e["type"] for e in members).most_common()),
             "premiere": min(dates, default=None),
@@ -850,6 +894,8 @@ def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] 
         "nb_entrees": len(entries),
         "types": dict(Counter(e["type"] for e in entries).most_common()),
         "ordre_types": TYPE_ORDER,
+        "familles": config["familles"],
+        "synonymes": (search_config or {}).get("synonymes", []),
         "projets": projects,
         "entrees": entries,
     }

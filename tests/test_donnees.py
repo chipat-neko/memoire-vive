@@ -70,5 +70,42 @@ class LienPrincipalTest(unittest.TestCase):
         self.assertEqual(payload["entrees"][0]["lien_principal"]["url"], "https://a.github.io/alpha/")
 
 
+class ProjetsEtRechercheTest(unittest.TestCase):
+    def brut(self):
+        return [
+            memoire(1, "Projet Alpha (D:\\alpha) : outil de test en ligne sur https://a.github.io/alpha/. Fin.",
+                    ["alpha", "projet", "architecture"], type="reference", minute=1),
+            memoire(2, "Alpha — jalon livré : version 2 publiée sur github.com/a/alpha. Fin.",
+                    ["alpha", "jalon"], type="milestone", minute=2),
+        ]
+
+    def test_details_du_projet(self):
+        payload, _ = export.build_payload(self.brut(), config(alpha={"famille": "outils"}))
+        projet = payload["projets"][0]
+        self.assertEqual(projet["famille"], "outils")
+        self.assertEqual(projet["description"], payload["entrees"][-1]["resume"])  # entrée d'architecture la plus ancienne
+        self.assertEqual(projet["lien_principal"], {"url": "https://a.github.io/alpha/", "genre": "site"})
+
+    def test_reglages_du_projet_prioritaires(self):
+        cfg = config(alpha={"famille": "outils", "description": "À la main.", "lien_principal": "https://github.com/a/alpha"})
+        projet = export.build_payload(self.brut(), cfg)[0]["projets"][0]
+        self.assertEqual(projet["description"], "À la main.")
+        self.assertEqual(projet["lien_principal"], {"url": "https://github.com/a/alpha", "genre": "depot"})
+
+    def test_lien_configure_invalide_ignore(self):
+        cfg = config(alpha={"lien_principal": "javascript:alert(1)"})
+        projet = export.build_payload(self.brut(), cfg)[0]["projets"][0]
+        self.assertEqual(projet["lien_principal"]["url"], "https://a.github.io/alpha/")
+
+    def test_familles_et_synonymes_a_la_racine(self):
+        payload, _ = export.build_payload(self.brut(), config(), search_config={"synonymes": [["ia", "llm"]]})
+        self.assertEqual([f["id"] for f in payload["familles"]], ["jeux", "outils"])
+        self.assertEqual(payload["synonymes"], [["ia", "llm"]])
+        self.assertEqual(payload["schema"], 1)
+
+    def test_normalisation_des_synonymes(self):
+        self.assertEqual(export.normalize_term("  Modèle  Œuvre "), "modele oeuvre")
+
+
 if __name__ == "__main__":
     unittest.main()

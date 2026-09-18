@@ -1,0 +1,15 @@
+{
+  "_aide": "Groupes de termes équivalents pour la recherche du site (minuscules et accents indifférents).",
+  "synonymes": [
+    ["ia", "intelligence artificielle", "llm", "modele", "modeles"],
+    ["local", "locale", "hors-ligne", "hors ligne", "offline"],
+    ["jeu", "game", "gameplay", "jeu video"],
+    ["site", "page", "web"],
+    ["depot", "repo", "github"],
+    ["cours", "apprentissage", "formation", "tutoriel"],
+    ["bug", "erreur", "correctif", "probleme"],
+    ["3d", "three.js", "threejs", "webgpu"],
+    ["claude", "claude code", "anthropic"],
+    ["memoire", "mcp-memory-service", "pont memoire"]
+  ]
+}

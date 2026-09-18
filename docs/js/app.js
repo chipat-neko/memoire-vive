@@ -221,7 +221,9 @@ function openEntry(next, previous) {
 }
 
 /* Frappe dans la barre de recherche : la première frappe ouvre #/recherche
-   (nouvelle entrée d'historique), les suivantes remplacent cette entrée. */
+   (nouvelle entrée d'historique), les suivantes remplacent cette entrée.
+   Chaque frappe est mesurée (recherche et affichage) : mesure
+   « memoire-vive:recherche », lue par le test de performance. */
 function typeSearch(q) {
   if (!q) { leaveSearch(); return; }
   const onSearch = state.route && state.route.view === 'search';
@@ -230,7 +232,9 @@ function typeSearch(q) {
   // Quitter une vue en tapant (même une fiche) n'est pas un « retour » :
   // le focus reste dans le champ.
   state.typing = true;
+  const start = performance.now();
   try { route(); } finally { state.typing = false; }
+  performance.measure('memoire-vive:recherche', { start, end: performance.now() });
 }
 
 /* Recherche vidée : retour à la vue d'où la frappe est partie, sinon à l'accueil. */

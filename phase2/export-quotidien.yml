@@ -1,0 +1,57 @@
+# PHASE 2 — modèle inactif. Ne rien faire tant qu'il n'y a pas de domaine
+# ni de tunnel Cloudflare à adresse fixe.
+#
+# Pour l'activer :
+#   1. Créer les secrets du dépôt (Settings → Secrets and variables → Actions) :
+#        MEMOIRE_API_URL   https://<sous-domaine du tunnel>   (ex. https://memoire-api.mondomaine.fr)
+#        MEMOIRE_API_KEY   la clé du dashboard (MCP_API_KEY)
+#      et le jeton de service Cloudflare Access qui protège le tunnel (à mettre
+#      en place : sans lui, tout le dashboard n'est gardé que par la clé API) :
+#        MEMOIRE_CF_ACCESS_CLIENT_ID / MEMOIRE_CF_ACCESS_CLIENT_SECRET
+#   2. Copier ce fichier dans .github/workflows/export-quotidien.yml et pousser.
+#
+# scripts/export.py ne change pas : il lit déjà ces valeurs dans
+# l'environnement avant de regarder .env.
+
+name: Export quotidien de la mémoire
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # minuit UTC, chaque jour (GitHub peut le retarder de quelques minutes)
+  workflow_dispatch:       # lancement manuel depuis l'onglet Actions
+    inputs:
+      force:
+        description: "Publier même si le nombre d'entrées a chuté de plus de moitié"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write          # commit et push de docs/data.json
+
+concurrency:
+  group: export-memoire
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Identité git du bot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Export et publication
+        env:
+          MEMOIRE_API_URL: ${{ secrets.MEMOIRE_API_URL }}
+          MEMOIRE_API_KEY: ${{ secrets.MEMOIRE_API_KEY }}
+          MEMOIRE_CF_ACCESS_CLIENT_ID: ${{ secrets.MEMOIRE_CF_ACCESS_CLIENT_ID }}
+          MEMOIRE_CF_ACCESS_CLIENT_SECRET: ${{ secrets.MEMOIRE_CF_ACCESS_CLIENT_SECRET }}
+        run: python scripts/export.py ${{ inputs.force && '--force' || '' }}

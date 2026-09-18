@@ -1,0 +1,29 @@
+{
+  "_aide": "Réglages facultatifs de l'export. alias : fusionne un tag dans un autre projet. noms : nom affiché d'un projet (sinon déduit du texte, puis du tag). tags_generiques : tags qui ne désignent jamais un projet. tags_exclus : entrées jamais publiées.",
+  "alias": {
+    "rogue-lite": "depths",
+    "orga-dof": "dosoft",
+    "courss": "orbis",
+    "jeu-nova": "nova",
+    "optimiseur-duo": "speedrush-dofus"
+  },
+  "noms": {
+    "pont-memoire": "Pont mémoire",
+    "depths": "Depths",
+    "presentation": "Présentations PowerPoint",
+    "jeu-claude": "Workspace jeu_claude",
+    "antigravity-skills": "Antigravity Skills",
+    "trading-alert-bot": "Bot d'alertes trading",
+    "pipeline-securite-n8n-ollama": "Pipeline sécurité n8n + Ollama",
+    "claude-learning-apps": "Applis d'apprentissage Claude",
+    "multi-claude-orchestrator": "Multi-Claude Orchestrator",
+    "tour-de-controle": "Tour de contrôle",
+    "memoire-vive": "Mémoire Vive"
+  },
+  "tags_generiques": [
+    "dashboard", "claude-code", "hooks", "monitoring", "python", "threejs", "3d",
+    "windows", "powershell", "unity", "jeu-video", "pptx", "demo", "design",
+    "dataviz", "canvas", "visualisation", "workspace", "claude-md", "mcp-memory-service"
+  ],
+  "tags_exclus": []
+}

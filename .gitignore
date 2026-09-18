@@ -1,0 +1,21 @@
+# Secrets locaux : jamais commités (clé du dashboard, jetons Cloudflare).
+.env
+.env.*
+.env~
+\#.env#
+*.env
+!.env.example
+
+# Fichier temporaire de l'export (écriture atomique de data.json)
+*.json.tmp
+
+# Python
+__pycache__/
+*.pyc
+
+# Systèmes et éditeurs
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

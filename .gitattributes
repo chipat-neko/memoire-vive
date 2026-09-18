@@ -1,0 +1,4 @@
+# Fins de ligne LF partout : data.json est écrit en LF par l'export,
+# une conversion CRLF produirait des différences parasites.
+* text=auto eol=lf
+*.svg text eol=lf

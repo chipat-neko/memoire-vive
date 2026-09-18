@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Mémoire Vive : la mémoire partagée de Noah (mcp-memory-service), consultable, cherchable et filtrable.">
+<meta name="color-scheme" content="light dark">
+<title>Mémoire Vive</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<div class="wrap">
+  <header class="site-header">
+    <div class="header-top">
+      <h1><a href="#/" class="home-link">Mémoire Vive</a></h1>
+      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Changer de thème">
+        <span class="theme-icon" aria-hidden="true"></span><span class="theme-label">Auto</span>
+      </button>
+    </div>
+    <p class="subtitle">Tout ce que Claude sait de mes projets — architecture, décisions, jalons — retrouvé, cherché et trié en un seul endroit.</p>
+    <p class="stats" id="stats" aria-live="polite"></p>
+  </header>
+
+  <main id="contenu" tabindex="-1">
+    <!-- Vue liste -->
+    <section id="list-view" aria-label="Entrées de la mémoire">
+      <div class="toolbar">
+        <div class="search-box">
+          <label for="search-input" class="visually-hidden">Rechercher dans la mémoire</label>
+          <input type="search" id="search-input" placeholder="Rechercher…  (touche /)" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="toolbar-controls">
+          <label for="sort-select" class="visually-hidden">Trier</label>
+          <select id="sort-select">
+            <option value="recent">Plus récentes</option>
+            <option value="ancien">Plus anciennes</option>
+            <option value="pertinence">Pertinence</option>
+            <option value="projet">Projet (A → Z)</option>
+          </select>
+          <div class="segmented" role="group" aria-label="Affichage">
+            <button type="button" data-view="grille" aria-pressed="true">Grille</button>
+            <button type="button" data-view="projets" aria-pressed="false">Par projet</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chips" id="type-chips" role="group" aria-label="Filtrer par type"></div>
+      <div class="chips" id="project-chips" role="group" aria-label="Filtrer par projet"></div>
+      <div class="active-filters" id="active-filters" hidden></div>
+
+      <p class="result-count" id="result-count" aria-live="polite" tabindex="-1"></p>
+      <div class="status" id="status">Chargement de la mémoire…</div>
+      <div class="grid" id="grid" hidden></div>
+      <div id="groups" hidden></div>
+      <div class="more" id="more" hidden><button type="button" id="more-btn" class="btn-secondary"></button></div>
+      <div class="empty" id="empty" hidden></div>
+    </section>
+
+    <!-- Fiche d'une entrée -->
+    <article id="entry-view" class="entry" hidden aria-labelledby="entry-title"></article>
+  </main>
+
+  <footer class="site-footer">
+    <p>Instantané de la mémoire partagée (mcp-memory-service), régénéré à la demande par <code>scripts/export.py</code>. Le site ne fait aucun appel réseau en dehors de son propre fichier <code>data.json</code>.</p>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

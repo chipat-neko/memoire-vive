@@ -1,0 +1,1718 @@
+{
+ "schema": 1,
+ "genere_le": "2026-09-18T06:36:17Z",
+ "source": "mcp-memory-service",
+ "nb_entrees": 62,
+ "types": {
+  "note": 41,
+  "milestone": 12,
+  "decision": 5,
+  "reference": 3,
+  "error": 1
+ },
+ "ordre_types": [
+  "reference",
+  "architecture",
+  "decision",
+  "milestone",
+  "note",
+  "observation",
+  "error"
+ ],
+ "projets": [
+  {
+   "id": "pont-memoire",
+   "nom": "Pont mémoire",
+   "nb": 3,
+   "types": {
+    "note": 3
+   },
+   "premiere": "2026-09-17T19:28:22.934111Z",
+   "derniere": "2026-09-18T05:14:25.483180Z"
+  },
+  {
+   "id": "depths",
+   "nom": "Depths",
+   "nb": 2,
+   "types": {
+    "milestone": 1,
+    "note": 1
+   },
+   "premiere": "2026-09-17T20:01:49.317405Z",
+   "derniere": "2026-09-18T05:07:21.419860Z"
+  },
+  {
+   "id": "tour-de-controle",
+   "nom": "Tour de contrôle",
+   "nb": 7,
+   "types": {
+    "milestone": 5,
+    "decision": 1,
+    "error": 1
+   },
+   "premiere": "2026-09-17T20:35:40.346018Z",
+   "derniere": "2026-09-18T04:46:13.046116Z"
+  },
+  {
+   "id": "jarvis",
+   "nom": "Jarvis",
+   "nb": 4,
+   "types": {
+    "milestone": 2,
+    "reference": 1,
+    "decision": 1
+   },
+   "premiere": "2026-09-17T17:18:00.013209Z",
+   "derniere": "2026-09-17T20:50:10.170233Z"
+  },
+  {
+   "id": "presentation",
+   "nom": "Présentations PowerPoint",
+   "nb": 1,
+   "types": {
+    "milestone": 1
+   },
+   "premiere": "2026-09-17T20:30:21.550345Z",
+   "derniere": "2026-09-17T20:30:21.550345Z"
+  },
+  {
+   "id": "voxelcraft",
+   "nom": "VoxelCraft",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:46:15.099437Z",
+   "derniere": "2026-09-17T18:46:15.099437Z"
+  },
+  {
+   "id": "trading-alert-bot",
+   "nom": "Bot d'alertes trading",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:36:49.471912Z",
+   "derniere": "2026-09-17T18:36:49.471912Z"
+  },
+  {
+   "id": "pipeline-securite-n8n-ollama",
+   "nom": "Pipeline sécurité n8n + Ollama",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:36:44.039115Z",
+   "derniere": "2026-09-17T18:36:44.039115Z"
+  },
+  {
+   "id": "deadline-command",
+   "nom": "/deadline",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:36:33.319653Z",
+   "derniere": "2026-09-17T18:36:33.319653Z"
+  },
+  {
+   "id": "multi-claude-orchestrator",
+   "nom": "Multi-Claude Orchestrator",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:30:48.197238Z",
+   "derniere": "2026-09-17T18:30:48.197238Z"
+  },
+  {
+   "id": "jeu-claude",
+   "nom": "Workspace jeu_claude",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:30:41.842712Z",
+   "derniere": "2026-09-17T18:30:41.842712Z"
+  },
+  {
+   "id": "yuei-heroes-battle",
+   "nom": "Yuei Heroes Battle",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:52.577071Z",
+   "derniere": "2026-09-17T18:19:52.577071Z"
+  },
+  {
+   "id": "claude-learning-apps",
+   "nom": "Applis d'apprentissage Claude",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:48.525415Z",
+   "derniere": "2026-09-17T18:19:48.525415Z"
+  },
+  {
+   "id": "bibliotheque-claude",
+   "nom": "Bibliothèque Claude",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:45.183366Z",
+   "derniere": "2026-09-17T18:19:45.183366Z"
+  },
+  {
+   "id": "uiverse-components",
+   "nom": "uiverse-components",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:40.003797Z",
+   "derniere": "2026-09-17T18:19:40.003797Z"
+  },
+  {
+   "id": "design-studio",
+   "nom": "design-studio",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:35.951572Z",
+   "derniere": "2026-09-17T18:19:35.951572Z"
+  },
+  {
+   "id": "antigravity-skills",
+   "nom": "Antigravity Skills",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:30.913913Z",
+   "derniere": "2026-09-17T18:19:30.913913Z"
+  },
+  {
+   "id": "roberta",
+   "nom": "Roberta v4",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:25.905771Z",
+   "derniere": "2026-09-17T18:19:25.905771Z"
+  },
+  {
+   "id": "clipcoach",
+   "nom": "ClipCoach",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:21.338522Z",
+   "derniere": "2026-09-17T18:19:21.338522Z"
+  },
+  {
+   "id": "decoupe-videos",
+   "nom": "Découpe Vidéos",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:16.760344Z",
+   "derniere": "2026-09-17T18:19:16.760344Z"
+  },
+  {
+   "id": "codelyngo",
+   "nom": "CodeLyngo v3",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:12.031241Z",
+   "derniere": "2026-09-17T18:19:12.031241Z"
+  },
+  {
+   "id": "devpath",
+   "nom": "DevPath",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:07.741165Z",
+   "derniere": "2026-09-17T18:19:07.741165Z"
+  },
+  {
+   "id": "wiki-star-citizen",
+   "nom": "Wiki Star Citizen",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:19:03.589911Z",
+   "derniere": "2026-09-17T18:19:03.589911Z"
+  },
+  {
+   "id": "void-atlas",
+   "nom": "VOID ATLAS",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:18:58.623299Z",
+   "derniere": "2026-09-17T18:18:58.623299Z"
+  },
+  {
+   "id": "speedrush-dofus",
+   "nom": "SpeedRush DOFUS / Optimiseur duo",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:18:53.823123Z",
+   "derniere": "2026-09-17T18:18:53.823123Z"
+  },
+  {
+   "id": "tactical-ops",
+   "nom": "TACTICAL OPS",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T18:18:48.620406Z",
+   "derniere": "2026-09-17T18:18:48.620406Z"
+  },
+  {
+   "id": "religions",
+   "nom": "Religions",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:43:15.174878Z",
+   "derniere": "2026-09-17T17:43:15.174878Z"
+  },
+  {
+   "id": "dosoft",
+   "nom": "Dosoft / orga_dof",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:43:02.838794Z",
+   "derniere": "2026-09-17T17:43:02.838794Z"
+  },
+  {
+   "id": "jsl-metal",
+   "nom": "JLS Metal / jsl_metal",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:42:34.467481Z",
+   "derniere": "2026-09-17T17:42:34.467481Z"
+  },
+  {
+   "id": "nova",
+   "nom": "Nova / jeu_nova",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:42:18.384890Z",
+   "derniere": "2026-09-17T17:42:18.384890Z"
+  },
+  {
+   "id": "help-code-ai",
+   "nom": "Help_Code",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:42:06.010965Z",
+   "derniere": "2026-09-17T17:42:06.010965Z"
+  },
+  {
+   "id": "orbis",
+   "nom": "Orbis / courss",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:41:51.906031Z",
+   "derniere": "2026-09-17T17:41:51.906031Z"
+  },
+  {
+   "id": "cours-graph",
+   "nom": "Atelier Game Art / cours_graph",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:41:36.994268Z",
+   "derniere": "2026-09-17T17:41:36.994268Z"
+  },
+  {
+   "id": "code-ai",
+   "nom": "CodeAI",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:41:25.827815Z",
+   "derniere": "2026-09-17T17:41:25.827815Z"
+  },
+  {
+   "id": "ai-creator",
+   "nom": "AI Creator",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:41:07.741305Z",
+   "derniere": "2026-09-17T17:41:07.741305Z"
+  },
+  {
+   "id": "amalia",
+   "nom": "Amalia",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:40:50.836788Z",
+   "derniere": "2026-09-17T17:40:50.836788Z"
+  },
+  {
+   "id": "un-monde-sans",
+   "nom": "Un Monde Sans",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:29:58.038832Z",
+   "derniere": "2026-09-17T17:29:58.038832Z"
+  },
+  {
+   "id": "le-bocal",
+   "nom": "Le Bocal",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:29:53.674005Z",
+   "derniere": "2026-09-17T17:29:53.674005Z"
+  },
+  {
+   "id": "check-code",
+   "nom": "Check_Code",
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:29:48.276813Z",
+   "derniere": "2026-09-17T17:29:48.276813Z"
+  },
+  {
+   "id": "syntaxe",
+   "nom": "Syntaxe",
+   "nb": 2,
+   "types": {
+    "note": 2
+   },
+   "premiere": "2026-09-17T17:29:35.415144Z",
+   "derniere": "2026-09-17T17:29:43.099700Z"
+  },
+  {
+   "id": "mcai",
+   "nom": "mcai",
+   "nb": 3,
+   "types": {
+    "milestone": 1,
+    "decision": 1,
+    "reference": 1
+   },
+   "premiere": "2026-09-17T17:24:12.861991Z",
+   "derniere": "2026-09-17T17:24:18.423835Z"
+  },
+  {
+   "id": "plan-min",
+   "nom": "plan-min",
+   "nb": 3,
+   "types": {
+    "decision": 1,
+    "milestone": 1,
+    "note": 1
+   },
+   "premiere": "2026-09-17T17:23:20.575778Z",
+   "derniere": "2026-09-17T17:23:25.549623Z"
+  },
+  {
+   "id": "my-watch",
+   "nom": "My Watch",
+   "nb": 3,
+   "types": {
+    "decision": 1,
+    "milestone": 1,
+    "reference": 1
+   },
+   "premiere": "2026-09-17T17:17:31.352835Z",
+   "derniere": "2026-09-17T17:17:36.470086Z"
+  }
+ ],
+ "entrees": [
+  {
+   "id": "e616d090729b1d1f66597356df1acdff8901a824d6be5bf94c011cf7707d3dd3",
+   "titre": "Correction : Noah avait déjà appliqué la modification proposée à la règle CLAUDE.md avant la conclusion…",
+   "resume": "La modification reste donc en place, pas retirée. Elle n'était pas strictement nécessaire mais n'est pas jugée nuisible — à surveiller seulement si elle pousse à écrire des jalons peu clairs et augmente le bruit en session autonome sur d'autres projets.",
+   "contenu": "Correction : Noah avait déjà appliqué la modification proposée à la règle CLAUDE.md (clause sur les sessions autonomes) avant la conclusion révisée montrant que la règle d'origine fonctionnait déjà. La modification reste donc en place, pas retirée. Elle n'était pas strictement nécessaire mais n'est pas jugée nuisible — à surveiller seulement si elle pousse à écrire des jalons peu clairs et augmente le bruit en session autonome sur d'autres projets.",
+   "type": "note",
+   "tags": [
+    "pont-memoire",
+    "mcp-memory-service",
+    "claude-md",
+    "correction"
+   ],
+   "cree_le": "2026-09-18T05:14:25.483180Z",
+   "modifie_le": "2026-09-18T05:14:25.483180Z",
+   "liens": [],
+   "projet": "pont-memoire"
+  },
+  {
+   "id": "f457b69a1f1df490b0721ec559087c3a8747e96209c3590e7ffb06ed3daf7b7a",
+   "titre": "Test de la règle mémoire CLAUDE.md pour sessions autonomes",
+   "resume": "Conclusion révisée. Un premier contrôle (avant le vrai jalon) avait semblé montrer un silence côté Claude Code, laissant croire que la règle \"en cas de doute, ne rien écrire\" bloquait les sessions autonomes.",
+   "contenu": "Test de la règle mémoire CLAUDE.md pour sessions autonomes : conclusion révisée. Un premier contrôle (avant le vrai jalon) avait semblé montrer un silence côté Claude Code, laissant croire que la règle \"en cas de doute, ne rien écrire\" bloquait les sessions autonomes. En réalité, la session avait juste pris plus longtemps que prévu (~9h au lieu des 2-4h annoncées) : une fois le jalon 1 du projet Depths réellement atteint, la règle d'origine a bien fonctionné — entrée détaillée écrite automatiquement (architecture, décisions durables, jalon livré), sans modification nécessaire. Décision : la règle CLAUDE.md reste inchangée, la correction proposée plus tôt n'est pas appliquée.",
+   "type": "note",
+   "tags": [
+    "pont-memoire",
+    "mcp-memory-service",
+    "claude-md",
+    "decision",
+    "test-conclu"
+   ],
+   "cree_le": "2026-09-18T05:11:19.498974Z",
+   "modifie_le": "2026-09-18T05:11:19.498974Z",
+   "liens": [],
+   "projet": "pont-memoire"
+  },
+  {
+   "id": "12cf6e49728f062fd83d1ce91883ea74988229a19a3c3858ff008ac99168d376",
+   "titre": "Projet Depths — rogue-lite 2D Unity 6000.5.3f1, URP 2D, pixel art vue du dessus",
+   "resume": "Jalon 1 livré le 2026-09-18 sur la branche feat/dungeon-generation (non fusionnée dans master) : génération procédurale de donjon (salles préfabriquées sur grille 9×8, croissance aléatoire avec budget de 12 salles, boss/trésor/boutique placés dans les…",
+   "contenu": "Projet Depths (D:\\depths) — rogue-lite 2D Unity 6000.5.3f1, URP 2D, pixel art vue du dessus. Jalon 1 livré le 2026-09-18 sur la branche feat/dungeon-generation (non fusionnée dans master) : génération procédurale de donjon (salles préfabriquées sur grille 9×8, croissance aléatoire avec budget de 12 salles, boss/trésor/boutique placés dans les culs-de-sac), joueur, transitions de salle à caméra fixe, minimap. Architecture durable : trois assemblies — Depths.Dungeon.Core (générateur en C# pur, ne référence rien, déterministe via System.Random uniquement), Depths.Game (scène), Depths.EditorTools (générateurs). Décision durable : aucun asset téléchargé ni fait à la main — pixel art, 42 prefabs de salles, scène et pipeline URP sont tous produits par des scripts d'éditeur relançables. Décisions et limites documentées dans docs/journal-de-decisions.md du dépôt.",
+   "type": "milestone",
+   "tags": [
+    "depths",
+    "rogue-lite",
+    "unity",
+    "projet",
+    "architecture",
+    "jalon"
+   ],
+   "cree_le": "2026-09-18T05:07:21.419860Z",
+   "modifie_le": "2026-09-18T05:07:21.419860Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\depths"
+    }
+   ],
+   "projet": "depths"
+  },
+  {
+   "id": "b99d614f74a845a7da521b8f089d4b17ad0411bbce9a41e8ee2fe57fa21d0ad9",
+   "titre": "Tour de contrôle — ajout de install.py, désormais la voie d'installation recommandée à la place de install.ps1",
+   "resume": "Motif : Windows appose la marque du web sur les fichiers téléchargés et la stratégie d'exécution PowerShell refuse alors les scripts non signés (erreur PSSecurityException à la 2e installation chez Noah). install.py fait la même chose sans cette contrainte et…",
+   "contenu": "Tour de contrôle — ajout de install.py, désormais la voie d'installation recommandée à la place de install.ps1. Motif : Windows appose la marque du web sur les fichiers téléchargés et la stratégie d'exécution PowerShell refuse alors les scripts non signés (erreur PSSecurityException à la 2e installation chez Noah). install.py fait la même chose sans cette contrainte et sans le piège du BOM : génération du jeton, fusion idempotente des hooks dans ~/.claude/settings.json avec sauvegarde horodatée et conservation des hooks personnels, écriture JSON sans BOM, lecture en utf-8-sig, option --startup (raccourci VBS vers pythonw sous Windows), option --uninstall, et contrôle final que la config se relit avec le même jeton. install.ps1 reste fourni en variante, avec la commande powershell -ExecutionPolicy Bypass -File documentée.",
+   "type": "decision",
+   "tags": [
+    "projet",
+    "tour-de-controle",
+    "installation",
+    "windows",
+    "powershell",
+    "python"
+   ],
+   "cree_le": "2026-09-18T04:46:13.046116Z",
+   "modifie_le": "2026-09-18T04:46:13.046116Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "~/.claude/settings.json"
+    }
+   ],
+   "projet": "tour-de-controle"
+  },
+  {
+   "id": "5e7eba3ad60d6bcc465fc7b1e8f3339635024eca9fe89ba0b6fa0bb8928f574a",
+   "titre": "Tour de contrôle — correctif après la première installation réelle sur le PC Windows de Noah",
+   "resume": "Deux bugs : (1) bloquant — PowerShell 5.1 écrit un BOM en tête des fichiers avec Set-Content -Encoding UTF8, Python refusait alors config.json, régénérait un jeton différent de celui inscrit dans les hooks, et tous les hooks recevaient 401 ; corrigé des deux…",
+   "contenu": "Tour de contrôle — correctif après la première installation réelle sur le PC Windows de Noah. Deux bugs : (1) bloquant — PowerShell 5.1 écrit un BOM en tête des fichiers avec Set-Content -Encoding UTF8, Python refusait alors config.json, régénérait un jeton différent de celui inscrit dans les hooks, et tous les hooks recevaient 401 ; corrigé des deux côtés (lecture en utf-8-sig côté Python, écriture via System.IO.File.WriteAllText avec UTF8Encoding($false) côté PowerShell, nettoyage d'un BOM résiduel à la lecture, et contrôle final dans install.ps1 qui vérifie que Python relit le même jeton). (2) cosmétique — les ConnectionAbortedError WinError 10053 inondaient la console à chaque fermeture d'onglet SSE ; une sous-classe QuietServer de ThreadingHTTPServer avale désormais les déconnexions clientes. Procédure de reprise après mise à jour : arrêter le serveur, dézipper par-dessus, relancer install.ps1 (c'est lui qui réaligne les hooks sur le jeton du config), puis python server.py.",
+   "type": "error",
+   "tags": [
+    "projet",
+    "tour-de-controle",
+    "bug",
+    "windows",
+    "powershell",
+    "bom",
+    "correctif"
+   ],
+   "cree_le": "2026-09-18T04:41:49.041752Z",
+   "modifie_le": "2026-09-18T04:41:49.041752Z",
+   "liens": [],
+   "projet": "tour-de-controle"
+  },
+  {
+   "id": "c331b254b6f9376ff932b629ec727bf31ce3d1521bc869b467d241567353d8ab",
+   "titre": "Tour de contrôle — ajout d'un niveau de zoom dans la vue L'atelier, à la demande de Noah",
+   "resume": "La vue d'ensemble garde un poste par session Claude Code, et cliquer un poste (étiquette ou personnage, via raycaster) fait entrer dans la salle de cette session, où l'agent principal est au premier plan avec un halo élargi et chaque sous-agent a son propre…",
+   "contenu": "Tour de contrôle — ajout d'un niveau de zoom dans la vue L'atelier, à la demande de Noah : la vue d'ensemble garde un poste par session Claude Code, et cliquer un poste (étiquette ou personnage, via raycaster) fait entrer dans la salle de cette session, où l'agent principal est au premier plan avec un halo élargi et chaque sous-agent a son propre bureau, son rythme de frappe, ses outils et son état. Retour par Échap ou le fil d'Ariane. Côté serveur, les hooks portant un agent_id sont désormais attribués au sous-agent correspondant (compteur d'outils, dernière action, erreurs, statut), les sous-agents inconnus sont créés à la volée, et seuls les six derniers sous-agents terminés sont conservés. Corrigé aussi le chevauchement des étiquettes 3D (résolution par profondeur après projection). Vérifié en conditions réelles : une nouvelle session Claude Code apparaît dans l'atelier en 1,6 s sans recharger la page ; si le serveur est arrêté, le hook échoue en 2 ms sans ralentir Claude Code ; une session sans hooks est rattrapée par le scan des transcripts en statut \"absent\".",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "tour-de-controle",
+    "threejs",
+    "3d",
+    "sous-agents",
+    "hooks",
+    "drill-down"
+   ],
+   "cree_le": "2026-09-17T21:40:09.669631Z",
+   "modifie_le": "2026-09-17T21:40:09.669631Z",
+   "liens": [],
+   "projet": "tour-de-controle"
+  },
+  {
+   "id": "8a09c9f4ee5d3f8c77018f3c83352de6146743208fb6c1a36f5a29b3b27fcf71",
+   "titre": "Tour de contrôle — Noah voulait une vraie 3D avec des personnages travaillant à leur bureau, pas des cartes…",
+   "resume": "Ajout de la vue L'atelier (/office.html) : open space Three.js entièrement procédural (aucun modèle externe), un poste par agent avec bureau, écran, clavier, tasse, chaise, plus cloisons et plantes.",
+   "contenu": "Tour de contrôle — Noah voulait une vraie 3D avec des personnages travaillant à leur bureau, pas des cartes ni des graphes. Ajout de la vue L'atelier (/office.html) : open space Three.js entièrement procédural (aucun modèle externe), un poste par agent avec bureau, écran, clavier, tasse, chaise, plus cloisons et plantes. Le personnage tape au clavier quand l'agent travaille, avec un rythme calé sur ses appels d'outils récents ; lève la main sur une demande de permission ; se prend la tête sur erreur API ; s'adosse quand il a fini ; sa chaise reste vide s'il est absent. Sous-agents actifs = collègues violets debout à côté du poste. L'écran affiche une texture canvas animée reflétant l'état réel (code qui défile, \"? permission\", \"! rate_limit\"). Ombres douces, caméra orbitale, étiquettes HTML projetées, panneau latéral cliquable. Ajout aussi de la page d'accueil (/) demandée : état global en direct, bloc \"demandent ton attention\", vignettes SVG dessinées à la main vers chaque vue, statistiques de la dernière heure. Navigation commune à 7 vues : Accueil, Atelier, Flux, Chrono, Ops, Espace, Table.",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "tour-de-controle",
+    "threejs",
+    "3d",
+    "open-space",
+    "dashboard",
+    "page-accueil"
+   ],
+   "cree_le": "2026-09-17T21:23:21.473561Z",
+   "modifie_le": "2026-09-17T21:23:21.473561Z",
+   "liens": [],
+   "projet": "tour-de-controle"
+  },
+  {
+   "id": "b5ef55b1b1ced9b3dded0dea3f8ce1f26942ea981f927cc76e4e673e452d6987",
+   "titre": "Tour de contrôle — 3e itération, cette fois adossée à l'état de l'art",
+   "resume": "Backend enrichi : PreToolUse et PostToolUse sont appariés par tool_use_id pour mesurer la durée réelle de chaque appel d'outil (champ spans), plus un compteur par nom d'outil ; le hook PostToolUse est désormais branché par l'installeur.",
+   "contenu": "Tour de contrôle — 3e itération, cette fois adossée à l'état de l'art (recherche des dashboards existants : disler/claude-code-hooks-multi-agent-observability, hoangsonww/Claude-Code-Agent-Monitor, Zxela/claude-monitor). Backend enrichi : PreToolUse et PostToolUse sont appariés par tool_use_id pour mesurer la durée réelle de chaque appel d'outil (champ spans), plus un compteur par nom d'outil ; le hook PostToolUse est désormais branché par l'installeur. Trois nouvelles vues ajoutées, Noah tranchera ensuite laquelle pousser : /flow.html (graphe Sankey animé agents → sous-agents → outils, particules canvas sur courbes de Bézier, une par appel réel), /waterfall.html (chronologie zoomable des appels avec leur durée, mode REPLAY à ×1/×8/×30 pour rejouer une session), /ops.html (kanban par statut, jauges SVG de santé, heatmap 60 min, top outils, temps médian par outil, tokens par session et par modèle). Sept vues au total avec bandeau de navigation commun (web/lib/nav.js). Leçon retenue : Noah a reproché deux fois d'avoir conçu sans regarder ce que fait la communauté — chercher les références avant de coder l'UI.",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "tour-de-controle",
+    "dashboard",
+    "dataviz",
+    "canvas",
+    "hooks",
+    "claude-code"
+   ],
+   "cree_le": "2026-09-17T21:10:40.629261Z",
+   "modifie_le": "2026-09-17T21:10:40.629261Z",
+   "liens": [],
+   "projet": "tour-de-controle"
+  },
+  {
+   "id": "b708603901a54dcc3e3e09a1c6439db582b93e62f051c3e35aa0c2b45c9d118f",
+   "titre": "Tour de contrôle — refonte visuelle après retour de Noah",
+   "resume": "Vue principale désormais en 3D Three.js (r169 embarqué en local dans web/lib/, aucun CDN) : constellation où chaque agent est un astre en orbite autour d'un noyau, rayon proportionnel à l'inactivité, taille au volume d'activité, couleur au statut, anneau…",
+   "contenu": "Tour de contrôle — refonte visuelle après retour de Noah (les cartes/listes faisaient trop plates, il veut le rendu 3D des visualisations d'essaims d'agents). Vue principale désormais en 3D Three.js (r169 embarqué en local dans web/lib/, aucun CDN) : constellation où chaque agent est un astre en orbite autour d'un noyau, rayon proportionnel à l'inactivité, taille au volume d'activité, couleur au statut, anneau pulsant sur les agents en attente ou en erreur, satellites violets pour les sous-agents, impulsions lumineuses le long de courbes de Bézier vers le centre à chaque événement, nébuleuses et champ d'étoiles en shader. Caméra orbitale maison (drag/molette), étiquettes HTML projetées, panneau latéral cliquable. Trois vues alternatives conservées et accessibles par un bandeau commun : /mission.html (frises temporelles de 15 min par agent), /deck.html (table dense style k9s + flux d'événements), /cards.html (grille simple). Le backend Python n'a pas changé.",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "dashboard",
+    "tour-de-controle",
+    "threejs",
+    "3d",
+    "visualisation",
+    "design"
+   ],
+   "cree_le": "2026-09-17T20:55:45.808509Z",
+   "modifie_le": "2026-09-17T20:55:45.808509Z",
+   "liens": [],
+   "projet": "tour-de-controle"
+  },
+  {
+   "id": "b95b2dcf280bcee876ed719453c5c0c9f7f5f89f8520d3d99d419b40dc1b1653",
+   "titre": "Présentation « Jarvis — un assistant personnel 100 % local »",
+   "resume": "Livrée sous jarvis-assistant-local.pptx, 8 diapositives avec notes du présentateur, pensée pour un public mixte (non technique / technique / décideur) sur deux niveaux de lecture.",
+   "contenu": "Présentation « Jarvis — un assistant personnel 100 % local » : livrée sous jarvis-assistant-local.pptx, 8 diapositives avec notes du présentateur, pensée pour un public mixte (non technique / technique / décideur) sur deux niveaux de lecture. Plan : pourquoi local, schéma d'ensemble (micro → faster-whisper → cockpit 8766 → OpenCode 3 agents → Ollama → Piper, mémoire branchée dessous), entendre/parler, cloisonnement des permissions, mémoire Markdown + vectorielle, test par mutation, statut et coût. Points sourcés sur le web : benchmarks faster-whisper, archivage du dépôt Piper (oct. 2025, repris par OHF-Voice/piper1-gpl), mécanisme de permissions OpenCode, coût matériel (RTX 5070 Ti ~765 €) et électricité (0,194 €/kWh). Trois chantiers présentés comme en réflexion : moteur de voix, choix du modèle, suite de la feuille de route.",
+   "type": "milestone",
+   "tags": [
+    "jarvis",
+    "presentation",
+    "pptx",
+    "livrable"
+   ],
+   "cree_le": "2026-09-17T20:50:10.170233Z",
+   "modifie_le": "2026-09-17T20:50:10.170233Z",
+   "liens": [],
+   "projet": "jarvis"
+  },
+  {
+   "id": "777576fc697e8ebfd62ef4678a7100391abe92c37c484dc9f5ec52c0b391d217",
+   "titre": "Projet \"Tour de contrôle\"",
+   "resume": "Dashboard de supervision en direct des agents Claude. Architecture hybride validée avec Noah : serveur Python local sans dépendance (stdlib, port 8787) qui reçoit les événements des hooks Claude Code de type http (SessionStart, UserPromptSubmit, PreToolUse…",
+   "contenu": "Projet \"Tour de contrôle\" (dossier claude-control-tower) : dashboard de supervision en direct des agents Claude. Architecture hybride validée avec Noah : serveur Python local sans dépendance (stdlib, port 8787) qui reçoit les événements des hooks Claude Code de type http (SessionStart, UserPromptSubmit, PreToolUse, PermissionRequest, PostToolUseFailure, Notification, Stop, StopFailure, SubagentStart/Stop, SessionEnd) en async avec timeout 5s, scanne en complément les transcripts ~/.claude/projects/*/*.jsonl toutes les 20s, et expose une page web temps réel via SSE, protégée par jeton. Statuts affichés : travaille / t'attend / terminé / erreur / en veille / fermé. Les sessions claude.ai et Cowork n'ont pas de hooks : elles s'annoncent via POST /api/report. Exposition prévue via le tunnel Cloudflare nommé existant pour l'accès mobile. Livré : zip avec server.py, web/index.html, install.ps1 (fusion idempotente des hooks dans settings.json avec sauvegarde, raccourci de démarrage via pythonw, option -Uninstall), hooks-snippet.json, tools/simulate.py, README. Installeur testé sous PowerShell 7 : fusion, idempotence et désinstallation vérifiées.",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "dashboard",
+    "claude-code",
+    "hooks",
+    "monitoring",
+    "python",
+    "tour-de-controle"
+   ],
+   "cree_le": "2026-09-17T20:35:40.346018Z",
+   "modifie_le": "2026-09-17T20:35:40.346018Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "port 8787"
+    },
+    {
+     "type": "local",
+     "valeur": "~/.claude/projects/*/*.jsonl"
+    }
+   ],
+   "projet": "tour-de-controle"
+  },
+  {
+   "id": "efa989c7ef659ce2777e78c279052afca1c571bfc34cbc2d283cb9fa2ff2b46c",
+   "titre": "Projet « présentations PowerPoint »",
+   "resume": "Noah a demandé une démo de création de deck. Livré exemple-travail-a-distance.pptx — 5 diapos sur l'état du travail à distance (données Insee 2024, WFH Research/FRED août 2026, BFI Chicago 2025, Buildremote juillet 2026), palette argile/sarcelle sur fond…",
+   "contenu": "Projet « présentations PowerPoint » : Noah a demandé une démo de création de deck. Livré exemple-travail-a-distance.pptx — 5 diapos sur l'état du travail à distance (données Insee 2024, WFH Research/FRED août 2026, BFI Chicago 2025, Buildremote juillet 2026), palette argile/sarcelle sur fond encre, graphiques natifs (courbe, barres, anneau), notes du présentateur sur chaque diapo. Généré avec pptxgenjs + skill pptx. Étape suivante : création de sa vraie présentation (sujet/public/sources en attente de réponse).",
+   "type": "milestone",
+   "tags": [
+    "presentation",
+    "pptx",
+    "demo",
+    "livrable"
+   ],
+   "cree_le": "2026-09-17T20:30:21.550345Z",
+   "modifie_le": "2026-09-17T20:30:21.550345Z",
+   "liens": [],
+   "projet": "presentation"
+  },
+  {
+   "id": "7b727d0b21eb029dafc3d42094fa9e5ddd7f6ea4425aa51820ed25bd9f25c4a4",
+   "titre": "Rogue-lite 2D Unity — projet test du plugin officiel Unity pour Claude Code",
+   "resume": "Développement en cours via une session Claude Code autonome ; estimation de fin annoncée sans blocage.",
+   "contenu": "Rogue-lite 2D Unity (donjons procéduraux, pixel art vue du dessus) — projet test du plugin officiel Unity pour Claude Code. Développement en cours via une session Claude Code autonome ; estimation de fin annoncée sans blocage.",
+   "type": "note",
+   "tags": [
+    "rogue-lite",
+    "unity",
+    "jeu-video",
+    "depths"
+   ],
+   "cree_le": "2026-09-17T20:01:49.317405Z",
+   "modifie_le": "2026-09-17T20:01:49.317405Z",
+   "liens": [],
+   "projet": "depths"
+  },
+  {
+   "id": "ac884104a17c1cbc9359a6162f2439386f22959470d1d4e0bf6743d041c0c9e4",
+   "titre": "Pont mémoire : investigation d'un tableau de bord web pour consulter la mémoire sans passer par une IA",
+   "resume": "Résultat : en mode streamable-http (celui utilisé pour le pont vers claude.ai), seules les routes /health, /mcp, /oauth/* et /.well-known/* sont montées.",
+   "contenu": "Pont mémoire (mcp-memory-service) : investigation d'un tableau de bord web pour consulter la mémoire sans passer par une IA. Résultat : en mode streamable-http (celui utilisé pour le pont vers claude.ai), seules les routes /health, /mcp, /oauth/* et /.well-known/* sont montées. L'API REST complète (/api/memories, /api/search, etc.) et le dashboard vivent dans une app FastAPI séparée (web/app.py) qui nécessite un second processus sur un autre port. Décision de Noah : ne pas lancer ce second processus pour l'instant.",
+   "type": "note",
+   "tags": [
+    "pont-memoire",
+    "mcp-memory-service",
+    "dashboard",
+    "decision"
+   ],
+   "cree_le": "2026-09-17T19:28:22.934111Z",
+   "modifie_le": "2026-09-17T19:28:22.934111Z",
+   "liens": [],
+   "projet": "pont-memoire"
+  },
+  {
+   "id": "7fa528017982435f0c665f550f2a794dc6dea80a2d7d6864e8dd3bdcf3c51161",
+   "titre": "Projet VoxelCraft — architecture",
+   "resume": "Clone de Minecraft en Three.js, voxel/procédural. Rendu : textures pixel-art procédurales 16×16 générées sur canvas (top/side/bottom différents par bloc), atlas de textures compilé pour la performance, ambient occlusion aux coins.",
+   "contenu": "Projet VoxelCraft (livré via claude.ai, fichier HTML autonome minecraft.html) — architecture : clone de Minecraft en Three.js, voxel/procédural. Rendu : textures pixel-art procédurales 16×16 générées sur canvas (top/side/bottom différents par bloc), atlas de textures compilé pour la performance, ambient occlusion aux coins. Monde : terrain multi-octave (montagnes, plaines, collines), grottes 3D creusées par bruit 3D, 4 biomes (plaines, forêt dense, désert, toundra enneigée), arbres/fleurs/minerais (charbon, fer, or, diamant), eau transparente avec physique de nage. Atmosphère : cycle jour/nuit avec soleil/lune/étoiles, nuages animés, brouillard exponentiel dynamique. Gameplay : particules de destruction de bloc, sons via Web Audio API, head-bobbing, 9 blocs posables, raycast de visée. Décision durable / contrainte d'environnement : les contrôles caméra utilisent un suivi direct de la souris (clic pour activer, bouge la souris) plutôt que l'API Pointer Lock, car Pointer Lock est bloquée dans le bac à sable des artifacts claude.ai.",
+   "type": "note",
+   "tags": [
+    "voxelcraft",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:46:15.099437Z",
+   "modifie_le": "2026-09-17T18:46:15.099437Z",
+   "liens": [],
+   "projet": "voxelcraft"
+  },
+  {
+   "id": "690c9ab5c0b8f1374831b66977460dad52911965e45be978b5883c2b1003d53d",
+   "titre": "Bot d'alertes trading BTC + Or — architecture",
+   "resume": "Bot Node.js 18+ sans dépendance externe (built-ins uniquement), livré en trois fichiers (bot.js, config.example.json, README.md).",
+   "contenu": "Bot d'alertes trading BTC + Or (livré via claude.ai, hébergé sur un PC personnel de Noah tournant 24/7) — architecture : bot Node.js 18+ sans dépendance externe (built-ins uniquement), livré en trois fichiers (bot.js, config.example.json, README.md). Récupère le prix BTC via une chaîne de repli d'API gratuites sans clé (Binance → Coinbase → CoinGecko → Kraken) et le prix de l'or via Yahoo Finance (futures GC=F, nécessite un User-Agent de navigateur). Envoie des notifications Telegram via l'API Telegram Bot quand un palier de prix configuré est franchi (vérification à intervalle configurable, ex. toutes les 60s). Contexte d'usage : suivi de paper trading (compte démo eToro) pendant les horaires de travail matinaux de Noah, sans exécution automatique des trades (Noah exécute lui-même, le bot alerte seulement).",
+   "type": "note",
+   "tags": [
+    "trading-alert-bot",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:36:49.471912Z",
+   "modifie_le": "2026-09-17T18:36:49.471912Z",
+   "liens": [],
+   "projet": "trading-alert-bot"
+  },
+  {
+   "id": "d122e88368e830f9086af2a069727fe471397ed4dbce878678acfddac28f0a74",
+   "titre": "Pipeline local multi-agents de revue de sécurité de code — architecture prévue en 5 phases",
+   "resume": "Open WebUI (interface de pilotage, installé et connecté à Ollama via http://host.docker.internal:11434) → N8N en chef d'orchestre (conteneur Docker, port 5678, volume persistant ~/.n8n) → 4 agents locaux spécialisés servis par Ollama (analyse, sécurité…",
+   "contenu": "Pipeline local multi-agents de revue de sécurité de code (PC personnel de Noah, Docker) — architecture prévue en 5 phases : Open WebUI (interface de pilotage, installé et connecté à Ollama via http://host.docker.internal:11434) → N8N en chef d'orchestre (conteneur Docker, port 5678, volume persistant ~/.n8n) → 4 agents locaux spécialisés servis par Ollama (analyse, sécurité, correction de code, re-test, modèles qwen2.5-coder/mistral en local) → boucle itérative jusqu'à validation. Décision durable : Ollama tourne nativement sur Windows (port 11434, accessible en localhost:11434 depuis le navigateur mais host.docker.internal:11434 depuis les conteneurs Docker). Statut : Phase 1 (Open WebUI + connexion Ollama) opérationnelle et testée ; les phases suivantes (watcher de dossier, agents spécialisés, boucle) restent à construire.",
+   "type": "note",
+   "tags": [
+    "pipeline-securite-n8n-ollama",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:36:44.039115Z",
+   "modifie_le": "2026-09-17T18:36:44.039115Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "http://host.docker.internal:11434"
+    },
+    {
+     "type": "local",
+     "valeur": "port 5678"
+    },
+    {
+     "type": "local",
+     "valeur": "~/.n8n"
+    },
+    {
+     "type": "local",
+     "valeur": "localhost:11434"
+    }
+   ],
+   "projet": "pipeline-securite-n8n-ollama"
+  },
+  {
+   "id": "9ff666669458a1afe90cea3f2700a251dfa48b42401d17393053943c9fa3e4de",
+   "titre": "Slash command Claude Code \"/deadline\" — architecture",
+   "resume": "Commande manuelle (pas une compétence à déclenchement automatique) pour cadrer et exécuter une tâche bornée par une deadline, choisie délibérément pour rester à 0 token tant qu'elle n'est pas appelée et ne jamais partir seule.",
+   "contenu": "Slash command Claude Code \"/deadline\" (~/.claude/commands/deadline.md, personnel à Noah) — architecture : commande manuelle (pas une compétence à déclenchement automatique) pour cadrer et exécuter une tâche bornée par une deadline, choisie délibérément pour rester à 0 token tant qu'elle n'est pas appelée et ne jamais partir seule. Flux : (1) détermine l'heure de fin en Europe/Paris à partir d'un argument (HH:MM JJ/MM/AAAA, ou raccourcis \"nuit\"=+6h / \"journée\"=+24h) ou la demande ; (2) questionnaire à options sur (A) la tâche précise, (B) la définition de \"fini\", (C) la politique si terminé avant la deadline (arrêt / continuer en proposant / continuer sans demander) ; (3) construit un plan et attend validation avant de créer le moindre fichier ; une fois validé, crée un dossier deadline/ (toujours gitignoré, avec choix écraser/nouveau-nom s'il existe déjà) contenant des fichiers de suivi (lancement/suivi/reprise/bilan.md). Un cron optionnel de vérification toutes les 10 min reste disponible mais désactivé par défaut (à activer explicitement pour une session).",
+   "type": "note",
+   "tags": [
+    "deadline-command",
+    "antigravity-skills",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:36:33.319653Z",
+   "modifie_le": "2026-09-17T18:36:33.319653Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "~/.claude/commands/deadline.md"
+    }
+   ],
+   "projet": "deadline-command"
+  },
+  {
+   "id": "938efab7f9807bf3f3037ebb08ea249b7da3627a3af60773738e516f77f34c7c",
+   "titre": "Projet Multi-Claude Orchestrator — architecture",
+   "resume": "Système d'orchestration multi-IA utilisant uniquement des modèles Anthropic (décision durable : GPT écarté, abandon d'une version précédente combinant GPT+Claude).",
+   "contenu": "Projet Multi-Claude Orchestrator (exploration/apprentissage, pas un outil de production) — architecture : système d'orchestration multi-IA utilisant uniquement des modèles Anthropic (décision durable : GPT écarté, abandon d'une version précédente combinant GPT+Claude). Backend FastAPI avec CORS ouvert et sessions en mémoire (asyncio.Queue par session). Routeur déterministe (core/router.py) qui score chaque prompt sur 5 critères (longueur, présence de code, mots-clés de complexité, questions simples, raisonnement multi-étapes) pour choisir entre Haiku (simple), Sonnet (build principal) et Opus (reviewer strict + rôle \"Designer\" simulé via system prompt spécialisé, car Claude Design n'a pas d'API publique). Boucle build → review → fix plafonnée à MAX_ITERATIONS=10 et MAX_HOPS_PER_ITERATION=3. Frontend en un seul fichier HTML/CSS/JS vanilla (thème sombre, console multi-modèles avec cartes colorées par rôle, affichage du breakdown de score pour la pédagogie). Jalon livré : 12/12 tests du routeur passent après correction de bugs de matching par sous-chaîne (ex. \"ui\" qui matchait dans \"calcule\").",
+   "type": "note",
+   "tags": [
+    "multi-claude-orchestrator",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:30:48.197238Z",
+   "modifie_le": "2026-09-17T18:30:48.197238Z",
+   "liens": [],
+   "projet": "multi-claude-orchestrator"
+  },
+  {
+   "id": "55329ddab3808a89f785f27b23f21440da6d109bf26b75fa7e5e073f8827e519",
+   "titre": "Workspace jeu_claude — architecture",
+   "resume": "Monorepo partagé par tous les jeux 3D de Noah (VOID ATLAS, TACTICAL OPS, etc.), pas un jeu en soi mais le socle commun. Racine avec _tools/ (npm-global, npm-cache, gradle, android-sdk, java — tout confiné sur D: via .npmrc + variables d'environnement, jamais…",
+   "contenu": "Workspace jeu_claude (D:\\jeu_claude) — architecture : monorepo partagé par tous les jeux 3D de Noah (VOID ATLAS, TACTICAL OPS, etc.), pas un jeu en soi mais le socle commun. Racine avec _tools/ (npm-global, npm-cache, gradle, android-sdk, java — tout confiné sur D: via .npmrc + variables d'environnement, jamais d'installation globale ni de fuite vers C:\\Users\\), .claude/commands/effort.md (4 niveaux : low/medium/high/max) et .claude/commands/new-game.md. Chaque jeu vit isolé dans games/NNN-slug/ (numérotation auto-incrémentée, dossiers existants jamais touchés) avec sa propre structure (src/core, src/input, src/entities, src/systems, src/ui, electron/, PLAN.md, JOURNAL.md). Décisions durables : stack choisie selon le genre (Three.js+Cannon-es/Rapier pour FPS/course, Babylon.js pour exploration/RPG) ; wrappers obligatoires Vite (web), Electron+electron-builder (desktop/Steam), Capacitor (mobile, projet créé mais non buildé) ; TypeScript strict sans any, aucun fichier source de plus de 300 lignes, architecture ECS-light, support manette DualSense PS5 prioritaire, deltaTime partout, 60 FPS PC / 30+ mobile visés. Android/iOS restent en préparation seulement (pas de build automatisé dans le pipeline).",
+   "type": "note",
+   "tags": [
+    "jeu-claude",
+    "workspace",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:30:41.842712Z",
+   "modifie_le": "2026-09-17T18:30:41.842712Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\jeu_claude"
+    },
+    {
+     "type": "local",
+     "valeur": "C:\\Users\\"
+    }
+   ],
+   "projet": "jeu-claude"
+  },
+  {
+   "id": "42d52fd89ef850982a55f04f82d9090316c8fe12fb0516b72c69d2ac2357da33",
+   "titre": "Prototype \"Yuei Heroes Battle\" — architecture",
+   "resume": "Recréation en React JSX du jeu de cartes holographique de l'OVA My Hero Academia \"U.A. Heroes Battle\". Deck des élèves de la classe 1-A (stats ATK/DEF, Quirk spécial, Ultimate Move par carte) avec portraits SVG faits maison pour les 28 personnages, plus un…",
+   "contenu": "Prototype \"Yuei Heroes Battle\" (livré via claude.ai) — architecture : recréation en React JSX du jeu de cartes holographique de l'OVA My Hero Academia \"U.A. Heroes Battle\". Deck des élèves de la classe 1-A (stats ATK/DEF, Quirk spécial, Ultimate Move par carte) avec portraits SVG faits maison pour les 28 personnages, plus un pool de cartes EX \"Helper Heroes\" (Pro Heroes) à usage unique tirées aléatoirement. Système de combat tour par tour avec dégâts persistants entre rounds et conditions de victoire par KO ou ring-out.",
+   "type": "note",
+   "tags": [
+    "yuei-heroes-battle",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:52.577071Z",
+   "modifie_le": "2026-09-17T18:19:52.577071Z",
+   "liens": [],
+   "projet": "yuei-heroes-battle"
+  },
+  {
+   "id": "3a730e4480ac70aaf65424eec9f7a7c2d7f70609f64d45f149ec6180cc7fc968",
+   "titre": "Applications d'apprentissage Claude en français — Claude Academy tracker",
+   "resume": "Suivi hors-ligne (~62 Ko), thème sombre \"Atelier nuit\", système XP/rang, export JSON, fiches de cours françaises embarquées.",
+   "contenu": "Applications d'apprentissage Claude en français (livrées via claude.ai, fichiers HTML autonomes) — Claude Academy tracker : suivi hors-ligne (~62 Ko), thème sombre \"Atelier nuit\", système XP/rang, export JSON, fiches de cours françaises embarquées. Plan d'apprentissage Claude en 10 modules (\"Maîtriser Claude, module par module\") : parcours interactif avec progression gamifiée. Les deux sont des fichiers HTML standalone, sans dépendance externe.",
+   "type": "note",
+   "tags": [
+    "claude-learning-apps",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:48.525415Z",
+   "modifie_le": "2026-09-17T18:19:48.525415Z",
+   "liens": [],
+   "projet": "claude-learning-apps"
+  },
+  {
+   "id": "e1e7fd05fceaec87c86a8d0168cc1d2162a0af8e8410998fa48d75d29d572f88",
+   "titre": "Artifact \"Bibliothèque Claude\" sur claude.ai — architecture",
+   "resume": "Page HTML publiée avec une petite base de données embarquée (collection \"decks\") qui recense les créations de Noah sur claude.ai (titre, description, type, date, champ \"projet\" optionnel pour regrouper plusieurs entrées liées, ex. \"Agent IA Minecraft\").",
+   "contenu": "Artifact \"Bibliothèque Claude\" sur claude.ai (https://claude.ai/artifact/Frho2SpSD9LFzrQFhdarfq) — architecture : page HTML publiée avec une petite base de données embarquée (collection \"decks\") qui recense les créations de Noah sur claude.ai (titre, description, type, date, champ \"projet\" optionnel pour regrouper plusieurs entrées liées, ex. \"Agent IA Minecraft\"). Décision durable : il n'y a pas de mise à jour automatique entre conversations claude.ai — chaque nouvelle conversation ne connaît pas cet artifact tant qu'on ne le lui indique pas explicitement, et l'artifact lui-même ne peut pas vérifier ce que Noah a publié ailleurs. Deux façons fiables d'ajouter une entrée : directement sur la page (bouton \"+ Ajouter une création\"), ou via une conversation qui écrit dans la base de données de l'artifact.",
+   "type": "note",
+   "tags": [
+    "bibliotheque-claude",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:45.183366Z",
+   "modifie_le": "2026-09-17T18:19:45.183366Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://claude.ai/artifact/Frho2SpSD9LFzrQFhdarfq"
+    }
+   ],
+   "projet": "bibliotheque-claude"
+  },
+  {
+   "id": "d13d7d51402b9ff505ebf2924cb53bb4649fcd345b834c06cc3918f2eab964e5",
+   "titre": "Compétence Claude Code \"uiverse-components\" — architecture",
+   "resume": "Sourcing et prévisualisation de composants UI open-source depuis le mirroir GitHub uiverse-io/galaxy (environ 3800 composants sous licence MIT : boutons, cartes, loaders, cases à cocher, toggles, inputs, formulaires, tooltips, notifications, motifs de fond…",
+   "contenu": "Compétence Claude Code \"uiverse-components\" (skill personnelle de Noah) — architecture : sourcing et prévisualisation de composants UI open-source depuis le mirroir GitHub uiverse-io/galaxy (environ 3800 composants sous licence MIT : boutons, cartes, loaders, cases à cocher, toggles, inputs, formulaires, tooltips, notifications, motifs de fond, en CSS pur ou Tailwind). Fonctionnalités : recherche par tags, galerie de prévisualisation isolée en iframe, gabarit de prise de besoin structuré en 5 axes pour cadrer une demande de composant UI.",
+   "type": "note",
+   "tags": [
+    "uiverse-components",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:40.003797Z",
+   "modifie_le": "2026-09-17T18:19:40.003797Z",
+   "liens": [],
+   "projet": "uiverse-components"
+  },
+  {
+   "id": "bcec10fd6f6f557e9d8e3204e737b9989b2f0f2489cf3a6e04f5df74eb9cc0f1",
+   "titre": "Compétence Claude Code \"design-studio\" — architecture",
+   "resume": "Réplique le workflow de Claude Design dans Claude Code, avec trois piliers : génération de vrai code (pas des images), application d'un design system, et une boucle d'auto-critique par capture d'écran (génère → screenshot via Playwright headless → critique…",
+   "contenu": "Compétence Claude Code \"design-studio\" (skill personnelle de Noah) — architecture : réplique le workflow de Claude Design dans Claude Code, avec trois piliers : génération de vrai code (pas des images), application d'un design system, et une boucle d'auto-critique par capture d'écran (génère → screenshot via Playwright headless → critique visuelle → corrige → recommence). Contenu livré : SKILL.md (workflow en 5 étapes : brief → design system → 1ère version → boucle self-QA → livraison/handoff), scripts/screenshot.mjs (rendu headless Playwright, capture desktop + mobile), references/design-system.md (extraction/définition de design system), references/self-qa-rubric.md (grille de critique visuelle + checklist anti-\"slop IA\"). Décision durable : sortie par défaut en un fichier HTML autonome (CSS/JS inline + CDN) pour que la boucle de screenshot reste rapide ; dégrade proprement sans Playwright installé (demande un screenshot collé à la place).",
+   "type": "note",
+   "tags": [
+    "design-studio",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:35.951572Z",
+   "modifie_le": "2026-09-17T18:19:35.951572Z",
+   "liens": [],
+   "projet": "design-studio"
+  },
+  {
+   "id": "a713bd8e280021d4f9ad11d958e7c82b1aa69d2a8bddd422dc15f343a62bb0d5",
+   "titre": "Bibliothèque de compétences Claude Code de Noah — architecture",
+   "resume": "Environ 138 compétences réparties en 19 plugins/domaines (game design, web, sécurité, IA, Claude Code, apps desktop/mobile, backend/API, devops, documentation, données, tests, etc.), chaque domaine ayant sa propre compétence d'orchestration (\"par où…",
+   "contenu": "Bibliothèque de compétences Claude Code de Noah (D:\\claude\\antigravity-skills, dépôt github.com/sickn33/antigravity-skills) — architecture : environ 138 compétences réparties en 19 plugins/domaines (game design, web, sécurité, IA, Claude Code, apps desktop/mobile, backend/API, devops, documentation, données, tests, etc.), chaque domaine ayant sa propre compétence d'orchestration (\"par où commencer\" pour ce domaine). Décision durable : un noyau de 3 compétences reste chargé globalement (~800 tokens) pour éviter la surconsommation de contexte au démarrage de session ; les autres s'activent soit par projet via un script skill-projet.ps1, soit par domaine via un marketplace personnel (commandes /plugin marketplace add D:\\claude\\antigravity-skills puis /plugin install <domaine>@antigravity-skills). Distribution alternative : zips par vague de compétences (par domaine) et un zip suite complète, à extraire dans .claude/skills.",
+   "type": "note",
+   "tags": [
+    "antigravity-skills",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:30.913913Z",
+   "modifie_le": "2026-09-17T18:19:30.913913Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/sickn33/antigravity-skills"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\claude\\antigravity-skills"
+    }
+   ],
+   "projet": "antigravity-skills"
+  },
+  {
+   "id": "28a5cb560ae54f9ca0b3fbbacdb97b8dc8601d00c03a6d275c973079b7087063",
+   "titre": "Projet Roberta v4 — architecture",
+   "resume": "Assistant IA local combinant chat, recherche web, APIs finance et génération d'images locale par Stable Diffusion, dans une plateforme assistant unifiée.",
+   "contenu": "Projet Roberta v4 — architecture : assistant IA local combinant chat, recherche web, APIs finance et génération d'images locale par Stable Diffusion, dans une plateforme assistant unifiée. Environnement : Windows 11, Python 3.10, GPU RTX 5070 Ti. Stack : PyTorch pour le traitement IA, diffusers/transformers/huggingface_hub pour Stable Diffusion. Version actuelle : 4.2.0. Décision durable / contrainte matérielle connue : la génération d'image tourne actuellement en CPU (30-60s par image) car la RTX 5070 Ti utilise la compute capability sm_120, non supportée par les versions actuelles de PyTorch (max sm_90 en 2.5.1). Migration prévue vers le GPU (objectif 3-5s par image) dès que le support sm_120 arrivera dans PyTorch (attendu mi/fin 2026, versions 2.7 ou 3.0).",
+   "type": "note",
+   "tags": [
+    "roberta",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:25.905771Z",
+   "modifie_le": "2026-09-17T18:19:25.905771Z",
+   "liens": [],
+   "projet": "roberta"
+  },
+  {
+   "id": "20af390e46bbccf24e8beabbe77d5f7fc3d606ddcedf4e22ca8a75a2a8d9e943",
+   "titre": "Projet ClipCoach — architecture",
+   "resume": "Application locale d'analyse de gameplay par vision par ordinateur, principe cœur 100% local sans dépendance API externe.",
+   "contenu": "Projet ClipCoach — architecture : application locale d'analyse de gameplay par vision par ordinateur, principe cœur 100% local sans dépendance API externe. Version actuelle : 3.1.0. Architecture modulaire : yolo_detector.py (détection d'objets/joueurs par YOLO), ocr_reader.py (lecture d'éléments HUD comme vie et munitions par OCR), graph_generator.py (visualisation de performance via matplotlib). Stack : PyTorch (version CPU-only), ultralytics pour YOLO, Tesseract OCR, OpenCV pour le traitement de frames. Décisions durables : tous les paramètres de contrainte (frames par clip, total de frames, durée de clip, taille de fichier, etc.) suivent la convention 0 = illimité pour un contrôle total sans limite artificielle ; l'architecture privilégie la dégradation gracieuse — un module de vision par ordinateur optionnel manquant ne casse jamais le fonctionnement du cœur de l'application.",
+   "type": "note",
+   "tags": [
+    "clipcoach",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:21.338522Z",
+   "modifie_le": "2026-09-17T18:19:21.338522Z",
+   "liens": [],
+   "projet": "clipcoach"
+  },
+  {
+   "id": "aee46307c01dd6b807708b521519a9b3799c702d793ba38a848fa3fa450d9114",
+   "titre": "Projet Découpe Vidéos — architecture",
+   "resume": "Application d'édition qui coupe automatiquement les vidéos gaming en clips en filtrant les passages lobby/menu, pour automatiser le nettoyage de contenu gaming.",
+   "contenu": "Projet Découpe Vidéos — architecture : application d'édition qui coupe automatiquement les vidéos gaming en clips en filtrant les passages lobby/menu, pour automatiser le nettoyage de contenu gaming. Interface avec glisser-déposer multi-fichiers et intégration automatique en file d'attente batch. Version stable en cours : 1.4.2. Décision durable de méthode de travail : principe \"un message = une version complète\" — chaque cycle de développement livre une version pleinement fonctionnelle (code complet, fichiers de sauvegarde, guide de migration, documentation utilisateur, changelog, pistes d'amélioration futures) plutôt qu'une implémentation partielle. Axe de travail retenu pour la détection de lobby (à évaluer/intégrer) : quatre approches documentées en détail — Template Matching avec OpenCV, reconnaissance de texte OCR, détection de scène FFmpeg, modèle YOLO.",
+   "type": "note",
+   "tags": [
+    "decoupe-videos",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:16.760344Z",
+   "modifie_le": "2026-09-17T18:19:16.760344Z",
+   "liens": [],
+   "projet": "decoupe-videos"
+  },
+  {
+   "id": "6526db2ad549a355f638de6000476fc90fa02e23f12d4495ba0d10ec12a56e6a",
+   "titre": "Projet CodeLyngo v3 — architecture",
+   "resume": "Plateforme React d'apprentissage du code par parcours progressifs. Langages cœur : HTML, CSS, JavaScript, Python ; TypeScript et SQL en contenu complémentaire.",
+   "contenu": "Projet CodeLyngo v3 — architecture : plateforme React d'apprentissage du code par parcours progressifs. Langages cœur : HTML, CSS, JavaScript, Python ; TypeScript et SQL en contenu complémentaire. Interface thème sombre avec code couleur par langage. Système d'aide à trois paliers qui s'adapte au nombre d'échecs de l'utilisateur (laisse chercher seul avant d'assister). Validateurs custom par langage : validation de structure HTML, extraction de propriétés CSS, simulation d'exécution JavaScript, mini-interpréteur Python basique. Checkpoints d'évaluation tous les 10 exercices + évaluation finale complète par langage. Quiz d'orientation en 6 questions qui recommande le point de départ optimal selon l'expérience déclarée. Gamification : streaks, badges, suivi de progression visuel.",
+   "type": "note",
+   "tags": [
+    "codelyngo",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:12.031241Z",
+   "modifie_le": "2026-09-17T18:19:12.031241Z",
+   "liens": [],
+   "projet": "codelyngo"
+  },
+  {
+   "id": "6ac7990aaeb3db4ca6d870a8bc4d6f9f550532e01ed039cf92f539714ab50ebb",
+   "titre": "Projet DevPath — architecture",
+   "resume": "Plateforme d'apprentissage web, 221 fichiers HTML statiques (modules de cours + pages de projets), sans framework, index de navigation.",
+   "contenu": "Projet DevPath (livré via claude.ai) — architecture : plateforme d'apprentissage web, 221 fichiers HTML statiques (modules de cours + pages de projets), sans framework, index de navigation. Jalon livré (v5, devpath-enhanced-v5.zip) : 12 projets pratiques progressifs ajoutés, du CV en HTML pur (P01) jusqu'au chatbot IA avec RAG (P10, LangChain/OpenAI/Vector DB) et au jeu 2D Phaser.js (P12), chacun avec brief, critères de validation et bonus ; quiz cassés réparés sur plusieurs modules ; 1500+ sections, 629 quiz au total. Décision durable : projet distinct de CodeLyngo v3, qui est une plateforme React interactive séparée — ne pas fusionner les deux.",
+   "type": "note",
+   "tags": [
+    "devpath",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:07.741165Z",
+   "modifie_le": "2026-09-17T18:19:07.741165Z",
+   "liens": [],
+   "projet": "devpath"
+  },
+  {
+   "id": "42f6eb780298f523fe9d7ced7199756a93ad4d87b3473c58970aae84558807f0",
+   "titre": "Projet Wiki Star Citizen — architecture",
+   "resume": "Site statique HTML/CSS/JS en français, données par catégorie dans data/*.js (vaisseaux, systèmes, boutiques, patch notes, consommables), localisé pour l'Alpha 4.6.",
+   "contenu": "Projet Wiki Star Citizen (wiki-sc, livré via claude.ai) — architecture : site statique HTML/CSS/JS en français, données par catégorie dans data/*.js (vaisseaux, systèmes, boutiques, patch notes, consommables), localisé pour l'Alpha 4.6. Jalons livrés : wiki-sc-v5-alpha46.zip (contenu Alpha 4.6, patch notes réelles, FAQ, guides, routes commerciales) puis wiki-sc-v8-hd-images.zip (système d'images en deux couches : SVG stylisés générés en fallback local immédiat, upgrade progressif vers photos HD via l'API externe FleetYards api.fleetyards.net/v1/models, avec cache sessionStorage et file d'attente limitée à 4 requêtes simultanées). Décision durable : le contenu est vérifié contre plusieurs sources externes (starcitizen.tools, Hangarbase, RSI officiel) plutôt qu'inventé. Une itération ultérieure du projet (nommée en interne \"wiki-ultime\") est passée sur une stack React + Vite + Supabase + Vercel avec deux endpoints API serverless.",
+   "type": "note",
+   "tags": [
+    "wiki-star-citizen",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:19:03.589911Z",
+   "modifie_le": "2026-09-17T18:19:03.589911Z",
+   "liens": [],
+   "projet": "wiki-star-citizen"
+  },
+  {
+   "id": "59c53bab1630e685a16f045aa6eba249965c6f6b392000384571a88e0de9461a",
+   "titre": "Projet VOID ATLAS — architecture",
+   "resume": "RPG d'exploration spatiale en React/JSX, un seul composant avec rendu Canvas (navigation temps réel, commerce, combat, minage, missions, personnalisation de vaisseau, génération procédurale de systèmes stellaires par seed).",
+   "contenu": "Projet VOID ATLAS — architecture : RPG d'exploration spatiale en React/JSX, un seul composant avec rendu Canvas (navigation temps réel, commerce, combat, minage, missions, personnalisation de vaisseau, génération procédurale de systèmes stellaires par seed). Jalon livré : version Steam-ready packagée en zip (void-atlas-steam.zip) avec enveloppe Electron (npm run electron:dev pour fenêtre desktop dédiée, electron:build pour générer un installateur .exe distribuable) et README documentant les six étapes de publication Steam (compte Steamworks Partner, steamworks.js, build steam:build, upload via SteamPipe). Licence notée dans le README : librement modifiable, distribuable et vendable.",
+   "type": "note",
+   "tags": [
+    "void-atlas",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:18:58.623299Z",
+   "modifie_le": "2026-09-17T18:18:58.623299Z",
+   "liens": [],
+   "projet": "void-atlas"
+  },
+  {
+   "id": "629fe62b7d3b5d8af6d200163f4d8e3df1468e2594d6eb23ea69b1189b478f15",
+   "titre": "Projet SpeedRush DOFUS / Optimiseur duo — deux livrables distincts sous le même nom de compétition",
+   "resume": "(1) SpeedRush v10 : outil HTML autonome livré via claude.ai, fichier unique, toutes les données (674 items, 18 classes, compos prédéfinies) encodées en base64 dans window._D64, zéro dépendance externe, pensé pour fonctionner hors-ligne le jour de la…",
+   "contenu": "Projet SpeedRush DOFUS / Optimiseur duo (D:\\jeu_claude\\optimiseur-duo) — deux livrables distincts sous le même nom de compétition. (1) SpeedRush v10 : outil HTML autonome livré via claude.ai, fichier unique, toutes les données (674 items, 18 classes, compos prédéfinies) encodées en base64 dans window._D64, zéro dépendance externe, pensé pour fonctionner hors-ligne le jour de la compétition SpeedRush Dofus 3. (2) Optimiseur duo : application React en développement (widget prototypé), génère des listes d'équipement item par item pour trois routes de duo (Crâ+Enutrof, Crâ+Crâ, Crâ+Roublard). Contraintes durables de la compétition à respecter dans toute proposition : caps 12 PA / 6 PM / 6 PO, exclusion des Gelano et des idoles, stuff perfect-roll acheté à 1 kama. Données d'items via l'API externe api.dofusdu.de.",
+   "type": "note",
+   "tags": [
+    "speedrush-dofus",
+    "optimiseur-duo",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:18:53.823123Z",
+   "modifie_le": "2026-09-17T18:18:53.823123Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\jeu_claude\\optimiseur-duo"
+    }
+   ],
+   "projet": "speedrush-dofus"
+  },
+  {
+   "id": "275d86a39ee6af55f551a9dc15699d93a2350cd90fe8c62b9a877a63c87f5547",
+   "titre": "Projet TACTICAL OPS — WARZONE — architecture",
+   "resume": "Jeu de tir top-down vanilla HTML/CSS/JS, rendu Canvas, aucun framework ni dépendance externe. Contenu livré : 3 armes (M4A1 automatique, M9 pistolet, fusil à pompe M870), 4 types d'ennemis avec IA à états (patrouille → poursuite → attaque/strafing), 8 vagues…",
+   "contenu": "Projet TACTICAL OPS — WARZONE (livré via claude.ai, fichier HTML autonome tactical-ops.html) — architecture : jeu de tir top-down vanilla HTML/CSS/JS, rendu Canvas, aucun framework ni dépendance externe. Contenu livré : 3 armes (M4A1 automatique, M9 pistolet, fusil à pompe M870), 4 types d'ennemis avec IA à états (patrouille → poursuite → attaque/strafing), 8 vagues progressives, grenades, système de particules (sang, étincelles, flash de bouche, fumée, ondes de choc), écran menu/mort, contrôles ZQSD ou flèches + souris.",
+   "type": "note",
+   "tags": [
+    "tactical-ops",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T18:18:48.620406Z",
+   "modifie_le": "2026-09-17T18:18:48.620406Z",
+   "liens": [],
+   "projet": "tactical-ops"
+  },
+  {
+   "id": "659ba5799329be2499319c9b910419bae9325f0e0459dd048b4f4afa495da188",
+   "titre": "Projet Religions — architecture",
+   "resume": "Recensement encyclopédique de 1553 religions, confessions, écoles, obédiences et courants du monde, répartis en 12 familles (abrahamiques, indiennes/dharmiques, est-asiatiques, iraniennes/Proche-Orient ancien, antiques Europe-Méditerranée, africaines et…",
+   "contenu": "Projet Religions (D:\\religions) — architecture : recensement encyclopédique de 1553 religions, confessions, écoles, obédiences et courants du monde, répartis en 12 familles (abrahamiques, indiennes/dharmiques, est-asiatiques, iraniennes/Proche-Orient ancien, antiques Europe-Méditerranée, africaines et diasporas, autochtones des Amériques, Océanie/Australie, Asie centrale-Sibérie-Arctique, Asie du Sud-Est/Insulinde, nouveaux mouvements religieux/ésotérisme, courants philosophiques non-théistes). liste.md est le sommaire général avec cases à cocher au fil de la lecture. Chaque entrée renvoie vers un dossier propre sous texte_sacrer/<famille>/, contenant une fiche complète (README.md) et un dossier de conflits armés liés (guerres/). Décision durable : les douze familles sont un outil de navigation, pas une thèse ; chaque confession est traitée comme une religion à part entière (ex. baptistes et catholiques, sunnites et chiites, theravāda et mahāyāna ont chacun leur fiche autonome) ; une tradition n'apparaît qu'une seule fois, dans la famille où son rattachement est le plus courant dans la littérature.",
+   "type": "note",
+   "tags": [
+    "religions",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:43:15.174878Z",
+   "modifie_le": "2026-09-17T17:43:15.174878Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\religions"
+    }
+   ],
+   "projet": "religions"
+  },
+  {
+   "id": "1d926f327a8a3a7598326fcd45b619fd68ca2a694645749d4bf0d596f932175d",
+   "titre": "Projet Dosoft / orga_dof — architecture",
+   "resume": "Outil Windows distribué sur https://dosoft.fr, code source public pour reconstruire l'application. Menu radial (radial_menu.py) déclenché par raccourci clavier (bibliothèque keyboard), icône dans la barre système (pystray), interface Tkinter/customtkinter.",
+   "contenu": "Projet Dosoft / orga_dof (D:\\orga_dof, dépôt public github.com/LuframeCode/dosoft) — architecture : outil Windows distribué sur https://dosoft.fr, code source public pour reconstruire l'application. Menu radial (radial_menu.py) déclenché par raccourci clavier (bibliothèque keyboard), icône dans la barre système (pystray), interface Tkinter/customtkinter. Personnalisable sans changer le build : layouts clavier via des .yml dans resources/keyboards/ (azerty_fr, qwerty_us…) et chaînes UI via des .yml dans resources/i18n/ (fr, en, pt…), modifiables depuis les Réglages de l'app. Build : pyinstaller --onefile --windowed main.py, ou build.cmd + Inno Setup (setup.iss) pour l'installeur. Versions précompilées disponibles dans les Releases GitHub.",
+   "type": "note",
+   "tags": [
+    "dosoft",
+    "orga-dof",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:43:02.838794Z",
+   "modifie_le": "2026-09-17T17:43:02.838794Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/LuframeCode/dosoft"
+    },
+    {
+     "type": "en_ligne",
+     "valeur": "https://dosoft.fr"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\orga_dof"
+    }
+   ],
+   "projet": "dosoft"
+  },
+  {
+   "id": "f9ca1cb5cac4215401503c4d50b10ef2d0ac072c2168d77800d8739aa78a8ea6",
+   "titre": "Projet JLS Metal / jsl_metal — architecture",
+   "resume": "Site vitrine statique, professionnel, 100 % autonome (HTML/CSS/JS, aucune dépendance, aucun framework). Recréé pour un PROJET PERSONNEL à partir des informations publiques de l'entreprise JLS Metal (métallerie, chaudronnerie, serrurerie…",
+   "contenu": "Projet JLS Metal / jsl_metal (D:\\jsl_metal) — architecture : site vitrine statique, professionnel, 100 % autonome (HTML/CSS/JS, aucune dépendance, aucun framework). Recréé pour un PROJET PERSONNEL à partir des informations publiques de l'entreprise JLS Metal (métallerie, chaudronnerie, serrurerie ; https://jls-metal.fr/) — ce n'est pas le site officiel du client, c'est un exercice/portfolio inspiré d'une entreprise réelle. Pages : accueil, à-propos, services (7 prestations + grille tarifaire braseros), réalisations (galerie filtrable + lightbox), contact (formulaire de devis + carte), mentions légales (RGPD à compléter). SEO : robots.txt + sitemap.xml. assets/ regroupe css/js/images (logo et illustrations SVG faites maison). Ouverture simple par double-clic sur index.html, ou serveur local recommandé pour que carte et chemins fonctionnent parfaitement (python -m http.server ou npx serve).",
+   "type": "note",
+   "tags": [
+    "jsl-metal",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:42:34.467481Z",
+   "modifie_le": "2026-09-17T17:42:34.467481Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://jls-metal.fr/"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\jsl_metal"
+    }
+   ],
+   "projet": "jsl-metal"
+  },
+  {
+   "id": "3866617ece98438eef5b2563d9beb1f1da5a91c679924fef85fe28a376567d6b",
+   "titre": "Projet Nova / jeu_nova — architecture",
+   "resume": "Socle moteur d'un jeu d'action 3ᵉ personne en monde ouvert, TypeScript strict, Vite 8 + three/webgpu 0.184 (WebGPU natif, repli WebGL2 automatique).",
+   "contenu": "Projet Nova / jeu_nova (D:\\jeu_nova) — architecture : socle moteur d'un jeu d'action 3ᵉ personne en monde ouvert, TypeScript strict, Vite 8 + three/webgpu 0.184 (WebGPU natif, repli WebGL2 automatique). Pas encore de gameplay (combat/inventaire/progression/quêtes) — l'architecture est conçue pour les recevoir. Structure : src/core (boucle pas-fixe, bus d'événements, ECS, rng, resize, assets, storage), src/game (monde ECS, systèmes, états, save, terrain, réglages), src/input (clavier + DualSense unifiés via WebHID), src/render (WebGPU, caméra 3e pers., terrain, ciel/eau, personnages, post-process), src/audio (WebAudio synthétisé, bus, 3D, ducking), src/ui (HUD, menus navigables manette), src/fx (game feel : shake, hit-stop, particules, flash), electron/ (enveloppe desktop). Vérification headless de tous les systèmes via Playwright/WebGPU (npm run test:all), smoke visuel, boot Electron de validation. Fichiers de suivi : STATUS.md, RESUME.md, REPRISE.md, JOURNAL.md.",
+   "type": "note",
+   "tags": [
+    "nova",
+    "jeu-nova",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:42:18.384890Z",
+   "modifie_le": "2026-09-17T17:42:18.384890Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\jeu_nova"
+    }
+   ],
+   "projet": "nova"
+  },
+  {
+   "id": "1a807abf5e6a69ad4f991aa391e290c8bda83116f77f8346dce438a9226f76c0",
+   "titre": "Projet Help_Code — architecture",
+   "resume": "Assistant de codage IA local, à entraîner. GPU RTX 5070 Ti (16 Go VRAM), CUDA 13.1, Python 3.10.6. Flux : activer le venv (venv\\Scripts\\activate), installer les dépendances (python installer.py, 10-20 min, 5-8 Go), vérifier le GPU (config_gpu.py), créer le…",
+   "contenu": "Projet Help_Code (dossier trouvé sous D:\\help_code_ai, mais son README indique E:\\help_code_ai\\ — chemin à vérifier, possible déplacement de lecteur non répercuté dans la doc) — architecture : assistant de codage IA local, à entraîner. GPU RTX 5070 Ti (16 Go VRAM), CUDA 13.1, Python 3.10.6. Flux : activer le venv (venv\\Scripts\\activate), installer les dépendances (python installer.py, 10-20 min, 5-8 Go), vérifier le GPU (config_gpu.py), créer le dataset (preparer_donnees.py), puis entraîner (2-6 h selon le dataset, ne pas mettre le PC en veille pendant). Prévoir au moins 20 Go d'espace libre sur le disque cible. Objectif final : interface web pour générer du code avec le modèle entraîné.",
+   "type": "note",
+   "tags": [
+    "help-code-ai",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:42:06.010965Z",
+   "modifie_le": "2026-09-17T17:42:06.010965Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\help_code_ai"
+    },
+    {
+     "type": "local",
+     "valeur": "E:\\help_code_ai\\"
+    }
+   ],
+   "projet": "help-code-ai"
+  },
+  {
+   "id": "e17863e59c822085d7bdef4eee15f658f12886cbf1634ba33a8ceb8ec12346de",
+   "titre": "Projet Orbis / courss — architecture",
+   "resume": "Plateforme de cours ambitieuse couvrant toutes les matières, du CP à Bac+8, pour plusieurs systèmes éducatifs, traduisible dans n'importe quelle langue.",
+   "contenu": "Projet Orbis / courss (D:\\courss, dépôt git) — architecture : plateforme de cours ambitieuse couvrant toutes les matières, du CP à Bac+8, pour plusieurs systèmes éducatifs, traduisible dans n'importe quelle langue. D'après l'Orbis Sensualium Pictus de Comenius (1658). Modèle de contenu conçu pour éviter de dupliquer une notion par pays (schema/modele-contenu.md). Trois directions artistiques explorées sur le même contenu réel (théorème de Pythagore 4e) pour comparer le parti pris : Encre (éditorial, lecture longue), Atelier (produit, cartes, capable d'absorber des dizaines de milliers de notions), Constellation (immersif, sombre, accueil/sciences). Chacune fonctionne sans dépendance externe ni requête réseau : formules en MathML natif, figure géométrique recalculée en direct, exercice à énoncé paramétrique et correction automatique, quatre langues dont l'arabe en RTL complet, thème clair/sombre, prefers-reduced-motion honoré. Cours pilote complet (content/pilote/pythagore/) avec alignements sur cinq systèmes éducatifs, traduction anglaise relue et adaptations documentées, six exercices à quatre types de correction automatique — sert à valider que le modèle de contenu tient sur un cas réel. Validation : npm run verifier (tests unitaires + validation du contenu).",
+   "type": "note",
+   "tags": [
+    "orbis",
+    "courss",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:41:51.906031Z",
+   "modifie_le": "2026-09-17T17:41:51.906031Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\courss"
+    }
+   ],
+   "projet": "orbis"
+  },
+  {
+   "id": "e1c782d02eb9333960079bfa833588cab7d54b5c1a13ebccf33e8cbf55188fd2",
+   "titre": "Projet Atelier Game Art / cours_graph — architecture",
+   "resume": "Site web statique, 100 % local et hors-ligne, pour apprendre la création de graphismes et d'assets de jeu vidéo, des fondamentaux jusqu'à l'intégration dans Unity 6.3 LTS, Unreal Engine 5.7 et Godot 4.x, avec un parcours complet dédié à Blender (5.0 / 4.5…",
+   "contenu": "Projet Atelier Game Art / cours_graph (D:\\cours_graph) — architecture : site web statique, 100 % local et hors-ligne, pour apprendre la création de graphismes et d'assets de jeu vidéo, des fondamentaux jusqu'à l'intégration dans Unity 6.3 LTS, Unreal Engine 5.7 et Godot 4.x, avec un parcours complet dédié à Blender (5.0 / 4.5 LTS). S'ouvre par double-clic sur index.html, sans serveur ni connexion. Contraintes techniques : HTML/CSS/JS vanilla, aucun build ; compatible file:// (aucun fetch de fichier local, le curriculum/glossaire/index de recherche sont embarqués en .js chargés par <script>) ; 100 % hors-ligne (aucune URL CDN, aucune police distante, coloration syntaxique maison dans assets/vendor/) ; chemins relatifs partout ; progression et thème dans localStorage. js/site-data.js est le manifeste du curriculum, source de vérité. Vérifié : 0 lien interne cassé, 0 appel réseau. Glossaire global d'environ 283 termes.",
+   "type": "note",
+   "tags": [
+    "cours-graph",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:41:36.994268Z",
+   "modifie_le": "2026-09-17T17:41:36.994268Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\cours_graph"
+    }
+   ],
+   "projet": "cours-graph"
+  },
+  {
+   "id": "aaddadb03ce563b421eb7d57d73772f68d6ee9cc4de395b20ee86bddbb79d50d",
+   "titre": "Projet CodeAI — architecture",
+   "resume": "Une IA de code complète construite de zéro, 100 % locale (aucune API distante, aucun quota, aucune connexion requise, aucune bibliothèque haut niveau comme transformers), en français commenté intégralement.",
+   "contenu": "Projet CodeAI (D:\\code_ai) — architecture : une IA de code complète construite de zéro, 100 % locale (aucune API distante, aucun quota, aucune connexion requise, aucune bibliothèque haut niveau comme transformers), en français commenté intégralement. Couches livrées : tokenizer BPE au niveau octet (entraînable + import HuggingFace) ; modèle Transformer (RMSNorm, RoPE, GQA, SwiGLU, MoE), poids ouverts Llama/Qwen/Mistral/Mixtral importés dans l'architecture maison (Qwen 0.5B : 291 poids, aucun écart) ; inférence avec KV-cache, sampling, streaming, quantisation int8/int4 (62-72 tok/s mesurés) ; entraînement AdamW, Muon, LoRA, checkpoints, croissance de modèle ; agent avec boucle, 9 outils, permissions, audit, mémoire, RAG (170 tests passent) ; serveur API compatible OpenAI (SSE) + WebSocket agent. Interfaces (CLI, web, extension VS Code) encore en cours. Décision durable : distinguer clairement le code (l'architecture, écrite ici) des poids (les paramètres, importés depuis des modèles ouverts) — entraîner des poids frontier de zéro est hors de portée d'une machine personnelle, ce n'est pas l'objectif du projet.",
+   "type": "note",
+   "tags": [
+    "code-ai",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:41:25.827815Z",
+   "modifie_le": "2026-09-17T17:41:25.827815Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\code_ai"
+    }
+   ],
+   "projet": "code-ai"
+  },
+  {
+   "id": "37a595d6ac70dda293bf914bb40e8837b27a1df4705249fe65887e1ee89b2d2f",
+   "titre": "Projet AI Creator — architecture",
+   "resume": "Chat web qui orchestre 19 modèles IA locaux (texte, code, image, vidéo, musique, voix) sur un GPU 16 Go (RTX 5070 Ti). Serveur FastAPI (router.py, ~2500 lignes), routing automatique intelligent par patterns regex vers le bon modèle, 73 plugins slash commands…",
+   "contenu": "Projet AI Creator (D:\\ai_creator_claude) — architecture : chat web qui orchestre 19 modèles IA locaux (texte, code, image, vidéo, musique, voix) sur un GPU 16 Go (RTX 5070 Ti). Serveur FastAPI (router.py, ~2500 lignes), routing automatique intelligent par patterns regex vers le bon modèle, 73 plugins slash commands actifs (82 autres archivés), mémoire long-terme, galerie médias, watchdog auto-restart (run_forever.py relance en cas de crash), backups automatiques. Comprend aussi une architecture GPT custom entraînée (Medium 335M) avec son propre tokenizer BPE. Modèles HuggingFace stockés localement (~343 Go). Démarrage : python run_forever.py ou start_server.bat, interface sur http://localhost:8001/v2, arrêt propre via stop_server.py.",
+   "type": "note",
+   "tags": [
+    "ai-creator",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:41:07.741305Z",
+   "modifie_le": "2026-09-17T17:41:07.741305Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\ai_creator_claude"
+    },
+    {
+     "type": "local",
+     "valeur": "http://localhost:8001/v2"
+    }
+   ],
+   "projet": "ai-creator"
+  },
+  {
+   "id": "aa1870c9bd2f9cef0be9bcc22ba54bbb479cfa1980b2c2e9def946aafe6934b5",
+   "titre": "Projet Amalia — architecture",
+   "resume": "Petite conscience artificielle dans un environnement clos (un \"bocal\" numérique), pas un chatbot mais une boucle cognitive observable.",
+   "contenu": "Projet Amalia (D:\\Amalia) — architecture : petite conscience artificielle dans un environnement clos (un \"bocal\" numérique), pas un chatbot mais une boucle cognitive observable. Pile Vite + React + TypeScript + Canvas 2D ; cerveau LLM optionnel via Ollama en local (aucune clé, aucun service externe), éteint par défaut (heuristique sans LLM). Invariants durables : src/core/ sans DOM ni React, doit tourner en headless Node ; tout l'aléatoire passe par makeRng(seed), jamais Math.random()/Date.now() dans le noyau (déterminisme reproductible à graine égale) ; World et MindState sont des objets simples sérialisables ; un MindSnapshot capture toute la vie et se sauvegarde/relit, versionné (SNAPSHOT_VERSION) ; changer de cerveau (heuristique ↔ LLM) doit toujours repasser par un snapshot, jamais recréer une vie neuve (perte de mémoire et d'âge) ; les croyances sont permanentes et ne sont jamais évincées par l'oubli par saillance (seul l'épisodique l'est) ; le cerveau est enfichable, le noyau ignore lequel est utilisé ; tout contenu visible et les commentaires sont en français avec accents corrects.",
+   "type": "note",
+   "tags": [
+    "amalia",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:40:50.836788Z",
+   "modifie_le": "2026-09-17T17:40:50.836788Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\Amalia"
+    }
+   ],
+   "projet": "amalia"
+  },
+  {
+   "id": "ae91b83a34c92affece378a9491f8d0dbe912933a5cdb0ab091a9f0973c869dc",
+   "titre": "Projet Un Monde Sans — jalon livré le 2026-06-30",
+   "resume": "Site éducatif statique multilingue (10 langues, i18n maison, fonctionne en file://) sur la haine, la guerre et l'uchronie ; 7 pages, design muséal sombre.",
+   "contenu": "Projet Un Monde Sans (D:\\probleme, dossier multi-projets) — jalon livré le 2026-06-30 : site éducatif statique multilingue (10 langues, i18n maison, fonctionne en file://) sur la haine, la guerre et l'uchronie ; 7 pages, design muséal sombre. Terminé.",
+   "type": "note",
+   "tags": [
+    "un-monde-sans",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-17T17:29:58.038832Z",
+   "modifie_le": "2026-09-17T17:29:58.038832Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\probleme"
+    }
+   ],
+   "projet": "un-monde-sans"
+  },
+  {
+   "id": "45593cab5b9fb6906613cc7aae78f3f9955ffa0328fb82388a39cbf25fdd526a",
+   "titre": "Projet Le Bocal — architecture",
+   "resume": "Simulation de planète vivante hors-ligne, Terre photoréaliste, 15 597 événements historiques réels datés, 23 civilisations, taille de simulation 240.",
+   "contenu": "Projet Le Bocal (D:\\probleme) — architecture : simulation de planète vivante hors-ligne, Terre photoréaliste, 15 597 événements historiques réels datés, 23 civilisations, taille de simulation 240. Décision durable : le projet avance en autonomie continue vers plus de réalisme (pas de questionnaire \"suite\" à chaque étape), jusqu'à ce que la simulation ressemble à notre monde réel.",
+   "type": "note",
+   "tags": [
+    "le-bocal",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:29:53.674005Z",
+   "modifie_le": "2026-09-17T17:29:53.674005Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\probleme"
+    }
+   ],
+   "projet": "le-bocal"
+  },
+  {
+   "id": "7513532a7487253f86e4b212f9aca01eb21d6926cfe1dfc8cfa3606f9ce9ea60",
+   "titre": "Projet Check_Code — architecture",
+   "resume": "Vérificateur de code hors ligne, zéro dépendance, pour auditer automatiquement les exercices, QCM et fils rouges de sites éducatifs comme Syntaxe.",
+   "contenu": "Projet Check_Code (D:\\check_code) — architecture : vérificateur de code hors ligne, zéro dépendance, pour auditer automatiquement les exercices, QCM et fils rouges de sites éducatifs comme Syntaxe. Contraintes : fonctionne en file:// (jamais de modules ES, donc jamais minifier), tourne en mode invisible (Chrome headless, aucune fenêtre). Décision durable : deux agents lancés en parallèle sur ce projet ne se parlent pas entre eux, et l'outillage doit rester robuste à ça (ne jamais planter dans ce cas).",
+   "type": "note",
+   "tags": [
+    "check-code",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:29:48.276813Z",
+   "modifie_le": "2026-09-17T17:29:48.276813Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\check_code"
+    }
+   ],
+   "projet": "check-code"
+  },
+  {
+   "id": "4a0f5060f050fc2ee6066dc7f26c56bd686573a5d00cb0c90519de2319e557ee",
+   "titre": "Projet Syntaxe — jalons livrés",
+   "resume": "Chantiers V4 à V15 clos (audits successifs, outillage de vérification, encodage/CSS/exercices interactifs, moteurs SQL et Python embarqués fonctionnant réseau coupé), avec passe de sécurité verte à chaque clôture.",
+   "contenu": "Projet Syntaxe — jalons livrés : chantiers V4 à V15 clos (audits successifs, outillage de vérification, encodage/CSS/exercices interactifs, moteurs SQL et Python embarqués fonctionnant réseau coupé), avec passe de sécurité verte à chaque clôture. Site à 94 cours / environ 1 600 leçons / 25 parcours. Décisions durables : \"une case de plan = un module, jamais un cours entier\" (un point trop gros doit être subdivisé, pas expédié) ; \"ne jamais déclarer un correctif réparé sans l'avoir exécuté sur le fichier réel\" (un bug de ce genre avait fait croire à tort qu'un chantier était terminé) ; \"un Workflow notifie à la fin, on attend, on ne sonde pas soi-même son avancement\" (le sondage actif a déjà coûté 41 % d'une passe) ; jamais de CDN externe (cdnjs, fonts.googleapis, fonts.gstatic) ; le mojibake volontaire de 4 leçons sur l'encodage ne doit jamais être \"corrigé\".",
+   "type": "note",
+   "tags": [
+    "syntaxe",
+    "projet",
+    "jalon",
+    "decision"
+   ],
+   "cree_le": "2026-09-17T17:29:43.099700Z",
+   "modifie_le": "2026-09-17T17:29:43.099700Z",
+   "liens": [],
+   "projet": "syntaxe"
+  },
+  {
+   "id": "18b70df146c2884cfa2b97b6b38a6892faac6fed58c85f3ff9c3053c93cd7cee",
+   "titre": "Projet Syntaxe — architecture",
+   "resume": "Site éducatif statique 100 % file:// (aucun serveur, aucun module ES, aucun build, aucune dépendance installée). Un dossier par cours sous pages/, HTML et CSS séparés, liens \"related\" entre cours.",
+   "contenu": "Projet Syntaxe (D:\\test-claude, dépôt git privé github.com/chipat-neko/devpath) — architecture : site éducatif statique 100 % file:// (aucun serveur, aucun module ES, aucun build, aucune dépendance installée). Un dossier par cours sous pages/, HTML et CSS séparés, liens \"related\" entre cours. Le contenu est entretenu par une autonomie : une tâche planifiée Windows (Syntaxe-Autonomie) relance claude.exe en continu sur une chaîne de plans CHANTIER-V*.md (liste $CHAINE dans .autonomie/autonomie.ps1), avec des verrous sur l'usage hebdomadaire de l'abonnement (lu via /api/oauth/usage, mise en pause automatique à un seuil, reprise seule à la remise à zéro) et une tâche de surveillance horaire (Syntaxe-Sante) qui répare les anomalies. Deux projets satellites lui sont liés : Check_Code (D:\\check_code, vérificateur de code hors ligne zéro dépendance pour auditer Syntaxe) et Le Bocal (D:\\probleme, simulation de planète vivante hors-ligne).",
+   "type": "note",
+   "tags": [
+    "syntaxe",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:29:35.415144Z",
+   "modifie_le": "2026-09-17T17:29:35.415144Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/devpath"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\test-claude"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\check_code"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\probleme"
+    }
+   ],
+   "projet": "syntaxe"
+  },
+  {
+   "id": "5d8c7ed5ab9af8b2734c0d22607544fa67afdb85f1abffe9b2c255cf31718bf9",
+   "titre": "mcai — jalons atteints jusqu'au 21/08/2026",
+   "resume": "Chaîne complète collecte → tri → clonage → PPO opérationnelle sur 8 à 12 instances ; l'agent franchit pour la première fois l'étape 8 sur 16 (pioche en pierre) et pose des blocs (163 sur un run) ; clone lissé (cibles adoucies) atteignant 95,7 % de rappel…",
+   "contenu": "mcai — jalons atteints jusqu'au 21/08/2026 : chaîne complète collecte → tri → clonage → PPO opérationnelle sur 8 à 12 instances ; l'agent franchit pour la première fois l'étape 8 sur 16 (pioche en pierre) et pose des blocs (163 sur un run) ; clone lissé (cibles adoucies) atteignant 95,7 % de rappel « miner » et 93 % « utiliser » avec une entropie élevée ; 19 runs du 17 au 21 août archivés avec leurs réglages pour comparaison. Problème ouvert : PPO érode encore le geste « miner » au fil de l'entraînement.",
+   "type": "milestone",
+   "tags": [
+    "mcai",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-17T17:24:18.423835Z",
+   "modifie_le": "2026-09-17T17:24:18.423835Z",
+   "liens": [],
+   "projet": "mcai"
+  },
+  {
+   "id": "268fb4b2d6fe667095be2b1785efdb238467ab29e8801afff97acdcdee9b37f3",
+   "titre": "mcai — décisions durables",
+   "resume": "La version du jeu reste Minecraft 1.21 (ce qui écarte VPT/MineRL en 1.16.5) ; la graine du monde est toujours aléatoire ; difficulté paisible pour l'instant ; l'utilisateur doit être consulté avant tout lancement sur le GPU (il s'en sert pour jouer).",
+   "contenu": "mcai — décisions durables : la version du jeu reste Minecraft 1.21 (ce qui écarte VPT/MineRL en 1.16.5) ; la graine du monde est toujours aléatoire ; difficulté paisible pour l'instant ; l'utilisateur doit être consulté avant tout lancement sur le GPU (il s'en sert pour jouer). Choix de méthode : clonage puis PPO avec chauffe du critique et libération graduelle de l'acteur, ancrage KL sur le clone ; chaque instance a son propre cache Gradle ; les gestes mécaniques sans leçon à apprendre (fabrication, choix de l'outil, remontée hors de l'eau) sont scriptés plutôt qu'appris ; on juge un modèle sur le rappel des gestes rares et l'entropie, jamais sur la justesse globale ; on archive les runs au lieu de les supprimer.",
+   "type": "decision",
+   "tags": [
+    "mcai",
+    "projet",
+    "decision"
+   ],
+   "cree_le": "2026-09-17T17:24:16.538502Z",
+   "modifie_le": "2026-09-17T17:24:16.538502Z",
+   "liens": [],
+   "projet": "mcai"
+  },
+  {
+   "id": "1e7a5183dbe3e71d42f29a7d4ab5a88645963ee05998b0b1a95e589299246177",
+   "titre": "Projet mcai : entraîner une IA à jouer au vrai Minecraft Java 1.21, sous Windows 11 avec une RTX 5070 Ti",
+   "resume": "Environnement CraftGround 2.7.4 (mod Fabric + Gymnasium, ActionSpaceVersion.V2_MINERL_HUMAN). Chaîne : collecte de démonstrations par un expert scripté (scripts/demonstrate.py) → tri des mondes stériles (scripts/curate.py) → clonage comportemental…",
+   "contenu": "Projet mcai (D:\\machine-learning, pas de dépôt git) : entraîner une IA à jouer au vrai Minecraft Java 1.21 (pas un clone), sous Windows 11 avec une RTX 5070 Ti. Environnement CraftGround 2.7.4 (mod Fabric + Gymnasium, ActionSpaceVersion.V2_MINERL_HUMAN). Chaîne : collecte de démonstrations par un expert scripté (scripts/demonstrate.py) → tri des mondes stériles (scripts/curate.py) → clonage comportemental (scripts/pretrain.py) → PPO stable-baselines3 sur N instances en SubprocVecEnv (mcai/train.py), enchaîné par scripts/nuit.py. 23 actions discrètes ; observation = image 128×128 + 24 statistiques dont 6 canaux de danger (mcai/terrain.py). Récompense par objectifs (mcai/reward.py) sur une chaîne de 16 étapes du bois au diamant (mcai/objectives.py). Données et runs hors projet dans E:\\mcai-work (archive des runs dans E:\\mcai-work\\archive). Outils de mesure : scripts/rappel.py (rappel des gestes et entropie d'un modèle), mcai/etat.py (lecture d'état avec fraîcheur), tableau de bord web port 8800. Fichier de reprise : REPRENDRE.md.",
+   "type": "reference",
+   "tags": [
+    "mcai",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:24:12.861991Z",
+   "modifie_le": "2026-09-17T17:24:12.861991Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\machine-learning"
+    },
+    {
+     "type": "local",
+     "valeur": "E:\\mcai-work"
+    },
+    {
+     "type": "local",
+     "valeur": "E:\\mcai-work\\archive"
+    },
+    {
+     "type": "local",
+     "valeur": "port 8800"
+    }
+   ],
+   "projet": "mcai"
+  },
+  {
+   "id": "16f5678871c8f6fb5cbe1b69915346c0988db344486ab7a57bb85957d742c81d",
+   "titre": "plan-min — décisions durables",
+   "resume": "Rien ne s'affirme sans être lu dans le jeu (jar, fichier de langue ou mesure au banc), jamais depuis la mémoire ou un wiki ; les noms d'objets suivent fr_fr.json ; la prose s'adresse au joueur — l'explication en français, un nom de méthode Java seulement cité…",
+   "contenu": "plan-min — décisions durables : rien ne s'affirme sans être lu dans le jeu (jar, fichier de langue ou mesure au banc), jamais depuis la mémoire ou un wiki ; les noms d'objets suivent fr_fr.json ; la prose s'adresse au joueur — l'explication en français, un nom de méthode Java seulement cité comme source en fin de phrase, les champs du jeu écrits en snake_case ; tout nouveau contrôle est éprouvé par epreuve.js avant d'être cru ; les textures Mojang ne sont pas redistribuées (assets/textures/ ignoré par git).",
+   "type": "decision",
+   "tags": [
+    "plan-min",
+    "projet",
+    "decision"
+   ],
+   "cree_le": "2026-09-17T17:23:25.549623Z",
+   "modifie_le": "2026-09-17T17:23:25.549623Z",
+   "liens": [],
+   "projet": "plan-min"
+  },
+  {
+   "id": "e475b170310c845daa4461a99b93714b0c7b312f5c2623d78ad95847c5ca29cf",
+   "titre": "plan-min — jalons livrés jusqu'au 25/08/2026",
+   "resume": "Relecture complète en français des catalogues (85 corrections appliquées) ; contrôles confrontés au jar pour armures, dimensions, cycles, aliments, règles de jeu, identifiants, exclusivités des coffres, symboles de schéma, vocabulaire officiel, jargon…",
+   "contenu": "plan-min — jalons livrés jusqu'au 25/08/2026 : relecture complète en français des catalogues (85 corrections appliquées) ; contrôles confrontés au jar pour armures, dimensions, cycles, aliments, règles de jeu, identifiants, exclusivités des coffres, symboles de schéma, vocabulaire officiel, jargon technique en prose ; balayage du registre des blocs (tools/balayage-blocs.js, repère de non-régression) ; essais mesurés au banc (améthyste, champignons géants, gel de l'eau, geyser) ; déjargonnage des fiches destinées au joueur. 31 épreuves de contrôles au vert.",
+   "type": "milestone",
+   "tags": [
+    "plan-min",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-17T17:23:23.857518Z",
+   "modifie_le": "2026-09-17T17:23:23.857518Z",
+   "liens": [],
+   "projet": "plan-min"
+  },
+  {
+   "id": "02a39a4c84a5a7f37d75aeda3890195a1de9cd8094d9ba5f3d55b3decd55db0a",
+   "titre": "Projet plan-min : site statique de référence en français sur Minecraft Java 26.2, 19 pages HTML",
+   "resume": "Architecture : JS classique (var, pas de modules ES) pour fonctionner en file:// ; données dans assets/data/*.js (PLANS, USINES, CRAFTS…), rendu dans assets/core.js.",
+   "contenu": "Projet plan-min (d:\\plan-min, dépôt git public, branche main) : site statique de référence en français sur Minecraft Java 26.2 (plans de construction, usines/fermes, redstone, échanges villageois, butins, structures, blocs), 19 pages HTML. Architecture : JS classique (var, pas de modules ES) pour fonctionner en file:// ; données dans assets/data/*.js (PLANS, USINES, CRAFTS…), rendu dans assets/core.js. Source de vérité : le .jar installé (non obfusqué, désassemblé par tools/classe.js) et fr_fr.json lu via tools/langue.js. Outillage Node dans tools/ : contrôles confrontés au jar, tous éprouvés par tools/epreuve.js (mutations volontaires), validation générale par tools/valider.js. Banc de mesure : serveur Minecraft local hors dépôt (D:\\plan-min-banc), piloté par console via tools/banc.js. Fichier de reprise : REPRISE.md.",
+   "type": "note",
+   "tags": [
+    "plan-min",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:23:20.575778Z",
+   "modifie_le": "2026-09-17T17:23:20.575778Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "d:\\plan-min"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\plan-min-banc"
+    }
+   ],
+   "projet": "plan-min"
+  },
+  {
+   "id": "82d85ac082ff5bd0d622edaece79bca186ccd9d4905cd7ab7a1ee15712b8dc16",
+   "titre": "Projet Jarvis — architecture",
+   "resume": "Assistant personnel 100 % local, gratuit et open source, sous Windows 11 avec une RTX 5070 Ti. Modèle servi par Ollama ; OpenCode sert de moteur d'agents, avec trois agents cloisonnés par leurs permissions (journee, memoire, atelier) et des skills par tâche…",
+   "contenu": "Projet Jarvis (D:\\jarvis2\\creation) — architecture : assistant personnel 100 % local, gratuit et open source, sous Windows 11 avec une RTX 5070 Ti. Modèle servi par Ollama ; OpenCode sert de moteur d'agents, avec trois agents cloisonnés par leurs permissions (journee, memoire, atelier) et des skills par tâche (brief, clôture, plan, priorité, capture, rappel, web…). Dictée par faster-whisper, voix par Piper. Un cockpit web servi par un serveur Python local ; un écouteur PowerShell exécute les demandes du cockpit. La mémoire du projet est faite de notes Markdown dans memoire/, avec recherche vectorielle. Un banc de contrôles (scripts/eprouver.py) éprouve le projet, avec des mutants.",
+   "type": "reference",
+   "tags": [
+    "jarvis",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:18:14.002025Z",
+   "modifie_le": "2026-09-17T17:18:14.002025Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\jarvis2\\creation"
+    }
+   ],
+   "projet": "jarvis"
+  },
+  {
+   "id": "4c85ec1e8e565f91b4e2b731a59482fec45e03e836de213c79e19f9520193d51",
+   "titre": "Projet Jarvis — décision durable",
+   "resume": "La mémoire de Jarvis reste dans ses notes Markdown (memoire/) ; le serveur de mémoire partagé ne sert pas de mémoire de travail à Jarvis et n'en garde que la description.",
+   "contenu": "Projet Jarvis — décision durable : la mémoire de Jarvis reste dans ses notes Markdown (memoire/) ; le serveur de mémoire partagé ne sert pas de mémoire de travail à Jarvis et n'en garde que la description. Le cockpit de Jarvis écoute sur le port 8766 (lu dans config/jarvis.json), parce que ce serveur de mémoire partagé occupe le 8765.",
+   "type": "decision",
+   "tags": [
+    "jarvis",
+    "decision"
+   ],
+   "cree_le": "2026-09-17T17:18:01.632897Z",
+   "modifie_le": "2026-09-17T17:18:01.632897Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "port 8766"
+    }
+   ],
+   "projet": "jarvis"
+  },
+  {
+   "id": "53b605648976f61e3c8c45e5685e7ffb730eb12941a3175c5d4c25dba024b000",
+   "titre": "Projet Jarvis — jalon livré le 10/09/2026",
+   "resume": "La mémoire vectorielle (étape 8). Les notes Markdown de memoire/ sont indexées et interrogeables par le sens.",
+   "contenu": "Projet Jarvis — jalon livré le 10/09/2026 : la mémoire vectorielle (étape 8). Les notes Markdown de memoire/ sont indexées et interrogeables par le sens.",
+   "type": "milestone",
+   "tags": [
+    "jarvis",
+    "jalon"
+   ],
+   "cree_le": "2026-09-17T17:18:00.013209Z",
+   "modifie_le": "2026-09-17T17:18:00.013209Z",
+   "liens": [],
+   "projet": "jarvis"
+  },
+  {
+   "id": "a8317b386241305594a08c440fab6a1c8943e1917a59157c8bcdb651cacb25c0",
+   "titre": "My Watch — décisions produit durables",
+   "resume": "Décocher un film remet ses vues à 0 mais conserve ses séances (l'historique garde ce qui a eu lieu) ; un défi « finir une série » vise les épisodes déjà diffusés, pas tous les épisodes annoncés ; les couleurs de texte secondaire du thème visent le contraste…",
+   "contenu": "My Watch — décisions produit durables : décocher un film remet ses vues à 0 mais conserve ses séances (l'historique garde ce qui a eu lieu) ; un défi « finir une série » vise les épisodes déjà diffusés, pas tous les épisodes annoncés ; les couleurs de texte secondaire du thème visent le contraste WCAG AA sur toutes les surfaces ; chaque livraison suit le cycle construire, vérifier en réel (Puppeteer sur comptes Firebase réels), déployer, commiter.",
+   "type": "decision",
+   "tags": [
+    "my-watch",
+    "projet",
+    "decision"
+   ],
+   "cree_le": "2026-09-17T17:17:36.470086Z",
+   "modifie_le": "2026-09-17T17:17:36.470086Z",
+   "liens": [],
+   "projet": "my-watch"
+  },
+  {
+   "id": "11dee436b678aef57ebe2cbf37ba077f4a5ac583375d6002f76b4dc4997aae70",
+   "titre": "My Watch — jalons livrés jusqu'au 02/08/2026",
+   "resume": "Fonctionnalités sociales (amis, fil, avis et réponses, discussions par titre, mode à deux, défis, recommandations), tier list partageable, sagas, suggestions du soir, statistiques détaillées, profil public en instantané versionné, consentement au partage du…",
+   "contenu": "My Watch — jalons livrés jusqu'au 02/08/2026 : fonctionnalités sociales (amis, fil, avis et réponses, discussions par titre, mode à deux, défis, recommandations), tier list partageable, sagas, suggestions du soir, statistiques détaillées, profil public en instantané versionné, consentement au partage du temps de visionnage, changement de pseudo. Audit complet du projet (rapport audite.md) : 2 failles critiques des règles Firestore fermées, constats majeurs et mineurs corrigés, 31 pistes secondaires tranchées (21 corrigées, 5 déjà réglées, 1 réfutée, 4 laissées ouvertes avec leur raison). CSP de production en place. Firebase App Check intégré mais désarmé (aucune clé configurée). Lectures sociales de Communauté divisées par 3 à 4.",
+   "type": "milestone",
+   "tags": [
+    "my-watch",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-17T17:17:34.828813Z",
+   "modifie_le": "2026-09-17T17:17:34.828813Z",
+   "liens": [],
+   "projet": "my-watch"
+  },
+  {
+   "id": "d3f1660aba1ab45e610e38c992006c1980de9abda2ceb0567f8e266cef22ce81",
+   "titre": "Projet My Watch : alternative à TV Time pour suivre séries et films, web + mobile, code et commentaires en…",
+   "resume": "Pile : React Native 0.74.5 / Expo SDK 51, Expo Router (routes dans app/), Firebase (Auth, Firestore, Hosting sur device-streaming-5450fe88.web.app), TMDb pour le catalogue, Trakt en import optionnel.",
+   "contenu": "Projet My Watch (d:\\my_watch, dépôt git, branche main) : alternative à TV Time pour suivre séries et films, web + mobile, code et commentaires en français. Pile : React Native 0.74.5 / Expo SDK 51, Expo Router (routes dans app/), Firebase (Auth, Firestore, Hosting sur device-streaming-5450fe88.web.app), TMDb pour le catalogue, Trakt en import optionnel. Conventions : logique pure dans src/services/*Calcul.ts couverte par jest, entrées/sorties dans les services voisins ; lectures Firestore via lireDoc/lireDocs (distinguent vide et hors ligne) ; cache enCache (mémoire + disque, déduplique les appels simultanés) ; plusieurs modules de src/lib ont une variante .web.ts servie sur le web. Validation en une commande : npm run verifier (tsc + eslint + jest, 452 tests au 02/08/2026).",
+   "type": "reference",
+   "tags": [
+    "my-watch",
+    "projet",
+    "architecture"
+   ],
+   "cree_le": "2026-09-17T17:17:31.352835Z",
+   "modifie_le": "2026-09-17T17:17:31.352835Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://device-streaming-5450fe88.web.app"
+    },
+    {
+     "type": "local",
+     "valeur": "d:\\my_watch"
+    }
+   ],
+   "projet": "my-watch"
+  }
+ ],
+ "empreinte": "dd255b63d865a83e6d3b8381782295da9420753782a1ff2cf15c3b46b6f62f36"
+}

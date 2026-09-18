@@ -1,6 +1,9 @@
+import http.client
 import json
 import math
+import socketserver
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -184,6 +187,17 @@ class ApiSearchTest(unittest.TestCase):
         with self.assertRaises(export.ExportError):
             api.search("texte", 5)
 
+    def test_hash_non_chaine_ignore(self):
+        # Une liste ou un objet comme content_hash lèverait TypeError plus loin
+        # (« other not in published » sur un ensemble de chaînes).
+        api = self._api({"results": [
+            {"memory": {"content_hash": ["a", "b"]}, "similarity_score": 0.9},
+            {"memory": {"content_hash": {"a": 1}}, "similarity_score": 0.9},
+            {"memory": {"content_hash": 42}, "similarity_score": 0.9},
+            {"memory": {"content_hash": f"{5:064x}"}, "similarity_score": 0.9},
+        ]})
+        self.assertEqual(api.search("texte", 5), [(f"{5:064x}", 0.9)])
+
     def test_scores_non_finis_ignores(self):
         # json.loads accepte les jetons NaN et Infinity, et 1e999 devient l'infini :
         # publiés, ils rendraient data.json illisible pour JSON.parse (site cassé).
@@ -196,6 +210,63 @@ class ApiSearchTest(unittest.TestCase):
                 '{"memory": {"content_hash": "f"}, "similarity_score": 0.85}]}')
         api = self._api(json.loads(brut))
         self.assertEqual(api.search("texte", 5), [("f", 0.85)])
+
+
+class ServeurBrut(socketserver.BaseRequestHandler):
+    """Lit la requête puis renvoie les octets de server.reponse tels quels et ferme."""
+    def handle(self):
+        recu = b""
+        while b"\r\n\r\n" not in recu:
+            morceau = self.request.recv(4096)
+            if not morceau:
+                break
+            recu += morceau
+        self.request.sendall(self.server.reponse)
+
+
+class ApiRequestTest(unittest.TestCase):
+    """Réponses HTTP cassées : Api.request ne doit lever qu'ExportError."""
+    def setUp(self):
+        self.serveur = socketserver.ThreadingTCPServer(("127.0.0.1", 0), ServeurBrut)
+        self.serveur.daemon_threads = True
+        threading.Thread(target=self.serveur.serve_forever, daemon=True).start()
+        self.api = export.Api({"api_url": f"http://127.0.0.1:{self.serveur.server_address[1]}", "api_key": "",
+                               "cf_client_id": "", "cf_client_secret": "", "local": True})
+
+    def tearDown(self):
+        self.serveur.shutdown()
+        self.serveur.server_close()
+
+    def test_corps_tronque(self):  # http.client.IncompleteRead
+        self.serveur.reponse = (b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
+                                b"Content-Length: 100\r\nConnection: close\r\n\r\n{\"a\": 1")
+        with self.assertRaises(export.ExportError) as ctx:
+            self.api.request("GET", "/api/memories", retries=1)
+        self.assertIn("IncompleteRead", str(ctx.exception))
+
+    def test_ligne_de_statut_illisible(self):  # http.client.BadStatusLine
+        self.serveur.reponse = b"CECI N'EST PAS DU HTTP\r\n\r\n"
+        with self.assertRaises(export.ExportError) as ctx:
+            self.api.request("GET", "/api/memories", retries=1)
+        self.assertIn("BadStatusLine", str(ctx.exception))
+
+
+class VoisinsJamaisBloquantsTest(unittest.TestCase):
+    def test_toute_exception_de_recherche_comptee_en_echec(self):
+        for erreur in (TypeError("hash"), KeyError("memory"), ValueError("x"), http.client.IncompleteRead(b"")):
+            liste = entrees(2)
+            def search(query, n):
+                raise erreur
+            relies, echecs = export.add_neighbours(liste, search)
+            self.assertEqual((relies, echecs), (0, 2), repr(erreur))
+            self.assertTrue(all(e["voisins"] == [] for e in liste))
+
+    def test_resultats_mal_formes_d_une_recherche_maison(self):
+        liste = entrees(2)
+        def search(query, n):
+            return [("un seul élément",)]  # ne se déballe pas en (hash, score)
+        relies, echecs = export.add_neighbours(liste, search)
+        self.assertEqual((relies, echecs), (0, 2))
 
 
 class ValeursNonFiniesTest(unittest.TestCase):

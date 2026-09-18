@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import http.client
 import ipaddress
 import json
 import math
@@ -395,8 +396,12 @@ class Api:
                 if isinstance(err.reason, ExportError):
                     raise err.reason from None
                 problem = f"injoignable ({err.reason})"
-            except OSError as err:  # délais dépassés, connexion coupée, lecture incomplète
+            except OSError as err:  # délai dépassé, connexion refusée ou coupée
                 problem = f"injoignable ({err})"
+            except http.client.HTTPException as err:
+                # Réponse tronquée (IncompleteRead) ou illisible (BadStatusLine) :
+                # urllib les laisse passer telles quelles, ce ne sont pas des OSError.
+                problem = f"réponse HTTP interrompue ou illisible ({err!r})"
             if attempt < retries:
                 time.sleep(2 ** attempt)
         hint = " En local : lancer start-memory-rest.ps1 (port 8000)." if "injoignable" in problem else ""
@@ -419,7 +424,8 @@ class Api:
             if not isinstance(result, dict):
                 continue
             memory = result.get("memory")
-            if not isinstance(memory, dict) or not memory.get("content_hash"):
+            if not isinstance(memory, dict) or not isinstance(memory.get("content_hash"), str) \
+                    or not memory["content_hash"]:
                 continue
             try:
                 score = float(result.get("similarity_score") or 0)
@@ -781,8 +787,11 @@ def add_neighbours(entries: list[dict], search, threshold: float = SEUIL_VOISINS
             failures += 1
             continue
         try:
-            results = search(entry["contenu"], MAX_VOISINS + 3)
-        except ExportError:
+            # Toute exception compte comme un échec : les voisins sont facultatifs
+            # et ne doivent jamais bloquer la publication.
+            results = [(other, float(score)) for other, score in search(entry["contenu"], MAX_VOISINS + 3)
+                       if isinstance(other, str)]
+        except Exception:
             failures += 1
             consecutive += 1
             continue

@@ -7,6 +7,9 @@ const FIELDS = Object.keys(WEIGHTS);
 const CONTENT_CAP = 5;      // plafond des points du texte intégral par terme
 const QUALITY = { exact: 1, synonym: 0.9, prefix: 0.7, fuzzy1: 0.6, fuzzy2: 0.4 };
 const CACHE_LIMIT = 500;
+// Termes positifs qui tolèrent les fautes : chacun parcourt tout le vocabulaire ;
+// un long texte collé ne fige pas la page (les suivants : exact, préfixe, synonymes).
+const FUZZY_TERMS = 10;
 
 export function normalize(text) {
   // « cœur » se trouve en tapant « coeur », « l’atelier » en tapant « l'atelier ».
@@ -172,7 +175,7 @@ function firstAtLeast(sorted, value) {
 
 /* Mots du vocabulaire (racines) qui valent pour un mot de la requête, avec
    leur qualité : exact 1, synonyme 0,9, préfixe 0,7, faute 0,6 ou 0,4. */
-function wordCandidates(index, word, prefix) {
+function wordCandidates(index, word, prefix, fuzzy) {
   const found = new Map();
   const phrases = [];
   const add = (w, quality) => { if ((found.get(w) || 0) < quality) found.set(w, quality); };
@@ -185,7 +188,7 @@ function wordCandidates(index, word, prefix) {
   }
   // Seuils sur la racine comparée (pas sur le mot tapé) : « cours » (racine
   // « cour », 4 lettres) est cherché exactement, sans devenir « pour » ou « jour ».
-  if (s.length >= 5) {
+  if (fuzzy && s.length >= 5) {
     const max = s.length >= 8 ? 2 : 1;
     for (const w of index.words) {
       if (Math.abs(w.length - s.length) > max || found.has(w)) continue;
@@ -267,15 +270,15 @@ function phraseDocs(index, phrase) {
 /* Ce qu'un terme positif accepte (mots du vocabulaire, expressions) et les
    documents qui le contiennent ; mis en cache : pendant la frappe, seul le
    dernier terme change. */
-function candidatesOf(index, term) {
-  const key = JSON.stringify(term);
+function candidatesOf(index, term, fuzzy) {
+  const key = (fuzzy ? '~' : '=') + JSON.stringify(term);
   if (index.cache.has(key)) return index.cache.get(key);
   let found = new Map();
   const phrases = [];
   if (term.quoted) {
     phrases.push({ tokens: term.words, stemmed: false, prefix: term.prefix, quality: QUALITY.exact });
   } else if (term.words.length === 1) {
-    const candidates = wordCandidates(index, term.words[0], term.prefix);
+    const candidates = wordCandidates(index, term.words[0], term.prefix, fuzzy);
     found = candidates.found;
     phrases.push(...candidates.phrases);
   } else {
@@ -318,7 +321,7 @@ function excluded(index, term) {
    avec un score nul). Seuls les documents qui ont tous les termes sont notés. */
 export function search(index, query) {
   const terms = mergeSynonymRuns(index, parseQuery(query));
-  const positives = terms.filter((t) => !t.exclude).map((t) => candidatesOf(index, t));
+  const positives = terms.filter((t) => !t.exclude).map((t, i) => candidatesOf(index, t, i < FUZZY_TERMS));
   const targets = { words: new Set(), phrases: [] };
   for (const candidates of positives) {
     for (const w of candidates.found.keys()) targets.words.add(w);

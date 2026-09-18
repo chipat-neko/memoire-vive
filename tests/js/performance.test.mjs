@@ -22,3 +22,18 @@ test('recherche : 3 000 entrées, moins de 50 ms par frappe', () => {
   }
   assert.ok(pire < 50, `frappe la plus lente : ${pire.toFixed(1)} ms`);
 });
+
+test('recherche : un long texte collé (deux contenus) reste sous 50 ms à 3 000 entrées', () => {
+  const donnees = jeuVolumineux(3000);
+  const model = prepare(donnees);
+  search(model.index, 'developpemnt serveurs "mise en ligne"'); // échauffement
+  const colle = donnees.entrees[0].contenu + ' ' + donnees.entrees[1].contenu;
+  let meilleur = Infinity;
+  for (let essai = 0; essai < 3; essai++) {
+    model.index.cache.clear();
+    const t0 = performance.now();
+    search(model.index, colle);
+    meilleur = Math.min(meilleur, performance.now() - t0);
+  }
+  assert.ok(meilleur < 50, `texte collé (${colle.split(' ').length} mots) : ${meilleur.toFixed(1)} ms`);
+});

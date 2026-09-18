@@ -76,6 +76,15 @@ test('fautes : le seuil vient de la racine comparée, pas du mot tapé', () => {
   assert.deepEqual(trouves('dnojons grottes'), [1]);                // racine de 6 lettres : 1 faute
 });
 
+test('fautes : tolérées sur les 10 premiers termes positifs seulement (texte collé)', () => {
+  const mots = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel', 'india', 'juliet', 'kilo'];
+  const idx = buildIndex([{ title: '', meta: '', resume: '', content: mots.join(' ') + ' jarvis fin' }]);
+  const docs = (q) => search(idx, q).hits.map((h) => h.doc);
+  assert.deepEqual(docs('jarvsi ' + mots.join(' ') + ' fin'), [0]);    // 1er terme : faute tolérée
+  assert.deepEqual(docs(mots.join(' ') + ' jarvsi fin'), []);          // 12e terme : exact seulement
+  assert.deepEqual(docs(mots.join(' ') + ' jarvis fin'), [0]);
+});
+
 test('préfixe : seulement pour le dernier terme', () => {
   assert.deepEqual(trouves('pipeline archi'), [0]);
   assert.deepEqual(trouves('archi pipeline'), []);

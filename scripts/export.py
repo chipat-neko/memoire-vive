@@ -425,7 +425,10 @@ class Api:
                     ) from None
                 if err.code < 500 and err.code != 429:
                     raise ExportError(f"{path} : HTTP {err.code} {err.reason}") from None
-                detail = err.read()[:200].decode("utf-8", "replace").strip()
+                try:  # corps de l'erreur tronqué : levée ici, elle échapperait aux except voisins
+                    detail = err.read()[:200].decode("utf-8", "replace").strip()
+                except (OSError, http.client.HTTPException):
+                    detail = ""
                 problem = f"le dashboard répond HTTP {err.code}" + (f" : {detail}" if detail else "")
             except urllib.error.URLError as err:
                 if isinstance(err.reason, ExportError):

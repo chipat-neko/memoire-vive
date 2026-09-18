@@ -548,6 +548,13 @@ class ApiRequestTest(unittest.TestCase):
             self.api.request("GET", "/api/memories", retries=1)
         self.assertIn("IncompleteRead", str(ctx.exception))
 
+    def test_erreur_serveur_au_corps_tronque(self):  # IncompleteRead pendant err.read() d'une HTTP 500
+        self.serveur.reponse = (b"HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain\r\n"
+                                b"Content-Length: 100\r\nConnection: close\r\n\r\nbase verrou")
+        with self.assertRaises(export.ExportError) as ctx:
+            self.api.request("GET", "/api/memories", retries=1)
+        self.assertIn("HTTP 500", str(ctx.exception))
+
     def test_ligne_de_statut_illisible(self):  # http.client.BadStatusLine
         self.serveur.reponse = b"CECI N'EST PAS DU HTTP\r\n\r\n"
         with self.assertRaises(export.ExportError) as ctx:

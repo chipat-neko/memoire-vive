@@ -107,6 +107,10 @@ export function createProjectView(ctx) {
 
     const allProjects = el('a', { class: 'btn-secondary', href: '#/' }, '← Tous les projets');
     allProjects.addEventListener('click', (event) => {
+      // Clic modifié (Ctrl/Cmd/Maj/Alt) ou bouton non principal : laisser le
+      // navigateur faire son geste habituel (nouvel onglet, etc.).
+      if (event.defaultPrevented || event.button !== 0
+        || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
       // Ouverte depuis l'accueil : revenir sur son entrée d'historique (position
       // et focus rendus) plutôt qu'en créer une nouvelle.
       if (history.state && history.state.fromHome) { event.preventDefault(); history.back(); }

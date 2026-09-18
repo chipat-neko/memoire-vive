@@ -137,3 +137,19 @@ test('page projet ouverte sans passer par l’accueil : « ← Tous les projets 
   assert.deepEqual(await etat(page), { y: 0, focus: 'titre-vue' });
   await terminer(page);
 });
+
+test('Ctrl+clic sur « ← Tous les projets » depuis l’accueil : nouvel onglet sur #/, page courante inchangée', async () => {
+  const page = await site.page({ donnees, mobile: true });
+  await page.goto(site.url('#/'));
+  await page.locator('.project-card').first().waitFor();
+  const { href } = await ouvrirProjetDepuis(page, page.locator('.project-card h4 a[href="#/projet/atelier"]'));
+  const [nouvelle] = await Promise.all([
+    page.context().waitForEvent('page'),
+    page.getByRole('link', { name: '← Tous les projets' }).click({ modifiers: ['Control'] }),
+  ]);
+  await nouvelle.waitForLoadState();
+  assert.equal(page.url(), site.url(href), 'la page projet d’origine ne doit pas changer');
+  assert.ok(nouvelle.url().endsWith('#/'), nouvelle.url());
+  await nouvelle.close();
+  await terminer(page);
+});

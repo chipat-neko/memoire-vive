@@ -70,9 +70,18 @@ test('clic sur le projet d’une carte : page du projet, focus sur son titre', a
   await terminer(page);
 });
 
-test('projet inconnu : message « Projet introuvable »', async () => {
+test('projet inconnu : message « Projet introuvable », titre en serif comme « Entrée introuvable »', async () => {
   const page = await projet('inconnu');
   assert.equal(await page.textContent('#titre-vue'), 'Projet introuvable');
+  const style = (selecteur) => page.locator(selecteur).evaluate((h) => {
+    const s = getComputedStyle(h);
+    return [s.fontFamily, s.fontWeight, s.fontSize];
+  });
+  const projetIntrouvable = await style('#titre-vue');
+  await page.goto(site.url('#/entree/deadbeef0000'));
+  await page.locator('#entry-title').waitFor();
+  assert.deepEqual(projetIntrouvable, await style('#entry-title'));
+  assert.match(projetIntrouvable[0], /Iowan Old Style/);
   await terminer(page);
 });
 

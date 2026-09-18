@@ -666,6 +666,10 @@ a.project-tag { display: inline-block; }
 .siblings .type-badge { flex-shrink: 0; font-size: 11px; padding: 2px 8px; }
 
 .not-found { text-align: center; padding: 60px 20px; }
+/* « Projet introuvable » : titre serif comme les autres vues (la fiche a
+   sa propre règle, plus précise, « .entry h2#entry-title »). */
+.not-found h2 { font-family: var(--serif); font-weight: 600; font-size: 32px; line-height: 1.2; margin: 0 0 10px; overflow-wrap: anywhere; }
+.not-found h2:focus { outline: none; }
 
 /* ------------------------------------------------------------ pied, toast */
 
@@ -701,7 +705,7 @@ a.project-tag { display: inline-block; }
   .main-nav { width: 100%; }
   .main-nav a { flex: 1; text-align: center; padding: 11px 8px; }
   .card { padding: 18px; }
-  .entry h2#entry-title { font-size: 26px; }
+  .entry h2#entry-title, .not-found h2 { font-size: 26px; }
   .entry-resume { font-size: 17px; }
   .entry-content { padding: 16px; font-size: 15px; }
   .facts { grid-template-columns: 1fr; }

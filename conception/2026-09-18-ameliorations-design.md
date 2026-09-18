@@ -102,6 +102,7 @@ avertissement (les voisins ne sont pas critiques). Coût mesuré : ~30 ms par en
 
 **Lien principal d'une entrée** (calcul automatique uniquement ; la correction manuelle se
 fait au niveau du projet) :
+
 1. premier lien `en_ligne` de genre **site** : hôtes `*.github.io`, `*.vercel.app`,
    `*.web.app`, `*.firebaseapp.com`, `*.netlify.app`, `*.pages.dev`, `claude.ai/artifact/…`,
    ou tout autre domaine qui n'est pas un hébergeur de code ;
@@ -111,6 +112,7 @@ fait au niveau du projet) :
 Forme : `"lien_principal": {"url": "…", "genre": "site" | "depot" | "autre"}` ou `null`.
 
 **Projet.**
+
 - `famille` : configurée, sinon `null` (« Sans famille »).
 - `description` : configurée, sinon le `resume` de la plus ancienne entrée du projet de
   type `reference`/`architecture` ou taguée `architecture`, sinon `null`.

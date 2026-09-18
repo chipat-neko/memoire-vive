@@ -11,7 +11,7 @@ test('le site charge le jeu de test sans erreur', async () => {
   const donnees = jeuDeTest();
   const page = await site.page({ donnees });
   await page.goto(site.url());
-  await page.locator('.card').first().waitFor();
+  await page.locator('.project-card').first().waitFor();
   assert.match(await page.textContent('#stats'), new RegExp('^' + donnees.nb_entrees + '\\sentrées'));
   await terminer(page);
 });
@@ -23,7 +23,7 @@ test('modules ES chargés sous le sous-chemin, CSP inchangée', async () => {
   const demandes = [];
   page.on('request', (r) => demandes.push(new URL(r.url()).pathname));
   await page.goto(site.url());
-  await page.locator('.card').first().waitFor();
+  await page.locator('.project-card').first().waitFor();
   const racine = new URL(site.base).pathname;
   assert.ok(demandes.includes(racine + 'js/app.js'), demandes.join(' '));
   assert.ok(!demandes.includes(racine + 'app.js'), 'ancien script classique encore demandé');

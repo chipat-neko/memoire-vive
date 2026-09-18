@@ -27,16 +27,24 @@
     </div>
     <p class="subtitle">Tout ce que Claude sait de mes projets — architecture, décisions, jalons — retrouvé, cherché et trié en un seul endroit.</p>
     <p class="stats" id="stats" aria-live="polite"></p>
+    <div class="header-bar">
+      <nav class="main-nav" aria-label="Rubriques">
+        <a href="#/" id="nav-home">Projets</a>
+        <a href="#/entrees" id="nav-entries">Toutes les entrées</a>
+      </nav>
+      <div class="search-box" role="search">
+        <label for="search-input" class="visually-hidden">Rechercher dans la mémoire</label>
+        <input type="search" id="search-input" placeholder="Rechercher…  (touche /)" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
   </header>
 
   <main id="contenu" tabindex="-1">
-    <!-- Vue liste -->
-    <section id="list-view" aria-label="Entrées de la mémoire">
+    <div class="status" id="status">Chargement de la mémoire…</div>
+
+    <!-- Toutes les entrées -->
+    <section id="list-view" aria-label="Toutes les entrées" hidden>
       <div class="toolbar">
-        <div class="search-box">
-          <label for="search-input" class="visually-hidden">Rechercher dans la mémoire</label>
-          <input type="search" id="search-input" placeholder="Rechercher…  (touche /)" autocomplete="off" spellcheck="false">
-        </div>
         <div class="toolbar-controls">
           <label for="sort-select" class="visually-hidden">Trier</label>
           <select id="sort-select">
@@ -57,7 +65,6 @@
       <div class="active-filters" id="active-filters" hidden></div>
 
       <p class="result-count" id="result-count" aria-live="polite" tabindex="-1"></p>
-      <div class="status" id="status">Chargement de la mémoire…</div>
       <div class="grid" id="grid" hidden></div>
       <div id="groups" hidden></div>
       <div class="more" id="more" hidden><button type="button" id="more-btn" class="btn-secondary"></button></div>

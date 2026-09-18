@@ -72,7 +72,7 @@ test('contraste de la pastille active ≥ 4,5 (thèmes clair et sombre)', async 
   await terminer(page);
 });
 
-test('mobile : pas de défilement horizontal (liste, fiche, vue par projet, page projet)', async () => {
+test('mobile : pas de défilement horizontal (liste, fiche, vue par projet, page projet, accueil)', async () => {
   const archi = entreeTitree(donnees, 'Jarvis — architecture');
   const page = await ouvrir('#/entrees', { mobile: true });
   assert.ok(await debordement(page) <= 0, 'liste');
@@ -85,6 +85,9 @@ test('mobile : pas de défilement horizontal (liste, fiche, vue par projet, page
   await page.goto(site.url('#/projet/jarvis'));
   await page.locator('#titre-vue').waitFor();
   assert.ok(await debordement(page) <= 0, 'page projet');
+  await page.goto(site.url('#/'));
+  await page.locator('.project-card').first().waitFor();
+  assert.ok(await debordement(page) <= 0, 'accueil');
   await terminer(page);
 });
 

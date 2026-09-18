@@ -29,7 +29,7 @@ export function createEntryView(ctx) {
       dom.entryView.replaceChildren(el('div', { class: 'not-found' },
         el('h2', { id: 'entry-title', tabindex: '-1' }, 'Entrée introuvable'),
         el('p', null, "Cette entrée n'existe pas ou n'est plus dans la mémoire publiée."),
-        el('a', { class: 'btn-secondary', href: '#/' }, '← Retour à la liste')));
+        el('a', { class: 'btn-secondary', href: '#/' }, '← Retour à l’accueil')));
       dom.entryView.querySelector('h2').focus();
       return;
     }

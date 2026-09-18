@@ -202,7 +202,16 @@ mark { background: var(--mark); color: var(--text); border-radius: 3px; padding:
 .home-link:hover { color: inherit; }
 
 .subtitle { color: var(--text-muted); font-size: 16px; margin: 0 0 6px; max-width: 70ch; }
-.stats { color: var(--text-muted); font-size: 13px; margin: 0 0 28px; min-height: 1.5em; }
+.stats { color: var(--text-muted); font-size: 13px; margin: 0 0 16px; min-height: 1.5em; }
+
+.header-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 28px; }
+.main-nav { display: inline-flex; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.main-nav a { padding: 11px 16px; font: 600 14px var(--sans); color: var(--text-muted); text-decoration: none; white-space: nowrap; }
+.main-nav a + a { border-left: 1px solid var(--border); }
+.main-nav a:hover { color: var(--text); }
+.main-nav a[aria-current="page"] { background: var(--accent-fill); color: var(--on-accent); }
+.main-nav a:focus-visible { outline-offset: -4px; border-radius: 9px; }
+.main-nav a[aria-current="page"]:focus-visible { outline-color: var(--on-accent); }
 
 .theme-toggle {
   display: inline-flex; align-items: center; gap: 8px;
@@ -405,6 +414,44 @@ a.project-tag { display: inline-block; }
 .group-meta { font-size: 13px; color: var(--text-muted); }
 .group-more { margin-top: 12px; }
 
+/* ---------------------------------------------------------------- accueil */
+
+.home-head { margin-bottom: 26px; }
+.home-head h2 { font-family: var(--serif); font-weight: 600; font-size: 30px; line-height: 1.2; margin: 0 0 6px; }
+.home-head h2:focus { outline: none; }
+.home-intro { color: var(--text-muted); font-size: 14px; margin: 0; }
+
+.family { margin-bottom: 38px; }
+.family-title {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-family: var(--serif); font-weight: 600; font-size: 22px; margin: 0 0 14px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.family-title .count { font: 500 13px var(--sans); color: var(--text-muted); }
+.family-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--famille); flex-shrink: 0; }
+
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.project-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--famille);
+  border-radius: 16px;
+  padding: 20px 22px;
+  display: flex; flex-direction: column; gap: 10px;
+  min-width: 0;
+}
+.project-card:hover { border-color: var(--border-strong); border-left-color: var(--famille); box-shadow: var(--shadow); }
+.project-card h3 { font-family: var(--serif); font-weight: 600; font-size: 21px; line-height: 1.25; margin: 0; overflow-wrap: anywhere; }
+.project-card h3 a { color: inherit; text-decoration: none; }
+.project-card h3 a:hover { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 3px; }
+.project-card-description {
+  font-size: 14px; color: var(--text-muted); line-height: 1.55; margin: 0; flex: 1;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.project-card .meta-line { align-items: center; margin: 0; }
+.project-card .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
 /* ------------------------------------------------------------ page projet */
 
 .page-nav { margin-bottom: 22px; }
@@ -575,7 +622,9 @@ a.project-tag { display: inline-block; }
   .toolbar-controls select { flex: 1; }
   /* 16 px minimum : sinon iOS Safari zoome la page au focus. */
   .search-box input, select { font-size: 16px; }
-  .grid { grid-template-columns: 1fr; }
+  .grid, .project-grid { grid-template-columns: 1fr; }
+  .main-nav { width: 100%; }
+  .main-nav a { flex: 1; text-align: center; padding: 11px 8px; }
   .card { padding: 18px; }
   .entry h2#entry-title { font-size: 26px; }
   .entry-resume { font-size: 17px; }

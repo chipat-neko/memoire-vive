@@ -210,6 +210,20 @@ export function card(entry, { targets = null, since = null, showProject = true }
   );
 }
 
+/* Carte d'un projet : le nom mène à sa page, le bouton du lien principal
+   est un lien distinct (jamais un lien dans un autre). */
+export function projectCard(project, { since = null } = {}) {
+  const last = project._last ? new Date(project._last).toISOString() : null;
+  return el('article', { class: 'project-card', 'data-couleur': project._family ? project._family.couleur : null },
+    el('h3', null, el('a', { href: projectHash(project.id) }, project.nom)),
+    project.description ? el('p', { class: 'project-card-description' }, project.description) : null,
+    el('p', { class: 'meta-line' },
+      plural(project._count, 'entrée', 'entrées'),
+      last ? [' · dernière activité ', timeElement(last)] : null,
+      isNew({ _time: project._last }, since) ? newBadge() : null),
+    project._mainLink ? el('div', { class: 'actions' }, mainLinkButton(project._mainLink, project.nom)) : null);
+}
+
 export function chip(label, count, pressed, onClick, focusKey, extraClass) {
   const button = el('button', {
     type: 'button',

@@ -7,6 +7,7 @@ import { el, plural, formatLong, lastVisit } from './composants.js';
 import { createListView } from './vues/entrees.js';
 import { createEntryView } from './vues/fiche.js';
 import { createProjectView } from './vues/projet.js';
+import { createHomeView } from './vues/accueil.js';
 
 const CONFIG = {
   dataUrl: 'data.json',
@@ -44,13 +45,14 @@ const dom = {
   typeChips: $('type-chips'), projectChips: $('project-chips'), activeFilters: $('active-filters'),
   resultCount: $('result-count'), status: $('status'), grid: $('grid'), groups: $('groups'),
   more: $('more'), moreBtn: $('more-btn'), empty: $('empty'),
-  themeToggle: $('theme-toggle'),
+  themeToggle: $('theme-toggle'), navHome: $('nav-home'), navEntries: $('nav-entries'),
 };
 
 const ctx = { config: CONFIG, state, dom, route, setFilters, show, focusView };
 ctx.list = createListView(ctx);
 ctx.entry = createEntryView(ctx);
 ctx.project = createProjectView(ctx);
+ctx.home = createHomeView(ctx);
 
 // ------------------------------------------------------------ données
 
@@ -71,8 +73,6 @@ function fail(message) {
   const button = el('button', { type: 'button', class: 'btn-secondary' }, 'Recharger la page');
   button.addEventListener('click', () => location.reload());
   dom.status.replaceChildren(el('p', null, message), button);
-  dom.grid.hidden = true;
-  dom.groups.hidden = true;
   dom.stats.textContent = '';
 }
 
@@ -130,9 +130,8 @@ function focusView(returning) {
 
 // ------------------------------------------------------------ routage
 
-/* Filtres de la liste pour une route qui l'affiche. En attendant leurs vues
-   (accueil : Task 9, recherche : Task 11), l'accueil et la recherche
-   affichent la liste filtrée. */
+/* Filtres de la liste pour une route qui l'affiche. En attendant sa vue
+   (Task 11), la recherche affiche la liste filtrée. */
 function listFilters(target) {
   const filters = { q: '', ...defaultFilters() };
   if (target.view === 'entries') Object.assign(filters, target.filters);
@@ -168,6 +167,12 @@ function route() {
   }
   const returning = Boolean(previous && previous.view === 'entry' && !state.typing);
   state.lastListHash = location.hash || '#/';
+  renderNav(next.view);
+  if (next.view === 'home') {
+    ctx.home.showHome({ returning });
+    window.scrollTo(0, returning ? state.scroll.get(state.lastListHash) || 0 : 0);
+    return;
+  }
   if (next.view === 'project') {
     ctx.project.showProject(next.id, { returning });
     window.scrollTo(0, returning ? state.scroll.get(state.lastListHash) || 0 : 0);
@@ -179,6 +184,14 @@ function route() {
     state.shown = CONFIG.pageSize;
   }
   ctx.list.showList(returning);
+}
+
+/* Onglets de l'en-tête : la rubrique affichée porte aria-current. */
+function renderNav(view) {
+  for (const [link, name] of [[dom.navHome, 'home'], [dom.navEntries, 'entries']]) {
+    if (view === name) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
 }
 
 function openEntry(next, previous) {
@@ -201,6 +214,7 @@ function openEntry(next, previous) {
     state.entryDepth = 0;
   }
   history.replaceState({ list: state.lastListHash, depth: state.entryDepth }, '');
+  renderNav('entry');
   ctx.entry.showEntry(next.id);
 }
 
@@ -346,7 +360,7 @@ function bind() {
   document.addEventListener('keydown', (event) => {
     if (event.ctrlKey || event.metaKey || event.altKey || isTyping(event.target) || !state.data) return;
     const inEntry = state.route && state.route.view === 'entry';
-    if (event.key === '/' && !inEntry) {
+    if (event.key === '/') {
       event.preventDefault();
       dom.search.focus();
       dom.search.select();

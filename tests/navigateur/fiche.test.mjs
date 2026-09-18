@@ -131,11 +131,11 @@ test('Maj+Flèche : reste sur la fiche', async () => {
   await terminer(page);
 });
 
-test('Échap sur une fiche introuvable : retour à la liste sans erreur', async () => {
+test('Échap sur une fiche introuvable : retour à l’accueil sans erreur', async () => {
   const page = await ouvrir('#/entree/0000000000ff', '#entry-title');
   await page.keyboard.press('Escape');
   await attendreAncre(page, '#/');
-  await page.locator(CARTES).first().waitFor();
+  await page.locator('.project-card').first().waitFor();
   assert.ok(page.url().endsWith('#/'), page.url());
   await terminer(page);
 });

@@ -92,6 +92,15 @@ export function prepare(data) {
     });
   });
 
+  // Nombre d'entrées publiées et dernière activité (ms) de chaque projet.
+  for (const project of projects.values()) Object.assign(project, { _count: 0, _last: 0 });
+  for (const entry of entries) {
+    const project = projects.get(entry.projet);
+    if (!project) continue;
+    project._count += 1;
+    project._last = Math.max(project._last, entry._time);
+  }
+
   // Voisins (calculés à l'export) : entrées publiées, score numérique fini.
   const byId = new Map(entries.map((e) => [String(e.id), e]));
   for (const entry of entries) {

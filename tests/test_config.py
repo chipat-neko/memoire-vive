@@ -75,11 +75,30 @@ class ConfigProjetsTest(unittest.TestCase):
         for brut in ({}, {"tags_exclus": None}, {"tags_exclus": []}, {"tags_exclus": ""}):
             self.assertEqual(export.normalize_projects_config(brut)["tags_exclus"], [], brut)
 
+    # Pré-classement du § 8 de la spec (18/09/2026). L'admin pourra classer
+    # d'autres projets : on vérifie ceux-ci, pas un total exact.
+    PRE_CLASSEMENT = {
+        "jeux": ["depths", "void-atlas", "tactical-ops", "voxelcraft", "nova", "yuei-heroes-battle", "jeu-claude",
+                 "plan-min", "wiki-star-citizen", "speedrush-dofus", "dosoft"],
+        "cours": ["syntaxe", "devpath", "codelyngo", "cours-graph", "orbis", "claude-learning-apps", "check-code",
+                  "un-monde-sans", "religions"],
+        "ia": ["jarvis", "ai-creator", "code-ai", "help-code-ai", "roberta", "amalia", "mcai", "clipcoach",
+               "pipeline-securite-n8n-ollama", "le-bocal"],
+        "outils-claude": ["tour-de-controle", "antigravity-skills", "design-studio", "uiverse-components",
+                          "deadline-command", "multi-claude-orchestrator", "pont-memoire", "memoire-vive",
+                          "bibliotheque-claude"],
+        "sites": ["my-watch", "jsl-metal", "ce-ventre", "opti-route", "trading-alert-bot", "decoupe-videos",
+                  "presentation"],
+    }
+
     def test_fichier_reel_v2_coherent(self):
         cfg = export.load_projects_config()
         self.assertEqual(len(cfg["familles"]), 5)
-        classes = [p for p in cfg["projets"].values() if p["famille"]]
-        self.assertEqual(len(classes), 46)
+        self.assertEqual(sum(len(p) for p in self.PRE_CLASSEMENT.values()), 46)
+        for famille, projets in self.PRE_CLASSEMENT.items():
+            for projet in projets:
+                self.assertIn(projet, cfg["projets"], projet)
+                self.assertEqual(cfg["projets"][projet]["famille"], famille, projet)
         alias = [a for p in cfg["projets"].values() for a in p["alias"]]
         self.assertEqual(len(alias), len(set(alias)), "un alias ne peut viser qu'un projet")
         self.assertFalse(set(alias) & set(cfg["projets"]), "un alias ne peut pas être lui-même un projet")

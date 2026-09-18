@@ -6,11 +6,19 @@ Lit toutes les entrées via l'API REST du dashboard (web/app.py), les nettoie
 pour une publication publique, écrit docs/data.json puis commit et push.
 
 Usage :
-    python scripts/export.py              # export + commit + push
-    python scripts/export.py --no-push    # export + commit, sans push
-    python scripts/export.py --no-git     # écrit data.json, ne touche pas à git
-    python scripts/export.py --dry-run    # récupère et résume, n'écrit rien
-    python scripts/export.py --force      # passe outre le garde-fou de baisse
+    python scripts/export.py                       # export + commit + push
+    python scripts/export.py --no-push             # export + commit, sans push
+    python scripts/export.py --no-git              # écrit data.json, ne touche pas à git
+    python scripts/export.py --dry-run             # récupère et résume : n'écrit rien,
+                                                   # ne lance aucune recherche de voisins
+    python scripts/export.py --force               # passe outre le garde-fou de baisse
+    python scripts/export.py --recalculer-voisins  # recherche les voisins de toutes les
+                                                   # entrées, pas seulement des nouvelles
+
+Voisins : chaque recherche (POST /api/search) met à jour l'historique d'accès
+des entrées trouvées dans la mémoire partagée. Seules les entrées nouvelles
+sont donc cherchées ; les autres reprennent leurs voisins du data.json
+précédent (voir add_neighbours).
 
 Configuration (voir load_config) — variables d'environnement, sinon .env :
     MEMOIRE_API_URL   adresse du dashboard (défaut http://127.0.0.1:8000)
@@ -1248,18 +1256,20 @@ def publish(payload: dict, push: bool) -> None:
 
 
 def main() -> int:
+    # Avant argparse : --help affiche lui aussi des accents.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
     parser = argparse.ArgumentParser(description="Exporte la mémoire partagée vers docs/data.json.")
-    parser.add_argument("--dry-run", action="store_true", help="récupère et résume, n'écrit rien")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="récupère et résume ; n'écrit rien et ne lance aucune recherche de voisins")
     parser.add_argument("--no-git", action="store_true", help="écrit data.json sans commit ni push")
     parser.add_argument("--no-push", action="store_true", help="commit sans push")
     parser.add_argument("--force", action="store_true", help="publie même si le nombre d'entrées chute")
     parser.add_argument("--recalculer-voisins", action="store_true",
                         help="recalcule les voisins de toutes les entrées (une recherche par entrée)")
     args = parser.parse_args()
-
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
     try:
         config = load_config()

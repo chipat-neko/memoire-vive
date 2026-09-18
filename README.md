@@ -27,10 +27,11 @@ précédent en `--no-git`, push refusé) est rattrapé.
 
 | Option | Effet |
 | --- | --- |
-| `--dry-run` | récupère et résume, n'écrit rien |
+| `--dry-run` | récupère et résume ; n'écrit rien et ne lance **aucune** recherche de voisins |
 | `--no-git` | écrit `data.json` sans commit ni push (pour tester le site en local) |
 | `--no-push` | commit sans push |
 | `--force` | publie même si le nombre d'entrées a chuté de plus de moitié |
+| `--recalculer-voisins` | recherche les voisins de toutes les entrées, pas seulement des nouvelles (une recherche par entrée) |
 
 Tester le site en local : `python -m http.server 8080 -d docs` puis <http://localhost:8080>.
 
@@ -60,6 +61,13 @@ tous, sur le site comme sur GitHub, et reste dans l'historique git.
   `password: …`, `mot de passe : …`, `mdp=…`, ainsi que la valeur réelle de la clé du
   dashboard si une entrée la cite. Remplacés par `[masqué]` ; l'export affiche le nombre
   de masquages. Un secret sous une forme inconnue passerait : ne pas en écrire dans la mémoire.
+  Le masquage s'applique aussi à ce qui est saisi dans `config/` et publié : titres et
+  résumés corrigés, nom et description des projets.
+- **Liens configurés** : le `lien_principal` saisi pour un projet perd ses identifiants
+  (`https://utilisateur:jeton@…`) et il est **refusé** s'il contient un secret, s'il vise
+  une adresse non joignable d'Internet (IP privée, `localhost`, `.local`, nom de machine
+  seul…) ou s'il n'est pas une URL web valide. L'export le signale (« Lien principal
+  configuré refusé ») et prend le lien calculé à la place.
 - **Garde-fous** : refus de publier une lecture incomplète (page vide ou base modifiée
   pendant la lecture, après trois essais), une mémoire vide, ou une chute de plus de
   50 % par rapport au dernier export (base mal pointée), sauf `--force`.
@@ -100,10 +108,34 @@ Chaque entrée de `data.json` contient, en plus du texte :
 Les voisins sont calculés par le dashboard : `POST /api/search` avec le texte de l'entrée
 (8 résultats demandés), dont l'export retire l'entrée elle-même et les entrées non
 publiées. Le dashboard a bien `GET /api/search/similar/{hash}`, mais ce point d'accès est
-défectueux : il cherche le hash comme du texte et répond donc toujours 404. Les voisins
-ne bloquent jamais l'export : un appel en échec laisse l'entrée sans voisins (l'export
-affiche le nombre d'échecs), et après trois échecs de suite le dashboard n'est plus
-interrogé.
+défectueux : il cherche le hash comme du texte et répond donc toujours 404.
+
+**Effet sur la mémoire partagée.** Chaque recherche met à jour l'historique d'accès des
+entrées trouvées (compteur d'accès, date du dernier accès, dernières requêtes), dans la
+mémoire commune à tous les projets et à claude.ai ; le dashboard n'offre pas de recherche
+« en lecture seule ». Les voisins sont donc calculés **de façon incrémentale** :
+
+- seules les entrées **nouvelles** (identifiant absent du `data.json` précédent ; une
+  entrée dont le texte change reçoit un nouvel identifiant) sont cherchées : **une
+  recherche par entrée nouvelle**. Un export sans entrée nouvelle n'en lance aucune ;
+- une entrée déjà publiée reprend ses voisins précédents, moins ceux qui ne sont plus
+  publiés (une entrée disparue est seulement retirée des listes, sans nouvelle recherche) ;
+- **symétrie** : quand une entrée nouvelle X trouve Y, X entre aussi dans les candidats
+  de Y, qui garde ses 5 meilleurs voisins ;
+- `data.json` note à la racine le réglage utilisé, `voisins_reglage` (`seuil`, `max`) :
+  s'il est absent ou différent (seuil changé dans le code), le prochain export recalcule
+  tout, une fois ; `--recalculer-voisins` force ce recalcul complet ;
+- `--dry-run` ne lance aucune recherche : il annonce combien d'entrées nouvelles seront
+  cherchées au prochain export réel ;
+- **budget de temps** : les recherches s'arrêtent après 120 s cumulées (10 s au plus par
+  recherche). Les entrées restantes, comme celles dont la recherche a échoué, sont notées
+  dans `voisins_en_attente` (racine de `data.json`) et cherchées à l'export suivant.
+
+Les voisins ne bloquent jamais l'export : un appel en échec laisse l'entrée sans voisins
+(l'export affiche le nombre d'échecs), et après trois échecs de suite le dashboard n'est
+plus interrogé. Des recherches réussies qui ne relient aucune entrée déclenchent un
+avertissement (dashboard sans modèle d'embedding ?). Un export refusé par un garde-fou ne
+lance aucune recherche.
 
 Chaque projet (`projets[]`) contient `id`, `nom` (configuré, sinon tiré du texte, sinon
 le tag), `nb`, `types`, `premiere`, `derniere`, et :
@@ -111,12 +143,14 @@ le tag), `nb`, `types`, `premiere`, `derniere`, et :
 - `famille` : l'identifiant configuré, sinon `null` (« Sans famille ») ;
 - `description` : configurée, sinon le `resume` de la plus ancienne entrée du projet de
   type `reference` ou `architecture` (ou taguée `architecture`), sinon `null` ;
-- `lien_principal` : configuré (URL web valide), sinon le premier site parmi ses entrées,
-  de la plus récente à la plus ancienne, sinon le premier dépôt, sinon `null`.
+- `lien_principal` : configuré (URL web publique, voir « Liens configurés » plus haut),
+  sinon le premier site parmi ses entrées, de la plus récente à la plus ancienne, sinon le
+  premier dépôt, sinon `null`.
 
-À la racine : `familles` (copie ordonnée de celles de `config/projets.json`) et
-`synonymes` (groupes de `config/recherche.json`, normalisés). Tous ces champs sont des
-ajouts compatibles : `schema` reste à 1 et le site actuel les ignore.
+À la racine : `familles` (copie ordonnée de celles de `config/projets.json`),
+`synonymes` (groupes de `config/recherche.json`, normalisés), `voisins_reglage` et
+`voisins_en_attente` (voir les voisins ci-dessus). Tous ces champs sont des ajouts
+compatibles : `schema` reste à 1 et le site actuel les ignore.
 
 ## Régler les projets, les entrées et la recherche
 
@@ -149,10 +183,14 @@ chacun rappelle son mode d'emploi ; l'export l'ignore.
   palette du site (thèmes clair et sombre).
 - `projets.<id>` : toutes les clés sont facultatives. `nom` : nom affiché ; `famille` :
   une famille déclarée (sinon ignorée) ; `alias` : tags rattachés à ce projet ;
-  `description` : présentation du projet ; `lien_principal` : une URL, ou `null` pour le
-  calcul automatique.
+  `description` : présentation du projet ; `lien_principal` : une URL publique, ou `null`
+  pour le calcul automatique. Nom et description passent par le masquage des secrets.
 - `tags_generiques` : tags qui ne désignent jamais un projet (`dashboard`, `python`…).
 - `tags_exclus` : tags dont les entrées ne sont jamais publiées.
+
+Pour ces deux listes, une chaîne seule vaut une liste d'un élément (`"tags_exclus":
+"perso"` exclut bien le tag `perso`) ; tout autre type fait échouer l'export plutôt que
+d'être ignoré.
 
 Sans réglage, le projet d'une entrée est son tag le plus « voté » : chaque entrée vote
 pour son premier tag qui n'est pas générique.
@@ -173,6 +211,9 @@ par exemple `"alias": { "rogue-lite": "depths" }`) et converti en mémoire à ch
   retire l'entrée du site, comme un tag d'exclusion.
 - Une clé qui ne correspond plus à aucune entrée est signalée par l'export
   (avertissement, pas d'échec).
+- Une valeur qui n'est pas un objet (`{ "a713bd8e2800": true }`) fait échouer l'export
+  en nommant la clé : ignorée, une demande de masquage mal écrite laisserait l'entrée
+  publiée. Les clés qui commencent par `_` (comme `_aide`) sont ignorées.
 
 ### `config/recherche.json`
 
@@ -265,3 +306,6 @@ reste dans l'historique public et dans les éventuelles copies.
 | `N entrées contre M au dernier export` | base vide ou mauvais fichier SQLite ; vérifier, puis `--force` |
 | `git push a échoué` | branche en retard : `git pull --rebase`, puis relancer (le push en attente est rattrapé) |
 | `aucun dépôt distant « origin »` | voir « Première mise en place » |
+| `Lien principal configuré refusé` | `lien_principal` d'un projet local, invalide ou contenant un secret : le corriger dans `config/projets.json` |
+| `entrée(s) encore sans recherche de voisins` | budget de temps épuisé ou recherches en échec : elles seront cherchées au prochain export |
+| `la correction « … » doit être un objet JSON` | valeur mal écrite dans `config/entrees.json` |

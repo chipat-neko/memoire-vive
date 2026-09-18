@@ -64,8 +64,10 @@ export function editDistance(a, b, max) {
 }
 
 /* Article ou pronom élidé en tête d'un terme (« l'IA », « d'applications »,
-   « qu'un ») : le texte est déjà normalisé, l'apostrophe est droite. */
-const ELISION = /^(?:qu|[cdjlmnst])'(?=[\p{L}\p{N}])/u;
+   « qu'un ») : le texte est déjà normalisé, l'apostrophe est droite. Il reste
+   au moins deux caractères : « l'a » (frappe de « l'atelier » en cours) garde
+   l'expression « l a… » plutôt que de chercher toutes les entrées qui ont « a ». */
+const ELISION = /^(?:qu|[cdjlmnst])'(?=[\p{L}\p{N}]{2})/u;
 
 /* Termes de la requête : { words, quoted, exclude, prefix }. Les guillemets
    typographiques valent des guillemets droits ; un guillemet non fermé vaut

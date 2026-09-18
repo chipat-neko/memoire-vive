@@ -125,6 +125,8 @@ test('article élidé : « l’IA » vaut « IA », « d’applications » vaut 
   assert.deepEqual(trouves("d'intelligence artificielle"), [0, 5]);
   assert.deepEqual(parseQuery('"l’atelier"')[0].words, ['l', 'atelier']); // guillemets : inchangé
   assert.deepEqual(parseQuery("aujourd'hui")[0].words, ['aujourd', 'hui']);
+  // Frappe en cours de « l'atelier » : pas de recherche du seul mot « a ».
+  assert.deepEqual(parseQuery("l'a"), [{ words: ['l', 'a'], quoted: false, exclude: false, prefix: true }]);
 });
 
 test('guillemet ouvert et une seule lettre : pas de préfixe (tout le vocabulaire)', () => {

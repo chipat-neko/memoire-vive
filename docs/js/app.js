@@ -2,7 +2,7 @@
    Modules ES sans dépendance ; toutes les données viennent de data.json,
    déjà préparé par scripts/export.py (titres, résumés, projets, liens). */
 import { loadData, prepare, DataError } from './donnees.js';
-import { listHash, parseRoute, filtersFromParams, sameFilters } from './routes.js';
+import { parseHash, searchHash, defaultFilters } from './routes.js';
 import { el, plural, formatLong } from './composants.js';
 import { createListView } from './vues/entrees.js';
 import { createEntryView } from './vues/fiche.js';
@@ -22,7 +22,7 @@ const state = {
   projects: new Map(),
   typeOrder: [],
   index: null,           // index de recherche (recherche.js)
-  filters: { q: '', type: '', projet: '', tag: '', tri: '', vue: 'grille' },
+  filters: { q: '', ...defaultFilters() },
   shown: CONFIG.pageSize,
   showAllProjects: false,
   lastList: [],          // résultat affiché, pour « précédente / suivante »
@@ -96,10 +96,29 @@ function renderStats() {
 
 // ------------------------------------------------------------ routage
 
+/* Filtres de la liste pour une route autre qu'une fiche. En attendant leurs
+   vues (accueil : Task 9, projet : Task 8, recherche : Task 11), l'accueil,
+   la page projet et la recherche affichent la liste filtrée. */
+function listFilters(target) {
+  const filters = { q: '', ...defaultFilters() };
+  if (target.view === 'entries') Object.assign(filters, target.filters);
+  if (target.view === 'search') filters.q = target.q;
+  if (target.view === 'project') filters.projet = target.id;
+  return filters;
+}
+
+function sameFilters(a, b) {
+  return Object.keys(a).every((key) => a[key] === b[key]);
+}
+
 function route() {
+  const next = parseHash(location.hash);
+  if (next.view === 'redirect') {
+    history.replaceState(history.state, '', next.hash);
+    return route();
+  }
   const previous = state.route;
-  const next = parseRoute(location.hash);
-  if (previous && previous.view === 'list') {
+  if (previous && previous.view !== 'entry') {
     state.scroll.set(state.lastListHash, window.scrollY);
   }
   state.route = next;
@@ -111,13 +130,13 @@ function route() {
     const saved = history.state && typeof history.state.list === 'string' ? history.state : null;
     if (saved) {
       state.entryDepth = Number(saved.depth) || 0;
-      if (saved.list !== state.lastListHash && saved.list.startsWith('#/')) {
-        const index = saved.list.indexOf('?');
-        state.filters = filtersFromParams(new URLSearchParams(index >= 0 ? saved.list.slice(index + 1) : ''));
+      const origin = parseHash(saved.list);
+      if (saved.list !== state.lastListHash && origin.view !== 'entry' && origin.view !== 'redirect') {
+        state.filters = listFilters(origin);
         state.lastListHash = saved.list;
         state.lastList = ctx.list.filtered().list;
       }
-    } else if (previous && previous.view === 'list') {
+    } else if (previous && previous.view !== 'entry') {
       state.entryDepth = 1;
     } else if (previous && previous.view === 'entry') {
       state.entryDepth = state.entryDepth > 0 ? state.entryDepth + 1 : 0;
@@ -128,12 +147,37 @@ function route() {
     ctx.entry.showEntry(next.id);
     return;
   }
-  const filters = filtersFromParams(next.params);
+  const filters = listFilters(next);
   if (!sameFilters(filters, state.filters)) {
     state.filters = filters;
     state.shown = CONFIG.pageSize;
   }
-  ctx.list.showList(previous && previous.view === 'entry');
+  state.lastListHash = location.hash || '#/';
+  ctx.list.showList(previous && previous.view === 'entry' && !state.typing);
+}
+
+/* Frappe dans la barre de recherche : la première frappe ouvre #/recherche
+   (nouvelle entrée d'historique), les suivantes remplacent cette entrée. */
+function typeSearch(q) {
+  if (!q) { leaveSearch(); return; }
+  const onSearch = state.route && state.route.view === 'search';
+  if (onSearch) history.replaceState(history.state, '', searchHash(q));
+  else history.pushState({ typed: true }, '', searchHash(q));
+  // Quitter une vue en tapant (même une fiche) n'est pas un « retour » :
+  // le focus reste dans le champ.
+  state.typing = true;
+  try { route(); } finally { state.typing = false; }
+}
+
+/* Recherche vidée : retour à la vue d'où la frappe est partie, sinon à l'accueil. */
+function leaveSearch() {
+  if (!state.route || state.route.view !== 'search') return;
+  if (history.state && history.state.typed) {
+    history.back();
+  } else {
+    history.replaceState(null, '', '#/');
+    route();
+  }
 }
 
 function setFilters(patch) {
@@ -144,7 +188,7 @@ function setFilters(patch) {
   const focusKey = active && active.dataset ? active.dataset.focusKey : '';
   Object.assign(state.filters, patch);
   state.shown = CONFIG.pageSize;
-  const hash = listHash(state.filters);
+  const hash = ctx.list.listHash(state.filters);
   history.replaceState(null, '', hash);
   state.lastListHash = hash;
   ctx.list.renderList();
@@ -207,13 +251,14 @@ function bind() {
   let searchTimer = null;
   dom.search.addEventListener('input', () => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => setFilters({ q: dom.search.value.trim() }), 120);
+    searchTimer = setTimeout(() => typeSearch(dom.search.value.trim()), 120);
   });
   dom.search.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && dom.search.value) {
       event.preventDefault();
+      clearTimeout(searchTimer);
       dom.search.value = '';
-      setFilters({ q: '' });
+      leaveSearch();
     }
   });
   dom.sort.addEventListener('change', () => setFilters({ tri: dom.sort.value === 'recent' && !state.filters.q ? '' : dom.sort.value }));
@@ -246,7 +291,7 @@ function bind() {
       : { tag: target.dataset.tag, type: '', projet: '', q: '' };
     if (state.route && state.route.view === 'entry') {
       const filters = Object.assign({}, state.filters, patch);
-      location.hash = listHash(filters);
+      location.hash = ctx.list.listHash(filters);
     } else {
       setFilters(patch);
       window.scrollTo(0, 0);

@@ -9,7 +9,7 @@ after(async () => { await site.fermer(); });
 
 const donnees = jeuDeTest();
 
-async function liste(ancre = '#/') {
+async function liste(ancre = '#/entrees') {
   const page = await site.page({ donnees });
   await page.goto(site.url(ancre));
   await page.locator('#grid .card').first().waitFor();

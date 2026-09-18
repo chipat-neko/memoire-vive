@@ -20,7 +20,7 @@ async function ouvrir(ancre, selecteur) {
 const CARTES = '#list-view:not([hidden]) #grid .card h3 a';
 
 test('ouvrir une fiche depuis la liste : titre, URL courte, focus sur le titre', async () => {
-  const page = await ouvrir('#/?q=jarvis', CARTES);
+  const page = await ouvrir('#/recherche?q=jarvis', CARTES);
   await page.getByRole('link', { name: 'Jarvis — architecture', exact: true }).click();
   await page.locator('#entry-view:not([hidden]) #entry-title').waitFor();
   assert.equal(await page.textContent('#entry-title'), 'Jarvis — architecture');
@@ -41,7 +41,7 @@ test('fiche : liens en ligne cliquables, adresses locales étiquetées, texte in
 });
 
 test('fiche du milieu : « Précédente » active, flèche droite vers la suivante', async () => {
-  const page = await ouvrir('#/', CARTES);
+  const page = await ouvrir('#/entrees', CARTES);
   await page.locator(CARTES).nth(1).click();
   await page.locator('#entry-title').waitFor();
   assert.equal(await page.locator('.pager a[rel="prev"]').count(), 1);
@@ -52,13 +52,19 @@ test('fiche du milieu : « Précédente » active, flèche droite vers la suivan
   await terminer(page);
 });
 
-test('« Retour à la liste » : filtres conservés', async () => {
-  const page = await ouvrir('#/?q=jarvis&type=milestone', CARTES);
+test('« Retour à la liste » : filtres et recherche conservés', async () => {
+  const page = await ouvrir('#/entrees?type=milestone', CARTES);
   await page.locator(CARTES).first().click();
   await page.locator('#entry-title').waitFor();
   await page.getByRole('link', { name: '← Retour à la liste' }).click();
   await page.locator(CARTES).first().waitFor();
-  assert.ok(page.url().includes('q=jarvis'), page.url());
+  assert.ok(page.url().endsWith('#/entrees?type=milestone'), page.url());
+  await page.goto(site.url('#/recherche?q=jarvis'));
+  await page.locator(CARTES).first().click();
+  await page.locator('#entry-title').waitFor();
+  await page.getByRole('link', { name: '← Retour à la liste' }).click();
+  await page.locator(CARTES).first().waitFor();
+  assert.ok(page.url().endsWith('#/recherche?q=jarvis'), page.url());
   assert.equal(await page.inputValue('#search-input'), 'jarvis');
   await terminer(page);
 });
@@ -77,7 +83,7 @@ test('fiche Bibliothèque Claude : lien vers l’artifact', async () => {
 });
 
 test('retour de fiche : le focus revient sur sa carte', async () => {
-  const page = await ouvrir('#/', CARTES);
+  const page = await ouvrir('#/entrees', CARTES);
   const href = await page.locator(CARTES).nth(4).getAttribute('href');
   await page.locator(CARTES).nth(4).click();
   await page.locator('#entry-title').waitFor();
@@ -88,7 +94,7 @@ test('retour de fiche : le focus revient sur sa carte', async () => {
 });
 
 test('Suivante ×2 puis « précédent » du navigateur : retour à la liste', async () => {
-  const page = await ouvrir('#/?type=note', CARTES);
+  const page = await ouvrir('#/entrees?type=note', CARTES);
   await page.locator(CARTES).nth(2).click();
   await page.locator('#entry-title').waitFor();
   for (let i = 0; i < 2; i++) {
@@ -103,7 +109,7 @@ test('Suivante ×2 puis « précédent » du navigateur : retour à la liste', a
 });
 
 test('fiche rechargée puis « Retour » : filtres d’origine', async () => {
-  const page = await ouvrir('#/?type=note', CARTES);
+  const page = await ouvrir('#/entrees?type=note', CARTES);
   await page.locator(CARTES).nth(1).click();
   await page.locator('#entry-title').waitFor();
   await page.reload();
@@ -115,7 +121,7 @@ test('fiche rechargée puis « Retour » : filtres d’origine', async () => {
 });
 
 test('Maj+Flèche : reste sur la fiche', async () => {
-  const page = await ouvrir('#/', CARTES);
+  const page = await ouvrir('#/entrees', CARTES);
   await page.locator(CARTES).nth(1).click();
   await page.locator('#entry-title').waitFor();
   const url = page.url();

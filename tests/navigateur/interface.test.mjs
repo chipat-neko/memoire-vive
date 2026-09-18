@@ -9,7 +9,7 @@ after(async () => { await site.fermer(); });
 
 const donnees = jeuDeTest();
 
-async function ouvrir(ancre = '#/', options = {}) {
+async function ouvrir(ancre = '#/entrees', options = {}) {
   const page = await site.page({ donnees, ...options });
   await page.goto(site.url(ancre));
   await page.locator('#grid .card').first().waitFor();
@@ -36,7 +36,7 @@ test('touche / : focus sur la recherche', async () => {
 });
 
 test('lien d’évitement : filtres conservés', async () => {
-  const page = await ouvrir('#/?q=jarvis');
+  const page = await ouvrir('#/recherche?q=jarvis');
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await page.waitForTimeout(150);
@@ -46,7 +46,7 @@ test('lien d’évitement : filtres conservés', async () => {
 });
 
 test('focus conservé sur la pastille après un filtre ; clic sur un tag : focus sur le compteur', async () => {
-  const page = await ouvrir('#/?q=jarvis');
+  const page = await ouvrir('#/entrees');
   await page.locator('#type-chips .chip').nth(1).focus();
   await page.keyboard.press('Enter');
   await attendreAncre(page, 'type=');
@@ -74,12 +74,12 @@ test('contraste de la pastille active ≥ 4,5 (thèmes clair et sombre)', async 
 
 test('mobile : pas de défilement horizontal (liste, fiche, vue par projet)', async () => {
   const archi = entreeTitree(donnees, 'Jarvis — architecture');
-  const page = await ouvrir('#/', { mobile: true });
+  const page = await ouvrir('#/entrees', { mobile: true });
   assert.ok(await debordement(page) <= 0, 'liste');
   await page.goto(site.url('#/entree/' + archi.id.slice(0, 12)));
   await page.locator('#entry-title').waitFor();
   assert.ok(await debordement(page) <= 0, 'fiche');
-  await page.goto(site.url('#/?vue=projets'));
+  await page.goto(site.url('#/entrees?vue=projets'));
   await page.locator('.group').first().waitFor();
   assert.ok(await debordement(page) <= 0, 'vue par projet');
   await terminer(page);

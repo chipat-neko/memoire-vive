@@ -1,7 +1,7 @@
 /* Vue liste : filtres (recherche, type, projet, tag), tri, grille ou
    regroupement par projet, « Afficher plus ». */
 import { normalize, search } from '../recherche.js';
-import { listHash } from '../routes.js';
+import { entriesHash, searchHash } from '../routes.js';
 import { el, plural, typeLabel, typeCount, formatDay, card, chip } from '../composants.js';
 import { NO_PROJECT } from '../donnees.js';
 
@@ -56,6 +56,12 @@ export function createListView(ctx) {
     }
   }
 
+  /* Ancre de l'état affiché : la recherche passe par #/recherche, le reste
+     par #/entrees. */
+  function listHash(filters) {
+    return filters.q ? searchHash(filters.q) : entriesHash(filters);
+  }
+
   function filtered() {
     const { found, targets } = searched();
     return { found, targets, list: sortEntries(state.entries.filter((e) => matches(e, found)), found) };
@@ -66,7 +72,6 @@ export function createListView(ctx) {
     dom.entryView.replaceChildren();
     dom.listView.hidden = false;
     document.title = 'Mémoire Vive';
-    state.lastListHash = listHash(state.filters);
     renderList();
     if (restoreScroll) {
       window.scrollTo(0, state.scroll.get(state.lastListHash) || 0);
@@ -251,5 +256,5 @@ export function createListView(ctx) {
     dom.groups.append(fragment);
   }
 
-  return { showList, renderList, filtered, sortEntries, typeRank };
+  return { showList, renderList, filtered, sortEntries, typeRank, listHash };
 }

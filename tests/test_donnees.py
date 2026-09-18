@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from tests.aides import config, export, memoire
+from tests.aides import config, export, hash_de, memoire
 
 TEXTE = "Projet Alpha (D:\\alpha) : un outil de test. Il fait des choses utiles. Et encore."
 
@@ -16,7 +16,7 @@ TEXTE = "Projet Alpha (D:\\alpha) : un outil de test. Il fait des choses utiles.
 class CorrectionsTest(unittest.TestCase):
     def test_titre_et_resume_corriges(self):
         brut = [memoire(1, TEXTE, ["alpha", "projet"])]
-        cle = f"{1:064x}"[:12]
+        cle = hash_de(1)[:12]
         payload, report = export.build_payload(brut, config(), overrides={cle: {"titre": "Alpha", "resume": "Résumé à la main."}})
         entree = payload["entrees"][0]
         self.assertEqual(entree["titre"], "Alpha")
@@ -29,14 +29,9 @@ class CorrectionsTest(unittest.TestCase):
         self.assertFalse(payload["entrees"][0]["corrige"])
 
     def test_masquer_retire_l_entree(self):
-        # n=2 * 16**52 (plutôt que 2 tout court) : content_hash étant n formé en
-        # hexadécimal sur 64 caractères (voir tests/aides.py), un petit entier
-        # laisse les 12 premiers caractères à "000000000000", identiques à
-        # memoire(1, ...) — la clé de correction collisionnerait avec l'entrée 1.
-        deuxieme = 2 * 16 ** 52
-        brut = [memoire(1, TEXTE, ["alpha"]), memoire(deuxieme, TEXTE + " Bis.", ["alpha"])]
-        payload, report = export.build_payload(brut, config(), overrides={f"{deuxieme:064x}"[:12]: {"masquer": True}})
-        self.assertEqual([e["id"] for e in payload["entrees"]], [f"{1:064x}"])
+        brut = [memoire(1, TEXTE, ["alpha"]), memoire(2, TEXTE + " Bis.", ["alpha"])]
+        payload, report = export.build_payload(brut, config(), overrides={hash_de(2)[:12]: {"masquer": True}})
+        self.assertEqual([e["id"] for e in payload["entrees"]], [hash_de(1)])
         self.assertEqual(report["masquees"], 1)
 
     def test_cle_orpheline_signalee(self):
@@ -44,7 +39,7 @@ class CorrectionsTest(unittest.TestCase):
         self.assertEqual(report["orphelines"], ["ffffffffffff"])
 
     def test_correction_aussi_masquee_si_secret(self):
-        cle = f"{1:064x}"[:12]
+        cle = hash_de(1)[:12]
         payload, _ = export.build_payload([memoire(1, TEXTE, ["alpha"])], config(),
                                           overrides={cle: {"titre": "Alpha password=Hunter22!"}})
         self.assertNotIn("Hunter22", payload["entrees"][0]["titre"])
@@ -147,7 +142,7 @@ class ProjetsEtRechercheTest(unittest.TestCase):
         self.assertEqual(report["redacted_entries"], ["projet alpha"])
 
     def test_masquages_des_corrections_comptes(self):
-        cle = f"{1:064x}"[:12]  # une seule entrée : memoire(2) aurait la même clé courte
+        cle = hash_de(1)[:12]
         _, report = export.build_payload([memoire(1, TEXTE, ["alpha"])], config(), overrides={
             cle: {"titre": "Alpha password=Hunter22!", "resume": "Clé : sk-ant-abcdefghijklmnopqrstuvwxyz0123"}})
         self.assertEqual(report["redactions"], 2)
@@ -164,11 +159,11 @@ class ProjetsEtRechercheTest(unittest.TestCase):
 
 
 def entrees(n):
-    return [{"id": f"{i:064x}", "contenu": f"texte {i}"} for i in range(1, n + 1)]
+    return [{"id": hash_de(i), "contenu": f"texte {i}"} for i in range(1, n + 1)]
 
 
 def h(i):
-    return f"{i:064x}"
+    return hash_de(i)
 
 
 def v(i, score):
@@ -365,17 +360,16 @@ class VoisinsPrecedentsTest(unittest.TestCase):
 class MiseAJourDesVoisinsTest(unittest.TestCase):
     """update_neighbours : ce que fait main() (réglage, entrées en attente, recalcul complet)."""
     def payload(self, n):
-        brut = [memoire(i * 16 ** 52, f"Projet Alpha : entrée. Numéro {i}", ["alpha"], minute=i)
+        brut = [memoire(i, f"Projet Alpha : entrée. Numéro {i}", ["alpha"], minute=i)
                 for i in range(1, n + 1)]
         return export.build_payload(brut, config())[0]
 
     def sens(self, n):
-        # Hash fabriqués par memoire(i * 16**52) : identifiants courts distincts.
         sens = FauxSens([], {})
         def search(query, n_results):
             i = int(query.split()[-1])
             sens.appels.append(i)
-            return [(f"{j * 16 ** 52:064x}", 0.95 if abs(i - j) == 1 else 0.1) for j in range(1, n + 1) if j != i]
+            return [(hash_de(j), 0.95 if abs(i - j) == 1 else 0.1) for j in range(1, n + 1) if j != i]
         sens.search = search
         return sens
 
@@ -405,8 +399,8 @@ class MiseAJourDesVoisinsTest(unittest.TestCase):
         second = self.payload(5)
         export.update_neighbours(second, json.loads(json.dumps(premier)), sens.search)
         self.assertEqual(sens.appels, [5])
-        quatre = next(e for e in second["entrees"] if e["id"] == f"{4 * 16 ** 52:064x}")
-        self.assertIn({"id": f"{5 * 16 ** 52:064x}", "score": 0.95}, quatre["voisins"])
+        quatre = next(e for e in second["entrees"] if e["id"] == hash_de(4))
+        self.assertIn({"id": hash_de(5), "score": 0.95}, quatre["voisins"])
 
     def test_recalcul_force_ou_reglage_change(self):
         sens = self.sens(3)
@@ -469,10 +463,10 @@ class ApiSearchTest(unittest.TestCase):
 
     def test_resultats_bien_formes(self):
         api = self._api({"results": [
-            {"memory": {"content_hash": f"{1:064x}"}, "similarity_score": 0.9},
-            {"memory": {"content_hash": f"{2:064x}"}, "similarity_score": 0.5},
+            {"memory": {"content_hash": hash_de(1)}, "similarity_score": 0.9},
+            {"memory": {"content_hash": hash_de(2)}, "similarity_score": 0.5},
         ]})
-        self.assertEqual(api.search("texte", 5), [(f"{1:064x}", 0.9), (f"{2:064x}", 0.5)])
+        self.assertEqual(api.search("texte", 5), [(hash_de(1), 0.9), (hash_de(2), 0.5)])
 
     def test_elements_mal_formes_ignores(self):
         api = self._api({"results": [
@@ -481,10 +475,10 @@ class ApiSearchTest(unittest.TestCase):
             {"memory": "pas un objet non plus"},
             {"similarity_score": 0.8},                # pas de "memory" du tout
             {"memory": {}},                            # pas de content_hash
-            {"memory": {"content_hash": f"{3:064x}"}, "similarity_score": "pas un nombre"},
-            {"memory": {"content_hash": f"{4:064x}"}, "similarity_score": 0.7},
+            {"memory": {"content_hash": hash_de(3)}, "similarity_score": "pas un nombre"},
+            {"memory": {"content_hash": hash_de(4)}, "similarity_score": 0.7},
         ]})
-        self.assertEqual(api.search("texte", 5), [(f"{4:064x}", 0.7)])
+        self.assertEqual(api.search("texte", 5), [(hash_de(4), 0.7)])
 
     def test_reponse_sans_liste_results_leve_exporterror(self):
         api = self._api({"autre_chose": []})
@@ -498,9 +492,9 @@ class ApiSearchTest(unittest.TestCase):
             {"memory": {"content_hash": ["a", "b"]}, "similarity_score": 0.9},
             {"memory": {"content_hash": {"a": 1}}, "similarity_score": 0.9},
             {"memory": {"content_hash": 42}, "similarity_score": 0.9},
-            {"memory": {"content_hash": f"{5:064x}"}, "similarity_score": 0.9},
+            {"memory": {"content_hash": hash_de(5)}, "similarity_score": 0.9},
         ]})
-        self.assertEqual(api.search("texte", 5), [(f"{5:064x}", 0.9)])
+        self.assertEqual(api.search("texte", 5), [(hash_de(5), 0.9)])
 
     def test_scores_non_finis_ignores(self):
         # json.loads accepte les jetons NaN et Infinity, et 1e999 devient l'infini :
@@ -584,12 +578,12 @@ class ValeursNonFiniesTest(unittest.TestCase):
     def test_voisin_nan_ou_infini_ecarte(self):
         liste = entrees(4)
         def search(query, n):
-            return [(f"{2:064x}", float("nan")), (f"{3:064x}", float("inf")), (f"{4:064x}", 0.9)]
+            return [(hash_de(2), float("nan")), (hash_de(3), float("inf")), (hash_de(4), 0.9)]
         export.add_neighbours(liste, search)
         for entree in liste:
             for voisin in entree["voisins"]:
                 self.assertTrue(math.isfinite(voisin["score"]), entree["voisins"])
-        self.assertEqual([v["id"] for v in liste[0]["voisins"]], [f"{4:064x}"])
+        self.assertEqual([v["id"] for v in liste[0]["voisins"]], [hash_de(4)])
 
     def test_empreinte_refuse_nan(self):
         with self.assertRaises(ValueError):

@@ -4,7 +4,15 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from tests.aides import config, export, memoire
+from tests.aides import config, export, hash_de, memoire
+
+
+class AidesTest(unittest.TestCase):
+    def test_identifiants_courts_distincts(self):
+        courts = {memoire(n, "x", [])["content_hash"][:12] for n in range(1, 1001)}
+        self.assertEqual(len(courts), 1000)
+        self.assertEqual(memoire(2, "x", [])["content_hash"], hash_de(2))
+        self.assertRegex(hash_de(2), r"^[0-9a-f]{64}$")
 
 
 class ConfigProjetsTest(unittest.TestCase):
@@ -63,7 +71,7 @@ class ConfigProjetsTest(unittest.TestCase):
         brut = [memoire(1, "Note perso : à ne pas publier. Suite.", ["perso"]),
                 memoire(2, "Note publique : à publier. Suite.", ["public"])]
         payload, report = export.build_payload(brut, cfg)
-        self.assertEqual([e["id"] for e in payload["entrees"]], [f"{2:064x}"])
+        self.assertEqual([e["id"] for e in payload["entrees"]], [hash_de(2)])
         self.assertEqual(report["excluded"], 1)
 
     def test_tags_exclus_de_type_inattendu_refuses(self):

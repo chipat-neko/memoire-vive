@@ -14,6 +14,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from tests.aides import hash_de
+
 RACINE = Path(__file__).resolve().parent.parent
 CLE = "cle-de-test-123"
 ETAT = {"n": 130, "mode": "ok", "cle": CLE, "recherche": True, "posts": 0}
@@ -22,7 +24,7 @@ VERROU = threading.Lock()
 
 def fausse_memoire(i):
     return {"content": f"Projet Test{i % 7} : entrée numéro {i}. Détail sur D:\\test\\{i} et https://exemple.fr/{i}.",
-            "content_hash": f"{i:064x}", "tags": [f"test{i % 7}", "projet"], "memory_type": "note",
+            "content_hash": hash_de(i), "tags": [f"test{i % 7}", "projet"], "memory_type": "note",
             "metadata": {"access_queries": ["requête secrète"]}, "created_at": 1_790_000_000 + i,
             "created_at_iso": None, "updated_at": None, "updated_at_iso": None}
 
@@ -120,7 +122,7 @@ class PublicationTest(unittest.TestCase):
         return json.loads((self.projet / "docs" / "data.json").read_text(encoding="utf-8"))
 
     def entree(self, i):
-        return next(e for e in self.donnees()["entrees"] if e["id"] == f"{i:064x}")
+        return next(e for e in self.donnees()["entrees"] if e["id"] == hash_de(i))
 
     # Les scénarios s'enchaînent : unittest les trie par nom, d'où la numérotation.
     def test_00_dry_run_sans_recherche(self):
@@ -140,8 +142,8 @@ class PublicationTest(unittest.TestCase):
         texte = json.dumps(self.donnees(), ensure_ascii=False)
         self.assertNotIn("requête secrète", texte)
         # 5 trouve 6 (0,9) ; 4 trouve 5 (0,9), donc 5 reçoit 4 par symétrie.
-        self.assertEqual(self.entree(5)["voisins"], [{"id": f"{4:064x}", "score": 0.9},
-                                                     {"id": f"{6:064x}", "score": 0.9}])
+        self.assertEqual(self.entree(5)["voisins"], [{"id": hash_de(4), "score": 0.9},
+                                                     {"id": hash_de(6), "score": 0.9}])
         self.assertEqual(self.donnees()["schema"], 1)
         self.assertEqual(self.donnees()["voisins_reglage"], {"seuil": 0.8, "max": 5})
         self.assertEqual(self.donnees()["voisins_en_attente"], [])
@@ -168,9 +170,9 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual(code, 0, sortie)
         self.assertEqual(ETAT["posts"], 1, sortie)
         # 130 trouve 0 (131 % 131) : l'ancienne entrée 0 la reçoit par symétrie.
-        self.assertEqual(self.entree(130)["voisins"], [{"id": f"{0:064x}", "score": 0.9}])
-        self.assertIn({"id": f"{130:064x}", "score": 0.9}, self.entree(0)["voisins"])
-        self.assertIn({"id": f"{1:064x}", "score": 0.9}, self.entree(0)["voisins"], "les anciens restent")
+        self.assertEqual(self.entree(130)["voisins"], [{"id": hash_de(0), "score": 0.9}])
+        self.assertIn({"id": hash_de(130), "score": 0.9}, self.entree(0)["voisins"])
+        self.assertIn({"id": hash_de(1), "score": 0.9}, self.entree(0)["voisins"], "les anciens restent")
 
     def test_02e_recalculer_voisins(self):
         code, sortie = self.exporter("--no-git", "--recalculer-voisins")

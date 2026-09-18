@@ -301,12 +301,13 @@ select {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 4px solid var(--famille);
   border-radius: 16px;
   padding: 22px;
   display: flex; flex-direction: column; gap: 10px;
   min-width: 0;
 }
-.card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.card:hover { border-color: var(--border-strong); border-left-color: var(--famille); box-shadow: var(--shadow); }
 
 .badges { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
@@ -364,7 +365,16 @@ select {
 .tag:hover { color: var(--accent-strong); text-decoration: underline; }
 .tag-more { font-size: 12px; color: var(--text-muted); }
 
-.card .actions { display: flex; gap: 8px; margin-top: 4px; }
+.card .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+.new-badge {
+  display: inline-block;
+  font: 700 11px var(--sans); letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--on-accent); background: var(--accent-fill);
+  padding: 3px 8px; border-radius: 999px;
+}
+
+.meta-line time { text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; }
 .btn-primary, .btn-secondary {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font: 600 13px var(--sans);

@@ -15,6 +15,10 @@ const TYPE_PLURALS = {
 
 const fmtDay = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const fmtLong = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+const rtfShort = new Intl.RelativeTimeFormat('fr', { numeric: 'auto', style: 'short' });
+const rtfLong = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' });
+
+export const VISIT_KEY = 'memoire-vive:derniere-visite';
 
 export function el(tag, attrs, ...children) {
   const node = document.createElement(tag);
@@ -59,6 +63,61 @@ export function formatDay(value) {
 export function formatLong(iso) {
   const time = Date.parse(iso);
   return Number.isNaN(time) ? '' : fmtLong.format(time);
+}
+
+/* « il y a 3 j », « hier », « il y a 2 sem. », « il y a 3 mois »… ; now en ms. */
+export function relativeDate(iso, now = Date.now()) {
+  const time = typeof iso === 'number' ? iso : Date.parse(iso);
+  if (Number.isNaN(time)) return '';
+  const seconds = (now - time) / 1000;
+  if (seconds < 60) return 'à l’instant';
+  const minutes = seconds / 60;
+  if (minutes < 60) return rtfShort.format(-Math.floor(minutes), 'minute');
+  const hours = minutes / 60;
+  if (hours < 24) return rtfShort.format(-Math.floor(hours), 'hour');
+  const days = hours / 24;
+  if (days < 7) return rtfShort.format(-Math.floor(days), 'day');
+  if (days < 30) return rtfShort.format(-Math.floor(days / 7), 'week');
+  if (days < 365) return rtfLong.format(-Math.floor(days / 30), 'month');
+  return rtfLong.format(-Math.floor(days / 365), 'year');
+}
+
+/* Date relative, date exacte en infobulle. */
+export function timeElement(iso) {
+  return el('time', { datetime: iso, title: formatLong(iso) }, relativeDate(iso));
+}
+
+/* Horodatage mémorisé à la visite précédente (null à la première visite ou
+   sans stockage), puis mémorise stamp pour la prochaine. getStorage est une
+   fonction : le simple accès à localStorage peut lever une exception. */
+export function lastVisit(getStorage, stamp) {
+  try {
+    const storage = getStorage();
+    const value = storage.getItem(VISIT_KEY);
+    const time = value ? Date.parse(value) : NaN;
+    storage.setItem(VISIT_KEY, stamp);
+    return Number.isNaN(time) ? null : time;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function isNew(entry, since) {
+  return since !== null && since !== undefined && entry._time > since;
+}
+
+export function newBadge() {
+  return el('span', { class: 'new-badge' }, 'nouveau');
+}
+
+/* Bouton du lien principal : « Ouvrir le site ↗ » ou « Dépôt ↗ ». */
+export function mainLinkButton(link, name) {
+  if (!link) return null;
+  const label = link.genre === 'depot' ? 'Dépôt' : 'Ouvrir le site';
+  return el('a', {
+    class: 'btn-secondary main-link', href: link.url, target: '_blank', rel: 'noopener noreferrer',
+    title: link.url, 'aria-label': label + ' : ' + name + ' (nouvel onglet)',
+  }, label, el('span', { 'aria-hidden': 'true' }, ' ↗'));
 }
 
 export function isWebUrl(value) {
@@ -130,22 +189,23 @@ export function linksInfo(entry) {
   return parts.length ? el('span', { class: 'links-info' }, parts.join(' · ')) : null;
 }
 
-export function card(entry, targets) {
+/* Carte d'une entrée. options : targets (surlignage), since (dernière visite). */
+export function card(entry, { targets = null, since = null } = {}) {
   const tagsShown = entry.tags.slice(0, 5);
   const extraTags = entry.tags.length - tagsShown.length;
-  return el('article', { class: 'card' },
-    el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet ? projectButton(entry) : null),
+  return el('article', { class: 'card', 'data-couleur': entry._family ? entry._family.couleur : null },
+    el('div', { class: 'badges' }, typeBadge(entry.type), entry.projet ? projectButton(entry) : null,
+      isNew(entry, since) ? newBadge() : null),
     el('h3', null, el('a', { href: entryHash(entry) }, highlight(entry.titre, targets))),
     entry.resume ? el('p', { class: 'resume' }, highlight(entry.resume, targets)) : null,
-    el('div', { class: 'meta-line' },
-      el('time', { datetime: entry.cree_le }, formatDay(entry.cree_le)),
-      linksInfo(entry)),
+    el('div', { class: 'meta-line' }, timeElement(entry.cree_le), linksInfo(entry)),
     tagsShown.length ? el('ul', { class: 'tags', 'aria-label': 'Tags' },
       tagsShown.map((tag) => el('li', null,
         el('button', { type: 'button', class: 'tag', 'data-action': 'tag', 'data-tag': tag }, highlight(tag, targets)))),
       extraTags > 0 ? el('li', { class: 'tag-more' }, '+' + extraTags) : null) : null,
     el('div', { class: 'actions' },
-      el('a', { class: 'btn-primary', href: entryHash(entry), 'aria-label': 'Voir la fiche : ' + entry.titre }, 'Voir la fiche')),
+      el('a', { class: 'btn-primary', href: entryHash(entry), 'aria-label': 'Voir la fiche : ' + entry.titre }, 'Voir la fiche'),
+      mainLinkButton(entry._mainLink, entry.titre)),
   );
 }
 

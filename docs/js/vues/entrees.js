@@ -128,7 +128,7 @@ export function createListView(ctx) {
       dom.groups.hidden = true;
       dom.grid.hidden = false;
       const fragment = document.createDocumentFragment();
-      for (const entry of list.slice(0, state.shown)) fragment.append(card(entry, targets));
+      for (const entry of list.slice(0, state.shown)) fragment.append(card(entry, { targets, since: state.since }));
       dom.grid.append(fragment);
       const remaining = list.length - state.shown;
       if (remaining > 0) {
@@ -244,7 +244,7 @@ export function createListView(ctx) {
           + (lastDate ? ' — dernière le ' + formatDay(lastDate) : '')));
 
       const shown = single ? members : members.slice(0, config.groupPreview);
-      const grid = el('div', { class: 'grid' }, shown.map((entry) => card(entry, targets)));
+      const grid = el('div', { class: 'grid' }, shown.map((entry) => card(entry, { targets, since: state.since })));
       const section = el('section', { class: 'group', 'aria-label': name }, head, grid);
       if (members.length > shown.length) {
         section.append(el('div', { class: 'group-more' },

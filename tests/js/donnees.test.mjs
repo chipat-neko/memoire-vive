@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadData, prepare, DataError, NO_PROJECT } from '../../docs/js/donnees.js';
+import { loadData, prepare, mainLink, DataError, NO_PROJECT } from '../../docs/js/donnees.js';
 import { search } from '../../docs/js/recherche.js';
 
 function reponse(corps, { status = 200, type = 'application/json' } = {}) {
@@ -49,4 +49,30 @@ test('prepare : champs dérivés, projets et ordre des types', () => {
   assert.deepEqual(model.typeOrder, ['note', 'zeta']);
   assert.equal(model.projects.get('alpha').nom, 'Alpha');
   assert.deepEqual(search(model.index, 'coeur alpha').hits.map((h) => h.doc), [0]);
+});
+
+test('lien principal : URL http(s) seulement', () => {
+  assert.deepEqual(mainLink({ url: 'https://a.github.io/x/', genre: 'site' }), { url: 'https://a.github.io/x/', genre: 'site' });
+  assert.deepEqual(mainLink({ url: 'https://github.com/a/b', genre: 'depot' }), { url: 'https://github.com/a/b', genre: 'depot' });
+  assert.deepEqual(mainLink({ url: 'https://a.fr', genre: 'autre' }), { url: 'https://a.fr/', genre: 'site' });
+  for (const valeur of [null, 'https://a.fr', { url: 'javascript:alert(1)' }, { url: 'data:text/html,x' }, { url: 42 }]) {
+    assert.equal(mainLink(valeur), null, JSON.stringify(valeur));
+  }
+});
+
+test('familles : ordre, couleur valide, rattachement aux projets et aux entrées', () => {
+  const model = prepare({
+    familles: [{ id: 'jeux', nom: 'Jeux', couleur: 1 }, { id: 'ia', nom: 'IA', couleur: '3;x' }, { id: 'jeux', nom: 'Doublon', couleur: 2 }, null],
+    projets: [{ id: 'depths', nom: 'Depths', famille: 'jeux', lien_principal: { url: 'javascript:1', genre: 'site' } },
+      { id: 'jarvis', nom: 'Jarvis', famille: 'inconnue' }],
+    entrees: [{ id: 'aaaaaaaaaaaa0000', titre: 'x', type: 'note', projet: 'depths', cree_le: '2026-09-18T00:00:00Z',
+      lien_principal: { url: 'https://github.com/a/depths', genre: 'depot' } }],
+  });
+  assert.deepEqual(Array.from(model.families.values()), [
+    { id: 'jeux', nom: 'Jeux', couleur: 1 }, { id: 'ia', nom: 'IA', couleur: null }]);
+  assert.equal(model.projects.get('depths')._family.nom, 'Jeux');
+  assert.equal(model.projects.get('depths')._mainLink, null);
+  assert.equal(model.projects.get('jarvis')._family, null);
+  assert.equal(model.entries[0]._family.couleur, 1);
+  assert.deepEqual(model.entries[0]._mainLink, { url: 'https://github.com/a/depths', genre: 'depot' });
 });

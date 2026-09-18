@@ -43,9 +43,33 @@ export async function loadData(url, supportedSchema, fetcher = fetch) {
   return data;
 }
 
+/* Lien principal d'une entrée ou d'un projet : seulement une URL http(s). */
+export function mainLink(value) {
+  if (!value || typeof value !== 'object' || !isWebUrl(value.url)) return null;
+  return { url: new URL(value.url).href, genre: value.genre === 'depot' ? 'depot' : 'site' };
+}
+
+/* Familles dans l'ordre configuré ; couleur : entier de 1 à 6, sinon null. */
+function prepareFamilies(list) {
+  const families = new Map();
+  for (const family of Array.isArray(list) ? list : []) {
+    if (!family || typeof family.id !== 'string' || !family.id || families.has(family.id)) continue;
+    const couleur = Number.isInteger(family.couleur) && family.couleur >= 1 && family.couleur <= 6 ? family.couleur : null;
+    families.set(family.id, { id: family.id, nom: String(family.nom || family.id), couleur });
+  }
+  return families;
+}
+
 export function prepare(data) {
+  const families = prepareFamilies(data.familles);
   const projects = new Map();
-  for (const project of data.projets || []) projects.set(project.id, project);
+  for (const project of Array.isArray(data.projets) ? data.projets : []) {
+    if (!project || !project.id) continue;
+    projects.set(project.id, Object.assign({}, project, {
+      _family: families.get(project.famille) || null,
+      _mainLink: mainLink(project.lien_principal),
+    }));
+  }
 
   const entries = data.entrees.map((entry) => {
     const tags = Array.isArray(entry.tags) ? entry.tags.map(String) : [];
@@ -59,6 +83,8 @@ export function prepare(data) {
       _time: Date.parse(entry.cree_le) || 0,
       _project: entry.projet || NO_PROJECT,
       _projectName: projectName,
+      _family: project ? project._family : null,
+      _mainLink: mainLink(entry.lien_principal),
       _short: String(entry.id || '').slice(0, 12),
       _online: liens.filter((l) => l.type === 'en_ligne' && isWebUrl(l.valeur)).length,
       _invalid: liens.filter((l) => l.type === 'en_ligne' && !isWebUrl(l.valeur)).length,
@@ -78,5 +104,5 @@ export function prepare(data) {
     content: e.contenu,
   })), data.synonymes);
 
-  return { data, entries, projects, typeOrder, index };
+  return { data, entries, projects, families, typeOrder, index };
 }

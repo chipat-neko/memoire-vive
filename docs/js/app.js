@@ -3,7 +3,7 @@
    déjà préparé par scripts/export.py (titres, résumés, projets, liens). */
 import { loadData, prepare, DataError } from './donnees.js';
 import { parseHash, searchHash, defaultFilters } from './routes.js';
-import { el, plural, formatLong } from './composants.js';
+import { el, plural, formatLong, lastVisit } from './composants.js';
 import { createListView } from './vues/entrees.js';
 import { createEntryView } from './vues/fiche.js';
 
@@ -22,6 +22,8 @@ const state = {
   projects: new Map(),
   typeOrder: [],
   index: null,           // index de recherche (recherche.js)
+  families: new Map(),
+  since: null,           // dernière visite (ms) : entrées plus récentes « nouveau »
   filters: { q: '', ...defaultFilters() },
   shown: CONFIG.pageSize,
   showAllProjects: false,
@@ -78,6 +80,10 @@ function init(data) {
   state.projects = model.projects;
   state.typeOrder = model.typeOrder;
   state.index = model.index;
+  state.families = model.families;
+  // L'horodatage mémorisé est celui de l'export affiché : une entrée créée
+  // avant la visite mais publiée après reste « nouvelle » à la suivante.
+  state.since = lastVisit(() => window.localStorage, data.genere_le || new Date().toISOString());
   renderStats();
   dom.status.hidden = true;
   route();

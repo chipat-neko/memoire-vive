@@ -108,8 +108,13 @@ test('frappe : les résultats suivent, le focus reste dans le champ', async () =
   assert.ok(await page.locator('#h-res-entrees ~ .grid mark').count() > 0);
   assert.equal(await page.evaluate(() => document.activeElement?.id), 'search-input');
   // Quitter la recherche vide le champ : il ne suggère pas un filtre absent.
+  // Attente sur un repère propre à l'accueil (pas « .project-card » : le jeu
+  // de test a un projet « Mémoire Vive », donc la page de résultats de
+  // « memoire » a déjà sa propre carte de projet avant le clic — un sélecteur
+  // ambigu se satisferait de cet élément non remplacé, avant même que le
+  // gestionnaire hashchange (asynchrone) n'ait vidé le champ).
   await page.click('#nav-home');
-  await page.locator('.project-card').first().waitFor();
+  await page.locator('#titre-vue', { hasText: 'Projets' }).waitFor();
   assert.equal(await page.inputValue('#search-input'), '');
   await terminer(page);
 });

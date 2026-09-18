@@ -227,10 +227,66 @@ def describe_source(config: dict[str, str]) -> str:
     return config["api_url"] if config["local"] else "dashboard distant (MEMOIRE_API_URL)"
 
 
-def load_projects_config() -> dict:
-    if not PROJECTS_CONFIG.is_file():
+PROJECT_KEYS = ("nom", "famille", "alias", "description", "lien_principal")
+
+
+def _read_json_config(path: Path) -> dict:
+    if not path.is_file():
         return {}
-    return json.loads(PROJECTS_CONFIG.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+    except ValueError as err:
+        raise ExportError(f"{path.name} : JSON invalide ({err}).") from None
+    if not isinstance(data, dict):
+        raise ExportError(f"{path.name} : un objet JSON est attendu.")
+    return data
+
+
+def normalize_projects_config(raw: dict) -> dict:
+    """
+    Réglages des projets, toujours sous la forme v2. Une configuration v1
+    (« alias » et « noms » globaux) est convertie à la volée.
+    """
+    raw = raw or {}
+    projets: dict[str, dict] = {}
+
+    def projet(key: str) -> dict:
+        return projets.setdefault(slug(key), {
+            "nom": None, "famille": None, "alias": [], "description": None, "lien_principal": None})
+
+    if raw.get("version") == 2:
+        for key, values in (raw.get("projets") or {}).items():
+            target = projet(key)
+            for name in PROJECT_KEYS:
+                if isinstance(values, dict) and name in values:
+                    target[name] = values[name]
+            target["alias"] = [slug(a) for a in (target["alias"] or []) if slug(str(a))]
+    else:
+        for alias, key in (raw.get("alias") or {}).items():
+            projet(key)["alias"].append(slug(alias))
+        for key, name in (raw.get("noms") or {}).items():
+            projet(key)["nom"] = name
+
+    familles = [
+        {"id": slug(f["id"]), "nom": f.get("nom") or f["id"], "couleur": int(f.get("couleur") or 0)}
+        for f in (raw.get("familles") or []) if isinstance(f, dict) and f.get("id")
+    ]
+    known = {f["id"] for f in familles}
+    for target in projets.values():
+        famille = slug(target["famille"]) if target["famille"] else None
+        target["famille"] = famille if famille in known else None
+
+    return {
+        "version": 2,
+        "familles": familles,
+        "projets": projets,
+        "tags_generiques": list(raw.get("tags_generiques") or []),
+        "tags_exclus": list(raw.get("tags_exclus") or []),
+    }
+
+
+def load_projects_config() -> dict:
+    return normalize_projects_config(_read_json_config(PROJECTS_CONFIG))
 
 
 # --------------------------------------------------------------------------
@@ -610,8 +666,8 @@ def assign_projects(entries: list[dict], config: dict) -> None:
     l'ensemble de la mémoire (à égalité, le plus tôt dans la liste).
     Les alias de config/projets.json fusionnent deux tags d'un même projet.
     """
-    generic = GENERIC_TAGS | {slug(t) for t in config.get("tags_generiques", [])}
-    aliases = {slug(k): slug(v) for k, v in config.get("alias", {}).items()}
+    generic = GENERIC_TAGS | {slug(t) for t in config["tags_generiques"]}
+    aliases = {alias: key for key, projet in config["projets"].items() for alias in projet["alias"]}
 
     def candidates(entry: dict) -> list[str]:
         return [t for t in entry["_tags_slug"] if t and t not in generic]
@@ -650,7 +706,7 @@ def _name_from_text(content: str) -> str | None:
 
 
 def project_names(entries: list[dict], config: dict) -> dict[str, str]:
-    overrides = {slug(k): v for k, v in config.get("noms", {}).items()}
+    overrides = {key: projet["nom"] for key, projet in config["projets"].items() if projet["nom"]}
     extracted: dict[str, str] = {}
     # Le nom vient de la plus ancienne entrée qui nomme le projet.
     for entry in sorted(entries, key=lambda e: e["cree_le"] or ""):
@@ -680,7 +736,7 @@ def iso(value) -> str | None:
 
 
 def build_payload(raw: list[dict], config: dict, known_secrets: tuple[str, ...] = ()) -> tuple[dict, dict]:
-    excluded_tags = EXCLUDED_TAGS | {slug(t) for t in config.get("tags_exclus", [])}
+    excluded_tags = EXCLUDED_TAGS | {slug(t) for t in config["tags_exclus"]}
     report = {"excluded": 0, "redactions": 0, "redacted_entries": []}
     entries = []
 

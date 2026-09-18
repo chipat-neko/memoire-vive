@@ -60,9 +60,15 @@ export function editDistance(a, b, max) {
   return Math.min(previous[b.length], max + 1);
 }
 
+/* Article ou pronom élidé en tête d'un terme (« l'IA », « d'applications »,
+   « qu'un ») : le texte est déjà normalisé, l'apostrophe est droite. */
+const ELISION = /^(?:qu|[cdjlmnst])'(?=[\p{L}\p{N}])/u;
+
 /* Termes de la requête : { words, quoted, exclude, prefix }. Les guillemets
    typographiques valent des guillemets droits ; un guillemet non fermé vaut
-   jusqu'à la fin. Seul le dernier terme (frappe en cours) accepte les préfixes. */
+   jusqu'à la fin. Seul le dernier terme (frappe en cours) accepte les préfixes,
+   et jamais une lettre seule (elle s'étendrait à tout le vocabulaire). Hors
+   guillemets, l'article élidé est retiré : « l'IA » cherche « IA ». */
 export function parseQuery(query) {
   const text = normalize(query).replace(/[“”«»]/g, '"');
   const terms = [];
@@ -73,7 +79,7 @@ export function parseQuery(query) {
       let raw = match[4];
       const exclude = raw.length > 1 && raw.startsWith('-');
       if (exclude) raw = raw.slice(1);
-      const words = tokenize(raw);
+      const words = tokenize(raw.replace(ELISION, ''));
       if (words.length) terms.push({ words, quoted: false, exclude, closed: true, prefix: false });
     } else {
       const words = tokenize(match[2]);
@@ -81,8 +87,36 @@ export function parseQuery(query) {
     }
   }
   const last = terms[terms.length - 1];
-  if (last && !last.exclude && !(last.quoted && last.closed)) last.prefix = true;
+  if (last && !last.exclude && !(last.quoted && last.closed) && (last.words.length > 1 || last.words[0].length >= 2)) {
+    last.prefix = true;
+  }
   return terms.map(({ closed, ...term }) => term);
+}
+
+/* « intelligence artificielle », « hors ligne » tapés avec une espace : des
+   termes consécutifs, sans guillemets ni exclusion, qui forment ensemble un
+   membre d'un groupe de synonymes deviennent un seul terme (le plus long
+   possible), qui vaut alors n'importe quel terme du groupe. */
+function mergeSynonymRuns(index, terms) {
+  if (!index.groupOf.size) return terms;
+  const merged = [];
+  for (let i = 0; i < terms.length;) {
+    let size = Math.min(index.longestSynonym, terms.length - i);
+    for (; size >= 2; size--) {
+      const run = terms.slice(i, i + size);
+      if (run.some((t) => t.quoted || t.exclude)) continue;
+      if (index.groupOf.has(run.flatMap((t) => t.words).map(stem).join(' '))) break;
+    }
+    if (size < 2) {
+      merged.push(terms[i]);
+      i += 1;
+    } else {
+      const run = terms.slice(i, i + size);
+      merged.push({ words: run.flatMap((t) => t.words), quoted: false, exclude: false, prefix: run[size - 1].prefix });
+      i += size;
+    }
+  }
+  return merged;
 }
 
 function fieldIndex(text) {
@@ -120,7 +154,9 @@ export function buildIndex(documents, synonyms = []) {
     for (const key of members) if (!groupOf.has(key)) groupOf.set(key, groups.length);
     groups.push(members);
   }
-  return { docs, postings, words: Array.from(postings.keys()).sort(), groups, groupOf, cache: new Map() };
+  // Nombre de mots du plus long membre d'un groupe (regroupement des termes).
+  const longestSynonym = Math.max(0, ...Array.from(groupOf.keys(), (key) => key.split(' ').length));
+  return { docs, postings, words: Array.from(postings.keys()).sort(), groups, groupOf, longestSynonym, cache: new Map() };
 }
 
 function firstAtLeast(sorted, value) {
@@ -281,7 +317,7 @@ function excluded(index, term) {
    contient au moins un terme positif (sinon tout document non exclu est gardé,
    avec un score nul). Seuls les documents qui ont tous les termes sont notés. */
 export function search(index, query) {
-  const terms = parseQuery(query);
+  const terms = mergeSynonymRuns(index, parseQuery(query));
   const positives = terms.filter((t) => !t.exclude).map((t) => candidatesOf(index, t));
   const targets = { words: new Set(), phrases: [] };
   for (const candidates of positives) {

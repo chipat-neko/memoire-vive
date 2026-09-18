@@ -96,6 +96,36 @@ test('synonymes : un terme vaut n’importe quel terme de son groupe', () => {
   assert.deepEqual(trouves('ia graphique'), [5]);
 });
 
+test('synonymes de plusieurs mots tapés avec une espace : dans les deux sens', () => {
+  assert.deepEqual(trouves('hors ligne'), trouves('offline'));
+  assert.deepEqual(trouves('hors ligne'), [0, 2]);
+  assert.deepEqual(trouves('intelligence artificielle'), [0, 5]);    // 5 : « LLM » seulement
+  assert.deepEqual(trouves('hors ligne rivieres'), [2]);             // groupe, puis ET
+  assert.deepEqual(trouves('"hors ligne"'), [2]);                    // guillemets : expression exacte
+  assert.deepEqual(trouves('-hors ligne'), []);                      // exclusion : jamais regroupée
+});
+
+test('article élidé : « l’IA » vaut « IA », « d’applications » vaut « applications »', () => {
+  assert.deepEqual(parseQuery('l’IA'), [{ words: ['ia'], quoted: false, exclude: false, prefix: true }]);
+  assert.deepEqual(parseQuery("-d'animaux qu'un"), [
+    { words: ['animaux'], quoted: false, exclude: true, prefix: false },
+    { words: ['un'], quoted: false, exclude: false, prefix: true },
+  ]);
+  assert.deepEqual(trouves("l'ia graphique"), trouves('ia graphique'));
+  assert.deepEqual(trouves("l'ia graphique"), [5]);
+  assert.deepEqual(trouves("d'intelligence artificielle"), [0, 5]);
+  assert.deepEqual(parseQuery('"l’atelier"')[0].words, ['l', 'atelier']); // guillemets : inchangé
+  assert.deepEqual(parseQuery("aujourd'hui")[0].words, ['aujourd', 'hui']);
+});
+
+test('guillemet ouvert et une seule lettre : pas de préfixe (tout le vocabulaire)', () => {
+  assert.deepEqual(parseQuery('"d'), [{ words: ['d'], quoted: true, exclude: false, prefix: false }]);
+  assert.deepEqual(parseQuery('d'), [{ words: ['d'], quoted: false, exclude: false, prefix: false }]);
+  assert.deepEqual(trouves('"d'), trouves('d'));
+  assert.deepEqual(trouves('"d'), []);
+  assert.deepEqual(trouves('"donj'), [1]);                          // deux lettres et plus : préfixe
+});
+
 test('expression exacte et termes combinés en ET', () => {
   assert.deepEqual(trouves('tour de controle'), [3, 4]);
   assert.deepEqual(trouves('"tour de controle"'), [3]);

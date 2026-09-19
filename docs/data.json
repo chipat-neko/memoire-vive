@@ -1,11 +1,11 @@
 {
  "schema": 2,
- "genere_le": "2026-09-18T17:35:32Z",
+ "genere_le": "2026-09-19T06:16:00Z",
  "source": "mcp-memory-service",
- "nb_entrees": 72,
+ "nb_entrees": 77,
  "types": {
   "note": 41,
-  "milestone": 16,
+  "milestone": 21,
   "reference": 9,
   "decision": 5,
   "error": 1
@@ -116,12 +116,12 @@
     "url": "https://chipat-neko.github.io/memoire-vive/",
     "genre": "site"
    },
-   "nb": 2,
+   "nb": 4,
    "types": {
-    "milestone": 2
+    "milestone": 4
    },
    "premiere": "2026-09-18T06:46:26.560365Z",
-   "derniere": "2026-09-18T17:35:27.368665Z"
+   "derniere": "2026-09-19T06:15:58.669374Z"
   },
   {
    "id": "depths",
@@ -129,13 +129,13 @@
    "famille": "jeux",
    "description": "Jalon 1 livré le 2026-09-18 sur la branche feat/dungeon-generation (non fusionnée dans master) : génération procédurale de donjon (salles préfabriquées sur grille 9×8, croissance aléatoire avec budget de 12 salles, boss/trésor/boutique placés dans les…",
    "lien_principal": null,
-   "nb": 4,
+   "nb": 7,
    "types": {
-    "milestone": 3,
+    "milestone": 6,
     "note": 1
    },
    "premiere": "2026-09-17T20:01:49.317405Z",
-   "derniere": "2026-09-18T10:32:10.997005Z"
+   "derniere": "2026-09-18T19:59:38.337441Z"
   },
   {
    "id": "ce-ventre",
@@ -758,6 +758,235 @@
  ],
  "entrees": [
   {
+   "id": "465ac3ddd4f0dd3a4285d095f0368d7eee2b3c6648bd147ed4f802524db2cc74",
+   "titre": "Mémoire Vive — jalon livré le 19/09/2026",
+   "resume": "Chantier B (nouveau site public) fusionné dans main et publié sur https://chipat-neko.github.io/memoire-vive/. Le site est découpé en modules ES (docs/js : donnees, recherche, routes, composants, vues/*, app) sous CSP stricte, sans dépendance.",
+   "contenu": "Mémoire Vive — jalon livré le 19/09/2026 : chantier B (nouveau site public) fusionné dans main et publié sur https://chipat-neko.github.io/memoire-vive/. Le site est découpé en modules ES (docs/js : donnees, recherche, routes, composants, vues/*, app) sous CSP stricte, sans dépendance. Accueil = catalogue des 46 projets par famille (liseré de couleur, description, dernière activité, bouton du lien principal) ; page par projet (#/projet/<id> : décisions, jalons en chronologie, erreurs, liens, adresses locales, projets proches) ; onglet « Toutes les entrées » (grille ou liste, filtres type/famille/projet/tag) ; recherche dans l'en-tête (#/recherche) tolérante aux fautes, pluriels et synonymes, avec \"expression exacte\", -mot et section « En rapport » ; fiche avec « Voir aussi ». data.json passe en schéma 2 (export et site dans le même push). Décision durable : toute modification de docs/style.css ou docs/theme.js doit mettre à jour leur ?v= dans docs/index.html (vérifié par tests/js/cache.test.mjs). Tests : 104 navigateur (tests/navigateur, npm test, Chrome installé), 53 Node (tests/js), 87 Python. Prochaine étape : chantier C (page d'admin locale).",
+   "type": "milestone",
+   "tags": [
+    "memoire-vive",
+    "projet",
+    "jalon",
+    "decision"
+   ],
+   "cree_le": "2026-09-19T06:15:58.669374Z",
+   "modifie_le": "2026-09-19T06:15:58.669374Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://chipat-neko.github.io/memoire-vive/"
+    }
+   ],
+   "lien_principal": {
+    "url": "https://chipat-neko.github.io/memoire-vive/",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "memoire-vive",
+   "voisins": [
+    {
+     "id": "23d37afa7ffc0148c1ed57e73149eea60fec02d76ac6958082b492385ea90b71",
+     "score": 0.886
+    },
+    {
+     "id": "405b50d3efc0c8668968690c9885d25d071c8adbe30b05f9deafe5dfb19e9d3d",
+     "score": 0.865
+    },
+    {
+     "id": "ab8be2a4a2a0dc8c0f935eed568d9e9505aea578c08ad95ddffc35f8fb4f52e4",
+     "score": 0.863
+    },
+    {
+     "id": "53b605648976f61e3c8c45e5685e7ffb730eb12941a3175c5d4c25dba024b000",
+     "score": 0.823
+    }
+   ]
+  },
+  {
+   "id": "ab8be2a4a2a0dc8c0f935eed568d9e9505aea578c08ad95ddffc35f8fb4f52e4",
+   "titre": "Projet memoire_vive : chantier B terminé — Tasks 1 à 17 du plan…",
+   "resume": "Le site public data.json passe au schéma 2 (avec scripts/export.py) : pages projet, onglet « Toutes les entrées » (grille/liste, filtres), recherche tolérante (fautes, pluriels, synonymes, expressions, exclusions), cartes enrichies, fiche « Voir aussi ».",
+   "contenu": "Projet memoire_vive : chantier B (site public GitHub Pages, docs/) terminé — Tasks 1 à 17 du plan D:\\memoire_vive\\conception\\plans\\2026-09-18-chantier-b-site.md implémentées et testées sur la branche chantier-b (copie de travail D:\\memoire_vive-chantier-b, worktree git séparé de D:\\memoire_vive qui reste sur main). Le site public data.json passe au schéma 2 (avec scripts/export.py) : pages projet, onglet « Toutes les entrées » (grille/liste, filtres), recherche tolérante (fautes, pluriels, synonymes, expressions, exclusions), cartes enrichies, fiche « Voir aussi ». Tests à la fin du chantier : 87 tests Python (tests/), 40 tests Node (tests/js), 83 tests navigateur (tests/navigateur, playwright-core pilotant Chrome local) — tous verts, y compris tests/navigateur/reel.test.mjs qui rejoue la recette sur le vrai data.json du dépôt (et pourra être rejouée sur le site publié via MEMOIRE_SITE_URL). Reste hors plan, décidé par Noah : revue multi-agents adversariale, fusion avec les exports faits sur main pendant le chantier, puis publication (merge --ff-only vers main et push).",
+   "type": "milestone",
+   "tags": [
+    "memoire_vive",
+    "chantier-b",
+    "site-public",
+    "milestone",
+    "github-pages"
+   ],
+   "cree_le": "2026-09-18T22:35:34.210293Z",
+   "modifie_le": "2026-09-18T22:35:34.210293Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\memoire_vive\\conception\\plans\\2026-09-18-chantier-b-site.md"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\memoire_vive-chantier-b"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\memoire_vive"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "memoire-vive",
+   "voisins": [
+    {
+     "id": "465ac3ddd4f0dd3a4285d095f0368d7eee2b3c6648bd147ed4f802524db2cc74",
+     "score": 0.863
+    },
+    {
+     "id": "23d37afa7ffc0148c1ed57e73149eea60fec02d76ac6958082b492385ea90b71",
+     "score": 0.838
+    }
+   ]
+  },
+  {
+   "id": "140cd82db6fd99b6f0f8a0e90c7e93a10fa47fd324ee274c93ff22e07ee3b839",
+   "titre": "Projet Depths — jalon 6 « menu principal et seed » livré le 2026-09-18 sur la branche feat/main-menu",
+   "resume": "Le jeu démarre sur une scène Menu (index 0 du build) : nouvelle partie, saisie de seed, quitter ; en fin de run, R rejoue la même seed et Échap revient au menu.",
+   "contenu": "Projet Depths (D:\\depths) — jalon 6 « menu principal et seed » livré le 2026-09-18 sur la branche feat/main-menu (depuis master, qui contient les jalons 1 à 5). Le jeu démarre sur une scène Menu (index 0 du build) : nouvelle partie, saisie de seed, quitter ; en fin de run, R rejoue la même seed et Échap revient au menu. Décision durable : seed demandée transmise par un report statique (RunLaunch), comme le report d'étage. Non joué par un humain ; détails dans docs/journal-de-decisions.md.",
+   "type": "milestone",
+   "tags": [
+    "depths",
+    "rogue-lite",
+    "unity",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-18T19:59:38.337441Z",
+   "modifie_le": "2026-09-18T19:59:38.337441Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\depths"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "depths",
+   "voisins": [
+    {
+     "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
+     "score": 0.907
+    },
+    {
+     "id": "32208d4756bde309ae0ef35e719ec89a411d429e30921a64d90471bf437fdee7",
+     "score": 0.862
+    },
+    {
+     "id": "12cf6e49728f062fd83d1ce91883ea74988229a19a3c3858ff008ac99168d376",
+     "score": 0.852
+    },
+    {
+     "id": "b56679581e3982d19a89e28830ad7195b22ca549bfc7afaeca49e27119eb6b52",
+     "score": 0.841
+    },
+    {
+     "id": "12f20b84ce5b76bc810987340fcd9af5facdd7882cb5bb84d8ed40457bd116b5",
+     "score": 0.814
+    }
+   ]
+  },
+  {
+   "id": "12f20b84ce5b76bc810987340fcd9af5facdd7882cb5bb84d8ed40457bd116b5",
+   "titre": "Projet Depths — jalon 5 « les sons » livré le 2026-09-18 sur la branche feat/sounds",
+   "resume": "Treize effets sonores 8 bits synthétisés par code (SoundSynth, cœur pur), joués par SfxPlayer (six voix, touche M = sourdine) et branchés par SfxBinder sur des événements du jeu.",
+   "contenu": "Projet Depths (D:\\depths) — jalon 5 « les sons » livré le 2026-09-18 sur la branche feat/sounds (depuis master, qui contient les jalons 1 à 4). Treize effets sonores 8 bits synthétisés par code (SoundSynth, cœur pur), joués par SfxPlayer (six voix, touche M = sourdine) et branchés par SfxBinder sur des événements du jeu. Décision durable : aucun fichier audio dans le dépôt, le gameplay ne dépend pas de l'audio. Non écouté par un humain ; détails dans docs/journal-de-decisions.md.",
+   "type": "milestone",
+   "tags": [
+    "depths",
+    "rogue-lite",
+    "unity",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-18T19:12:36.657256Z",
+   "modifie_le": "2026-09-18T19:12:36.657256Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\depths"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "depths",
+   "voisins": [
+    {
+     "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
+     "score": 0.831
+    },
+    {
+     "id": "32208d4756bde309ae0ef35e719ec89a411d429e30921a64d90471bf437fdee7",
+     "score": 0.826
+    },
+    {
+     "id": "b56679581e3982d19a89e28830ad7195b22ca549bfc7afaeca49e27119eb6b52",
+     "score": 0.825
+    },
+    {
+     "id": "12cf6e49728f062fd83d1ce91883ea74988229a19a3c3858ff008ac99168d376",
+     "score": 0.819
+    },
+    {
+     "id": "140cd82db6fd99b6f0f8a0e90c7e93a10fa47fd324ee274c93ff22e07ee3b839",
+     "score": 0.814
+    }
+   ]
+  },
+  {
+   "id": "b56679581e3982d19a89e28830ad7195b22ca549bfc7afaeca49e27119eb6b52",
+   "titre": "Projet Depths — jalon 4 « le tireur » livré le 2026-09-18 sur la branche feat/shooter",
+   "resume": "Troisième ennemi (EnemyKind.Shooter), présent aux étages 2-3 seulement : garde ses distances et lance des projectiles qui traversent les ennemis et s'arrêtent sur les murs.",
+   "contenu": "Projet Depths (D:\\depths) — jalon 4 « le tireur » livré le 2026-09-18 sur la branche feat/shooter (depuis master, qui contient les jalons 1 à 3). Troisième ennemi (EnemyKind.Shooter), présent aux étages 2-3 seulement : garde ses distances et lance des projectiles qui traversent les ennemis et s'arrêtent sur les murs. Décision durable : l'étage 1 garde exactement ses tirages d'avant (test de référence). Non joué par un humain ; détails dans docs/journal-de-decisions.md.",
+   "type": "milestone",
+   "tags": [
+    "depths",
+    "rogue-lite",
+    "unity",
+    "projet",
+    "jalon"
+   ],
+   "cree_le": "2026-09-18T17:51:31.859887Z",
+   "modifie_le": "2026-09-18T17:51:31.859887Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\depths"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "depths",
+   "voisins": [
+    {
+     "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
+     "score": 0.888
+    },
+    {
+     "id": "32208d4756bde309ae0ef35e719ec89a411d429e30921a64d90471bf437fdee7",
+     "score": 0.861
+    },
+    {
+     "id": "140cd82db6fd99b6f0f8a0e90c7e93a10fa47fd324ee274c93ff22e07ee3b839",
+     "score": 0.841
+    },
+    {
+     "id": "12f20b84ce5b76bc810987340fcd9af5facdd7882cb5bb84d8ed40457bd116b5",
+     "score": 0.825
+    },
+    {
+     "id": "12cf6e49728f062fd83d1ce91883ea74988229a19a3c3858ff008ac99168d376",
+     "score": 0.817
+    }
+   ]
+  },
+  {
    "id": "23d37afa7ffc0148c1ed57e73149eea60fec02d76ac6958082b492385ea90b71",
    "titre": "Mémoire Vive — jalon livré le 18/09/2026",
    "resume": "Chantier A (données enrichies) fusionné dans main et publié. scripts/export.py écrit désormais dans docs/data.json (schema 1, ajouts compatibles) : 5 familles de projets (Jeux & univers de jeu, Cours & savoir, IA & simulations, Outils Claude, Sites & applis)…",
@@ -775,7 +1004,16 @@
    "lien_principal": null,
    "corrige": false,
    "projet": "memoire-vive",
-   "voisins": []
+   "voisins": [
+    {
+     "id": "465ac3ddd4f0dd3a4285d095f0368d7eee2b3c6648bd147ed4f802524db2cc74",
+     "score": 0.886
+    },
+    {
+     "id": "ab8be2a4a2a0dc8c0f935eed568d9e9505aea578c08ad95ddffc35f8fb4f52e4",
+     "score": 0.838
+    }
+   ]
   },
   {
    "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
@@ -803,12 +1041,24 @@
    "projet": "depths",
    "voisins": [
     {
+     "id": "140cd82db6fd99b6f0f8a0e90c7e93a10fa47fd324ee274c93ff22e07ee3b839",
+     "score": 0.907
+    },
+    {
      "id": "32208d4756bde309ae0ef35e719ec89a411d429e30921a64d90471bf437fdee7",
      "score": 0.896
     },
     {
+     "id": "b56679581e3982d19a89e28830ad7195b22ca549bfc7afaeca49e27119eb6b52",
+     "score": 0.888
+    },
+    {
      "id": "12cf6e49728f062fd83d1ce91883ea74988229a19a3c3858ff008ac99168d376",
      "score": 0.859
+    },
+    {
+     "id": "12f20b84ce5b76bc810987340fcd9af5facdd7882cb5bb84d8ed40457bd116b5",
+     "score": 0.831
     }
    ]
   },
@@ -844,6 +1094,18 @@
     {
      "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
      "score": 0.896
+    },
+    {
+     "id": "140cd82db6fd99b6f0f8a0e90c7e93a10fa47fd324ee274c93ff22e07ee3b839",
+     "score": 0.862
+    },
+    {
+     "id": "b56679581e3982d19a89e28830ad7195b22ca549bfc7afaeca49e27119eb6b52",
+     "score": 0.861
+    },
+    {
+     "id": "12f20b84ce5b76bc810987340fcd9af5facdd7882cb5bb84d8ed40457bd116b5",
+     "score": 0.826
     }
    ]
   },
@@ -885,7 +1147,12 @@
    },
    "corrige": false,
    "projet": "memoire-vive",
-   "voisins": []
+   "voisins": [
+    {
+     "id": "465ac3ddd4f0dd3a4285d095f0368d7eee2b3c6648bd147ed4f802524db2cc74",
+     "score": 0.865
+    }
+   ]
   },
   {
    "id": "c00af4126b6ba44d74280e826af95d34808340b2827bf9f7a27ccd07f75cbc80",
@@ -1199,6 +1466,18 @@
     {
      "id": "cff97688e600adafd942b2c97485f933305efe9fc17ae89c0afbe0dcf0953bb4",
      "score": 0.859
+    },
+    {
+     "id": "140cd82db6fd99b6f0f8a0e90c7e93a10fa47fd324ee274c93ff22e07ee3b839",
+     "score": 0.852
+    },
+    {
+     "id": "12f20b84ce5b76bc810987340fcd9af5facdd7882cb5bb84d8ed40457bd116b5",
+     "score": 0.819
+    },
+    {
+     "id": "b56679581e3982d19a89e28830ad7195b22ca549bfc7afaeca49e27119eb6b52",
+     "score": 0.817
     }
    ]
   },
@@ -2706,6 +2985,10 @@
     {
      "id": "4c85ec1e8e565f91b4e2b731a59482fec45e03e836de213c79e19f9520193d51",
      "score": 0.841
+    },
+    {
+     "id": "465ac3ddd4f0dd3a4285d095f0368d7eee2b3c6648bd147ed4f802524db2cc74",
+     "score": 0.823
     }
    ]
   },
@@ -2799,5 +3082,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "3a5ea61af4fb56a9b2bfb02d1468329b4ca8db4d30805b711a6a53de89c0410b"
+ "empreinte": "43ca70ab4ec7fc7758c306e97662665f662c9d7e9700079f085bde1e5b777b5e"
 }

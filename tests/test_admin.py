@@ -7,13 +7,17 @@ import hashlib
 import http.client
 import json
 import os
+import shutil
 import socket
+import subprocess
 import tempfile
 import threading
 import time
 import unittest
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest import mock
+from urllib.parse import parse_qs, urlparse
 
 from tests.aides import RACINE, export, memoire
 
@@ -693,6 +697,312 @@ class PortTest(unittest.TestCase):
             with self.assertRaises(admin.ErreurAdmin) as contexte:
                 admin.creer_serveur(Path(dossier), JETON, port=port, essais=1)
         self.assertIn(f"aucun port libre entre {port} et {port}", str(contexte.exception))
+
+
+CLE_DASHBOARD = "cle-du-faux-dashboard"
+MEMOIRES = [
+    memoire(1, "Projet Jarvis : assistant vocal local. Trois étages.", ["jarvis", "architecture"], "architecture"),
+    memoire(2, "Jarvis — premier réveil vocal : le mot de réveil déclenche l'écoute.", ["jarvis"], "milestone", 5),
+    memoire(3, "Projet Depths : rogue-lite en 2D, donjons procéduraux.", ["depths"], "architecture", 9),
+]
+
+
+class FauxDashboard(BaseHTTPRequestHandler):
+    """GET /api/memories et POST /api/search ; les recherches sont comptées
+    (chacune écrirait dans la vraie mémoire partagée). delai : secondes
+    d'attente avant de répondre à la lecture (dashboard lent)."""
+    recherches = 0
+    delai = 0
+
+    def log_message(self, *args):
+        pass
+
+    def repondre(self, code, corps):
+        brut = json.dumps(corps).encode("utf-8")
+        try:
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(brut)))
+            self.end_headers()
+            self.wfile.write(brut)
+        except ConnectionError:
+            pass  # export arrêté avant la réponse (délai dépassé)
+
+    def do_GET(self):
+        time.sleep(FauxDashboard.delai)
+        if self.headers.get("X-API-Key") != CLE_DASHBOARD:
+            return self.repondre(401, {"detail": "non"})
+        adresse = urlparse(self.path)
+        if adresse.path != "/api/memories":
+            return self.repondre(404, {"detail": "inconnu"})
+        page = int(parse_qs(adresse.query)["page"][0])
+        self.repondre(200, {"memories": MEMOIRES if page == 1 else [], "total": len(MEMOIRES), "has_more": False})
+
+    def do_POST(self):
+        FauxDashboard.recherches += 1
+        self.rfile.read(int(self.headers.get("Content-Length") or 0))
+        self.repondre(200, {"results": []})
+
+
+def sh(*args, cwd):
+    resultat = subprocess.run(args, cwd=cwd, text=True, encoding="utf-8", stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT)
+    if resultat.returncode:
+        raise AssertionError(f"{args} : {resultat.stdout}")
+    return resultat.stdout.strip()
+
+
+class PublicationAdminTest(unittest.TestCase):
+    """Aperçu et publication dans un dépôt git temporaire relié à un dépôt
+    distant local (jamais le vrai), contre un faux dashboard."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.dashboard = ThreadingHTTPServer(("127.0.0.1", 0), FauxDashboard)
+        threading.Thread(target=cls.dashboard.serve_forever, daemon=True).start()
+        cls.url_dashboard = f"http://127.0.0.1:{cls.dashboard.server_address[1]}"
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.dashboard.shutdown()
+        cls.dashboard.server_close()
+
+    def setUp(self):
+        self.dossier = tempfile.TemporaryDirectory()
+        self.depot = Path(self.dossier.name) / "depot"
+        self.distant = Path(self.dossier.name) / "distant.git"
+        shutil.copytree(RACINE / "scripts", self.depot / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
+        shutil.copy(RACINE / ".gitignore", self.depot / ".gitignore")
+        (self.depot / "config").mkdir()
+        (self.depot / "docs").mkdir()
+        (self.depot / "config" / "projets.json").write_text(admin.formater(projets()), encoding="utf-8")
+        sh("git", "init", "--bare", "-b", "main", str(self.distant), cwd=self.dossier.name)
+        sh("git", "init", "-b", "main", cwd=self.depot)
+        sh("git", "config", "user.name", "test", cwd=self.depot)
+        sh("git", "config", "user.email", "test@example.invalid", cwd=self.depot)
+        sh("git", "remote", "add", "origin", str(self.distant), cwd=self.depot)
+        sh("git", "add", ".", cwd=self.depot)
+        sh("git", "commit", "-m", "init", cwd=self.depot)
+        sh("git", "push", "-u", "origin", "main", cwd=self.depot)
+        # Variables explicites : l'export ne doit jamais joindre le vrai dashboard.
+        self.environnement = {"MEMOIRE_API_URL": self.url_dashboard, "MEMOIRE_API_KEY": CLE_DASHBOARD}
+        self.serveur = demarrer(self.depot, environnement=self.environnement)
+        self.client = Client(self.serveur.server_address[1])
+        FauxDashboard.recherches = 0
+        FauxDashboard.delai = 0
+
+    def tearDown(self):
+        self.serveur.shutdown()
+        self.serveur.server_close()
+        self.dossier.cleanup()
+
+    def git(self, *args, cwd=None):
+        return sh("git", *args, cwd=cwd or self.depot)
+
+    def donnees(self):
+        return json.loads((self.depot / "docs" / "data.json").read_text(encoding="utf-8"))
+
+    def renommer_depths(self):
+        statut, _ = self.client.json("PUT", "/api/config/projets",
+                                     projets(projets={"depths": {"nom": "Depths II", "famille": "jeux"}}),
+                                     base=empreinte_de(self.depot / "config" / "projets.json"))
+        self.assertEqual(statut, 200)
+
+    def test_apercu_sans_recherche_ni_commit(self):
+        self.renommer_depths()
+        statut, corps = self.client.json("POST", "/api/apercu", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertTrue(corps["ok"], corps["sortie"])
+        self.assertIn("aucune recherche en --sans-recherche", corps["sortie"])
+        self.assertEqual(FauxDashboard.recherches, 0, "l'aperçu n'écrit rien dans la mémoire partagée")
+        noms = {p["id"]: p["nom"] for p in self.donnees()["projets"]}
+        self.assertEqual(noms["depths"], "Depths II", "l'aperçu montre le réglage enregistré")
+        self.assertEqual(self.git("log", "--format=%s"), "init", "aucun commit")
+        self.assertEqual(self.git("status", "--porcelain", "--", "config"), "M config/projets.json")
+
+    def test_publier_commit_des_reglages_puis_export_et_push(self):
+        self.renommer_depths()
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertTrue(corps["ok"], corps["sortie"])
+        self.assertEqual(corps["commit"], "Réglages : projets et familles")
+        self.assertIn("git : commit « Réglages : projets et familles »", corps["sortie"])
+        self.assertIn("git : push effectué.", corps["sortie"])
+        sujets = self.git("log", "--format=%s", "main", cwd=self.distant).splitlines()
+        self.assertEqual(len(sujets), 3)
+        self.assertTrue(sujets[0].startswith("Export mémoire : 3 entrées"), sujets)
+        self.assertEqual(sujets[1:], ["Réglages : projets et familles", "init"])
+        self.assertEqual(self.git("rev-parse", "HEAD"), self.git("rev-parse", "main", cwd=self.distant))
+        self.assertEqual(self.git("status", "--porcelain"), "", "rien ne reste à commiter")
+        self.assertEqual(FauxDashboard.recherches, 3, "export réel : une recherche par entrée nouvelle")
+
+    def test_publier_sans_reglage_modifie(self):
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertTrue(corps["ok"], corps["sortie"])
+        self.assertIsNone(corps["commit"])
+        self.assertTrue(self.git("log", "-1", "--format=%s", "main", cwd=self.distant).startswith("Export mémoire"))
+
+    def test_publier_refuse_hors_de_main(self):
+        self.git("switch", "-q", "-c", "essai")
+        self.renommer_depths()
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 409)
+        self.assertEqual(corps["erreur"], "Publication refusée : la copie de travail est sur la branche « essai », "
+                                          "pas sur main ; publier pousserait cette branche. Revenir sur main "
+                                          "avant de publier.")
+        self.assertEqual(self.git("log", "--format=%s"), "init")
+        self.assertEqual(FauxDashboard.recherches, 0)
+
+    def test_publier_refuse_modifications_sans_rapport(self):
+        self.renommer_depths()
+        with open(self.depot / "scripts" / "export.py", "a", encoding="utf-8") as fichier:
+            fichier.write("# essai\n")
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 409)
+        self.assertEqual(corps["erreur"], "Publication refusée : d'autres fichiers que les réglages ont des "
+                                          "modifications pas encore commitées (scripts/export.py). Publier "
+                                          "maintenant mêlerait ces changements en cours à la publication : les "
+                                          "commiter ou les annuler d'abord.")
+        self.assertEqual(self.git("log", "--format=%s"), "init", "les réglages ne sont pas commités non plus")
+
+    def test_publier_refuse_commit_local_sans_rapport(self):
+        (self.depot / "NOTES.md").write_text("brouillon\n", encoding="utf-8")
+        self.git("add", "NOTES.md")
+        self.git("commit", "-q", "-m", "notes")
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 409)
+        self.assertEqual(corps["erreur"], "Publication refusée : des commits locaux pas encore publiés modifient "
+                                          "d'autres fichiers que les réglages et data.json (NOTES.md) ; publier "
+                                          "les pousserait aussi. Les publier à part ou les retirer d'abord.")
+
+    def test_publier_refuse_sans_branche_distante(self):
+        self.git("branch", "--unset-upstream")
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 409)
+        self.assertIn("ne suit aucune branche distante", corps["erreur"])
+
+    def test_reglage_invalide_ecrit_a_la_main_jamais_publie(self):
+        # Modifié hors de la page : jamais passé par sa validation.
+        reglages = projets(projets={"depths": {"description": "clé sk-ant-" + "x" * 30}})
+        (self.depot / "config" / "projets.json").write_text(json.dumps(reglages), encoding="utf-8")
+        erreur = ("Projet « depths », description : ressemble à un secret (clé, jeton ou mot de passe) ; "
+                  "ce texte serait publié sur le site.")
+        statut, etat = self.client.json("GET", "/api/etat")
+        self.assertEqual(etat["erreurs"], {"projets": [erreur]})
+        self.assertEqual(etat["git"]["refus_publication"],
+                         "des réglages enregistrés ne passent pas la vérification (config/projets.json) : les "
+                         "corriger d'abord (la page liste les erreurs à son ouverture) ; rien n'est commité d'ici là.")
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual((statut, corps["erreurs"]), (409, [erreur]))
+        self.assertTrue(corps["erreur"].startswith("Publication refusée : des réglages enregistrés"), corps)
+        statut, corps = self.client.json("POST", "/api/apercu", {})
+        self.assertEqual((statut, corps["erreurs"]), (409, [erreur]))
+        self.assertEqual(self.git("log", "--format=%s"), "init", "rien n'est commité")
+        self.assertEqual(self.git("log", "--format=%s", "main", cwd=self.distant), "init", "rien n'est poussé")
+        self.assertEqual(FauxDashboard.recherches, 0)
+
+    def test_git_en_panne_publication_refusee(self):
+        vrai = admin.git
+
+        def git(racine, *args):
+            if args[:1] == ("status",):
+                return subprocess.CompletedProcess(["git", *args], 128, "", "fatal: index file corrupt\n")
+            return vrai(racine, *args)
+
+        with mock.patch.object(admin, "git", side_effect=git):
+            statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 409)
+        self.assertEqual(corps["erreur"], "Publication refusée : git ne répond pas normalement (git status a échoué : "
+                                          "fatal: index file corrupt) : publication impossible pour l'instant.")
+        self.assertEqual(FauxDashboard.recherches, 0)
+
+    def test_push_refuse_explique(self):
+        # Le dépôt distant a avancé depuis ailleurs (GitHub, autre ordinateur).
+        autre = Path(self.dossier.name) / "autre"
+        sh("git", "clone", "-q", str(self.distant), str(autre), cwd=self.dossier.name)
+        sh("git", "-c", "user.name=test", "-c", "user.email=test@example.invalid", "commit", "-q", "--allow-empty",
+           "-m", "ailleurs", cwd=autre)
+        sh("git", "push", "-q", cwd=autre)
+        self.renommer_depths()
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertFalse(corps["ok"])
+        self.assertEqual(corps["commit"], "Réglages : projets et familles")
+        self.assertEqual(corps["explication"], f"Le dépôt GitHub a des commits que cet ordinateur n'a pas encore : dans "
+                                               f"{self.depot}, lancer « git pull --rebase », puis « Publier » de nouveau "
+                                               "(ce qui est déjà commité ici partira avec).")
+        self.assertIn("[rejected]", corps["sortie"])
+        self.assertEqual(self.git("log", "-1", "--format=%s", "main", cwd=self.distant), "ailleurs")
+
+    def test_export_trop_long_arrete(self):
+        FauxDashboard.delai = 4
+        debut = time.monotonic()
+        with mock.patch.object(admin, "EXPORT_DELAI", 1):
+            statut, corps = self.client.json("POST", "/api/apercu", {})
+        self.assertEqual((statut, corps), (200, {"ok": False, "code": 1, "sortie": "Échec : l'export n'a pas fini "
+                                                 "en 1 s ; il a été arrêté (git compris)."}))
+        self.assertLess(time.monotonic() - debut, 4, "arrêté au bout du délai, sans attendre le dashboard")
+        self.assertTrue(self.serveur.admin.verrou.acquire(blocking=False), "verrou relâché")
+        self.serveur.admin.verrou.release()
+
+    def test_fichiers_non_suivis_ignores(self):
+        (self.depot / "brouillon.txt").write_text("sans rapport, jamais commité\n", encoding="utf-8")
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertTrue(corps["ok"], corps["sortie"])
+        self.assertEqual(self.git("status", "--porcelain"), "?? brouillon.txt")
+
+    def test_etat_git(self):
+        statut, corps = self.client.json("GET", "/api/etat")
+        self.assertEqual(corps["git"], {"branche": "main", "modifies": [], "commits_en_attente": 0,
+                                        "refus_publication": None})
+        self.renommer_depths()
+        (self.depot / "scripts" / "export.py").write_text("# vide\n", encoding="utf-8")
+        statut, corps = self.client.json("GET", "/api/etat")
+        self.assertEqual(corps["git"]["modifies"], ["config/projets.json", "scripts/export.py"])
+        self.assertIn("(scripts/export.py)", corps["git"]["refus_publication"])
+
+    def test_un_seul_export_a_la_fois(self):
+        self.assertTrue(self.serveur.admin.verrou.acquire(blocking=False))
+        try:
+            for chemin in ("/api/apercu", "/api/publier"):
+                statut, corps = self.client.json("POST", chemin, {})
+                self.assertEqual(statut, 409)
+                self.assertEqual(corps["erreur"], admin.OCCUPE)
+        finally:
+            self.serveur.admin.verrou.release()
+        self.assertEqual(FauxDashboard.recherches, 0)
+        self.assertEqual(self.client.json("POST", "/api/apercu", {})[0], 200)
+
+    def test_deux_apercus_simultanes_un_seul_passe(self):
+        verrou_pris, liberer = threading.Event(), threading.Event()
+        vrai_lancer = admin.lancer_export
+
+        def lent(*args, **kwargs):
+            verrou_pris.set()
+            liberer.wait(10)
+            return vrai_lancer(*args, **kwargs)
+
+        resultats = []
+        with mock.patch.object(admin, "lancer_export", side_effect=lent):
+            premier = threading.Thread(target=lambda: resultats.append(self.client.json("POST", "/api/apercu", {})))
+            premier.start()
+            self.assertTrue(verrou_pris.wait(10))
+            second = self.client.json("POST", "/api/apercu", {})
+            liberer.set()
+            premier.join(30)
+        self.assertEqual(second, (409, {"erreur": admin.OCCUPE}))
+        self.assertEqual(resultats[0][0], 200)
+
+    def test_json_exige_et_secrets_masques_dans_le_compte_rendu(self):
+        self.assertEqual(self.client("POST", "/api/apercu", b"", type_="text/plain")[0], 415)
+        self.serveur.admin.environnement["MEMOIRE_API_URL"] = f"{self.url_dashboard}/{CLE_DASHBOARD}"
+        statut, corps = self.client.json("POST", "/api/apercu", {})
+        self.assertEqual(statut, 200)
+        self.assertFalse(corps["ok"])
+        self.assertNotIn(CLE_DASHBOARD, corps["sortie"])
+        self.assertIn("[masqué]", corps["sortie"])
 
 
 if __name__ == "__main__":

@@ -27,6 +27,7 @@ import json
 import os
 import re
 import secrets
+import signal
 import subprocess
 import sys
 import threading
@@ -505,9 +506,10 @@ def statut_git(racine: Path, *chemins: str, non_suivis: bool = False) -> list[tu
     return resultat
 
 
-def etat_git(racine: Path) -> dict | None:
+def etat_git(racine: Path, connus: tuple = ()) -> dict | None:
     """Branche, fichiers suivis modifiés et pas encore commités, commits pas
-    encore poussés ; None hors d'un dépôt git (ou sans git)."""
+    encore poussés, refus de publier ; None hors d'un dépôt git (ou sans git).
+    connus : valeurs des secrets (vérification des réglages enregistrés)."""
     try:
         branche = git(racine, "rev-parse", "--abbrev-ref", "HEAD")
     except OSError:
@@ -523,7 +525,149 @@ def etat_git(racine: Path) -> dict | None:
         "branche": branche.stdout.strip(),
         "modifies": modifies,
         "commits_en_attente": int(avance.stdout.strip()) if avance.returncode == 0 else None,
+        "refus_publication": refus_publication(racine, connus),
     }
+
+
+# --------------------------------------------------------------------------
+# Publication : garde-fous git, commit des réglages, lancement de l'export
+# --------------------------------------------------------------------------
+
+REGLAGES = list(FICHIERS.values())
+LIBELLES = {"config/projets.json": "projets et familles", "config/entrees.json": "entrées",
+            "config/recherche.json": "recherche"}
+# Seuls fichiers qu'une publication peut emporter : les réglages et data.json
+# (qu'un aperçu a pu réécrire).
+PUBLIABLES = set(REGLAGES) | {"docs/data.json"}
+EXPORT_DELAI = 900  # secondes : lecture de la mémoire, puis recherches des voisins (budget 120 s)
+EN_PANNE = "git ne répond pas normalement ({}) : publication impossible pour l'instant."
+# L'export et ses sous-processus (git) dans un groupe à part : au bout du délai,
+# tout le groupe est arrêté ; un « git push » resté ouvert garderait sinon la
+# sortie ouverte, et l'opération (avec le verrou) ne finirait jamais.
+GROUPE_A_PART = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt"
+                 else {"start_new_session": True})
+
+
+def erreurs_reglages(racine: Path, connus: tuple = ()) -> dict[str, list[str]]:
+    """Erreurs de validation des réglages enregistrés, par fichier ({} si tout
+    est bon) : un réglage modifié à la main n'est pas passé par la page."""
+    resultat = {}
+    for nom in FICHIERS:
+        try:
+            erreurs = valider(nom, lire_config(racine, nom), connus)
+        except ErreurAdmin as err:
+            erreurs = [str(err)]
+        if erreurs:
+            resultat[nom] = erreurs
+    return resultat
+
+
+def refus_publication(racine: Path, connus: tuple = ()) -> str | None:
+    """Pourquoi publier est impossible depuis ce dépôt (phrase en français), ou None.
+    L'export pousse tout commit en attente de la branche courante : on n'accepte
+    que main, sans autre modification en cours que les réglages et data.json, et
+    sans commit local qui toucherait autre chose. Les fichiers non suivis ne
+    comptent pas : chaque commit de la publication nomme ses fichiers. Enfin,
+    les réglages enregistrés doivent passer la validation (connus : secrets)."""
+    try:
+        branche = git(racine, "rev-parse", "--abbrev-ref", "HEAD")
+    except OSError:
+        return "git est introuvable."
+    if branche.returncode != 0:
+        return "ce dossier n'est pas un dépôt git."
+    nom = branche.stdout.strip()
+    if nom != "main":
+        ou = "aucune branche (HEAD détachée)" if nom == "HEAD" else f"la branche « {nom} »"
+        return (f"la copie de travail est sur {ou}, pas sur main ; publier pousserait cette branche. "
+                "Revenir sur main avant de publier.")
+    if git(racine, "rev-parse", "-q", "--verify", "MERGE_HEAD").returncode == 0:
+        return "une fusion git est en cours : la terminer (ou l'annuler) avant de publier."
+    try:
+        statut = statut_git(racine)
+    except ErreurAdmin as err:
+        return EN_PANNE.format(err)
+    conflits = sorted(chemin for code, chemin in statut if "U" in code or code in ("AA", "DD"))
+    if conflits:
+        return f"conflit git sur {', '.join(conflits)} : le résoudre avant de publier."
+    autres = sorted(chemin for _, chemin in statut if chemin not in PUBLIABLES)
+    if autres:
+        return (f"d'autres fichiers que les réglages ont des modifications pas encore commitées "
+                f"({', '.join(autres)}). Publier maintenant mêlerait ces changements en cours à la "
+                "publication : les commiter ou les annuler d'abord.")
+    if git(racine, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}").returncode != 0:
+        return ("la branche main ne suit aucune branche distante (origin/main) : voir « Première mise en "
+                "place » dans le README.")
+    pousses = git(racine, "-c", "core.quotepath=off", "log", "--format=", "--name-only", "@{u}..HEAD")
+    if pousses.returncode != 0:
+        return EN_PANNE.format(f"git log a échoué : {pousses.stderr.strip() or 'code ' + str(pousses.returncode)}")
+    hors = sorted({ligne for ligne in pousses.stdout.splitlines() if ligne.strip()} - PUBLIABLES)
+    if hors:
+        return (f"des commits locaux pas encore publiés modifient d'autres fichiers que les réglages et "
+                f"data.json ({', '.join(hors)}) ; publier les pousserait aussi. Les publier à part ou les "
+                "retirer d'abord.")
+    invalides = erreurs_reglages(racine, connus)
+    if invalides:
+        return (f"des réglages enregistrés ne passent pas la vérification "
+                f"({', '.join(FICHIERS[nom] for nom in invalides)}) : les corriger d'abord (la page liste les "
+                "erreurs à son ouverture) ; rien n'est commité d'ici là.")
+    return None
+
+
+def commit_reglages(racine: Path) -> str | None:
+    """Commit des seuls réglages modifiés (nommés par chemin) ; renvoie son
+    message, ou None s'il n'y a rien à commiter."""
+    modifies = {chemin for _, chemin in statut_git(racine, *REGLAGES, non_suivis=True)}
+    a_commiter = [chemin for chemin in REGLAGES if chemin in modifies]
+    if not a_commiter:
+        return None
+    message = "Réglages : " + ", ".join(LIBELLES[chemin] for chemin in a_commiter)
+    for args in (["add", "--", *a_commiter], ["commit", "-q", "-m", message, "--", *a_commiter]):
+        resultat = git(racine, *args)
+        if resultat.returncode != 0:
+            raise ErreurAdmin(f"git {args[0]} a échoué : {(resultat.stdout + resultat.stderr).strip()}")
+    return message
+
+
+def arreter_groupe(processus: subprocess.Popen) -> None:
+    """Arrête l'export et tous ses sous-processus (git compris)."""
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(processus.pid)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        try:
+            os.killpg(processus.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+    if processus.poll() is None:
+        processus.kill()
+
+
+def lancer_export(admin: Admin, options: list[str]) -> tuple[int, str]:
+    """scripts/export.py du dépôt servi, avec ces options : (code de sortie,
+    compte rendu). Rien n'est lu au clavier (git échoue au lieu d'attendre un
+    identifiant) ; au bout d'EXPORT_DELAI, tout est arrêté. Les secrets connus
+    sont masqués dans le compte rendu (filet : l'export ne les affiche pas)."""
+    environ = {**os.environ, **admin.environnement, "PYTHONIOENCODING": "utf-8", "GIT_TERMINAL_PROMPT": "0"}
+    commande = [sys.executable, str(admin.racine / "scripts" / "export.py"), *options]
+    try:
+        processus = subprocess.Popen(commande, cwd=admin.racine, env=environ, stdin=subprocess.DEVNULL,
+                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                                     encoding="utf-8", errors="replace", **GROUPE_A_PART)
+    except OSError as err:
+        return 1, f"Échec : impossible de lancer l'export ({err})."
+    try:
+        sortie, _ = processus.communicate(timeout=EXPORT_DELAI)
+        code = processus.returncode
+    except subprocess.TimeoutExpired:
+        arreter_groupe(processus)
+        try:
+            processus.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            pass
+        delai = f"{EXPORT_DELAI // 60} minutes" if EXPORT_DELAI >= 60 else f"{EXPORT_DELAI} s"
+        code, sortie = 1, f"Échec : l'export n'a pas fini en {delai} ; il a été arrêté (git compris)."
+    sortie, _ = export.redact(sortie, admin.secrets())
+    return code, sortie
 
 
 # --------------------------------------------------------------------------
@@ -750,7 +894,20 @@ class Gestionnaire(BaseHTTPRequestHandler):
         if not self.chemin.startswith("/api/"):
             self.refus(405, "Méthode non permise.")
             return
-        self.refus(404, "Adresse inconnue.")
+        action = {"/api/apercu": self.api_apercu, "/api/publier": self.api_publier}.get(self.chemin)
+        if action is None:
+            self.refus(404, "Adresse inconnue.")
+            return
+        lu, _ = self.lire_corps()
+        if not lu:
+            return
+        if not self.admin.verrou.acquire(blocking=False):
+            self.json(409, {"erreur": OCCUPE})
+            return
+        try:
+            action()
+        finally:
+            self.admin.verrou.release()
 
     # ------------------------------------------------------------ API
 
@@ -774,7 +931,7 @@ class Gestionnaire(BaseHTTPRequestHandler):
         donnees = lire_donnees(racine)
         self.json(200, {"fichiers": fichiers, "empreintes": empreintes, "normalisations": normalisations,
                         "erreurs": erreurs, "donnees": donnees, "originaux": originaux(donnees),
-                        "git": etat_git(racine)})
+                        "git": etat_git(racine, connus)})
 
     def api_ecrire(self, nom: str, donnees) -> None:
         erreurs = valider(nom, donnees, self.admin.secrets())
@@ -804,6 +961,51 @@ class Gestionnaire(BaseHTTPRequestHandler):
             self.admin.verrou.release()
         self.admin.journal(f"  Réglages enregistrés : {FICHIERS[nom]}")
         self.json(200, {"ok": True, "fichier": FICHIERS[nom], "empreinte": nouvelle})
+
+    def api_apercu(self) -> None:
+        """Export sans git et sans aucune recherche de voisins : rien n'est écrit
+        dans la mémoire partagée ; les entrées nouvelles attendent la publication.
+        Refusé si des réglages enregistrés ne passent pas la vérification."""
+        invalides = erreurs_reglages(self.admin.racine, self.admin.secrets())
+        if invalides:
+            self.json(409, {"erreur": "Aperçu refusé : des réglages enregistrés ne passent pas la vérification ; "
+                                      "les corriger d'abord.",
+                            "erreurs": [erreur for liste in invalides.values() for erreur in liste]})
+            return
+        self.admin.journal("  Aperçu : export sans git ni recherche de voisins…")
+        code, sortie = lancer_export(self.admin, ["--no-git", "--sans-recherche"])
+        self.admin.journal("  Aperçu prêt." if code == 0 else "  Aperçu en échec (voir la page).")
+        self.json(200, {"ok": code == 0, "code": code, "sortie": sortie})
+
+    def api_publier(self) -> None:
+        """Commit des réglages modifiés, puis export complet (commit de data.json
+        et push de tout, jamais forcé), après les garde-fous git et la
+        vérification des réglages enregistrés."""
+        racine, connus = self.admin.racine, self.admin.secrets()
+        refus = refus_publication(racine, connus)
+        if refus:
+            invalides = erreurs_reglages(racine, connus)
+            self.json(409, {"erreur": f"Publication refusée : {refus}",
+                            "erreurs": [erreur for liste in invalides.values() for erreur in liste]})
+            return
+        try:
+            message = commit_reglages(racine)
+        except ErreurAdmin as err:
+            self.json(200, {"ok": False, "code": 1, "commit": None, "explication": None, "sortie": f"Échec : {err}"})
+            return
+        self.admin.journal("  Publication : " + (f"commit « {message} », puis export…" if message else "export…"))
+        code, sortie = lancer_export(self.admin, [])
+        explication = None
+        if code != 0 and any(mot in sortie for mot in ("[rejected]", "non-fast-forward", "fetch first")):
+            # Push refusé : le dépôt distant a avancé (modification faite sur GitHub ou ailleurs).
+            explication = (f"Le dépôt GitHub a des commits que cet ordinateur n'a pas encore : dans {racine}, "
+                           "lancer « git pull --rebase », puis « Publier » de nouveau (ce qui est déjà commité "
+                           "ici partira avec).")
+        if message:
+            sortie = f"git : commit « {message} »\n{sortie}"
+        self.admin.journal("  Publication terminée." if code == 0 else "  Publication en échec (voir la page).")
+        self.json(200, {"ok": code == 0, "code": code, "commit": message, "explication": explication,
+                        "sortie": sortie})
 
     # ------------------------------------------------------------ fichiers
 

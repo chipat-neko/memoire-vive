@@ -9,6 +9,7 @@ import * as M from './modele.js';
 const CLE_JETON = 'memoire-vive:admin-jeton';
 const CLE_TITRES = 'memoire-vive:admin-titres';
 const ONGLETS = ['projets', 'familles', 'entrees', 'recherche'];
+const SITE_PUBLIC = 'https://chipat-neko.github.io/memoire-vive/';
 const APERCU = 'memoire-vive-apercu';  // onglet de l'aperçu, réutilisé d'une fois sur l'autre
 
 const $ = (id) => document.getElementById(id);
@@ -130,6 +131,26 @@ function signalerLecture(etat) {
     rapport('attente', 'Réglages relus', 'Ces réglages étaient écrits sous une forme que l’export accepte, mais que la page écrit autrement (même effet sur le site) : « Enregistrer » écrit la forme de la page.',
       { details: notes });
   }
+}
+
+/* Recharge réglages et données (après un aperçu ou une publication) ; garde
+   l'onglet, le projet et l'entrée ouverts, et les saisies faites pendant
+   l'opération (tout était enregistré au départ : elles restent à enregistrer). */
+async function recharger() {
+  const avant = ui.modele;
+  try {
+    const etat = await api('GET', '/api/etat');
+    ui.modele = M.creerModele(etat);
+    memoriserTitres(etat.donnees);
+  } catch (e) {
+    return;
+  }
+  for (const nom of M.fichiersModifies(avant)) {
+    ui.modele.brouillon[nom] = avant.brouillon[nom];
+    ui.modele.empreintes[nom] = avant.empreintes[nom];  // ces saisies partent du fichier d'avant
+  }
+  afficherOnglet(ui.onglet);
+  rendreBarre();
 }
 
 async function rafraichirGit() {
@@ -260,6 +281,65 @@ async function enregistrer({ silencieux = false } = {}) {
       + '. « Aperçu » les montre sur le site local, « Publier » les met en ligne.');
   }
   return true;
+}
+
+/* onglet : la fenêtre de l'aperçu, ouverte dès le clic (window.open), car le
+   navigateur bloque une fenêtre ouverte plusieurs secondes après le clic. Elle
+   va sur le site local si l'aperçu réussit ; restée vide, elle se referme s'il
+   échoue. Lien « Ouvrir l'aperçu du site » en secours, si elle a été bloquée. */
+async function apercu(onglet) {
+  const fermerSiVide = () => {
+    try {
+      if (onglet && !onglet.closed && onglet.location.href === 'about:blank') onglet.close();
+    } catch (e) { /* onglet parti sur un autre site : laissé tel quel */ }
+  };
+  if (!(await enregistrer({ silencieux: true }))) {
+    fermerSiVide();
+    return;
+  }
+  rapport('attente', 'Aperçu en cours…', 'L’export lit la mémoire, sans rien y écrire : quelques secondes.');
+  let resultat;
+  try {
+    resultat = await api('POST', '/api/apercu', {});
+  } catch (e) {
+    fermerSiVide();
+    rapport('erreur', 'Aperçu impossible', e.message, { details: e.details, focus: true });
+    return;
+  }
+  if (!resultat.ok) {
+    fermerSiVide();
+    rapport('erreur', 'Aperçu impossible', 'L’export a échoué : voir son compte rendu ci-dessous (le dashboard tourne-t-il ?).',
+      { sortie: resultat.sortie, focus: true });
+    return;
+  }
+  await recharger();
+  rapport('ok', 'Aperçu prêt', 'Le site local montre les réglages enregistrés. Les voisins des entrées nouvelles seront calculés à la publication.',
+    { sortie: resultat.sortie, apercu: true, focus: true });
+  if (onglet && !onglet.closed) onglet.location.replace('/');
+}
+
+async function publier() {
+  const accord = window.confirm('Publier sur le site public ?\n\nLes réglages enregistrés sont commités, puis l’export complet met le site à jour (commit de data.json, push). Les entrées nouvelles reçoivent leurs voisins : une recherche chacune dans la mémoire partagée. Ne pas lancer « Mettre à jour Mémoire Vive » pendant ce temps.');
+  if (!accord) return;
+  if (!(await enregistrer({ silencieux: true }))) return;
+  rapport('attente', 'Publication en cours…', 'Commit des réglages, export complet, push : jusqu’à quelques minutes s’il y a beaucoup d’entrées nouvelles.');
+  let resultat;
+  try {
+    resultat = await api('POST', '/api/publier', {});
+  } catch (e) {
+    await rafraichirGit();
+    rendreBarre();
+    rapport('erreur', 'Publication refusée', e.message, { details: e.details, focus: true });
+    return;
+  }
+  await recharger();
+  if (resultat.ok) {
+    rapport('ok', 'Publié', 'Le site public se met à jour en une à deux minutes : ' + SITE_PUBLIC, { sortie: resultat.sortie, focus: true });
+  } else {
+    rapport('erreur', 'Publication inachevée', resultat.explication || (resultat.commit
+      ? 'Les réglages sont commités, mais l’export a échoué : relancer « Publier » une fois le problème réglé (le commit en attente partira avec).'
+      : 'L’export a échoué : voir son compte rendu ci-dessous.'), { sortie: resultat.sortie, focus: true });
+  }
 }
 
 // ------------------------------------------------------------ aides de formulaire
@@ -665,6 +745,13 @@ function lier() {
   for (const nom of ONGLETS) $('onglet-' + nom).addEventListener('click', () => afficherOnglet(nom, true));
   dom.onglets.addEventListener('keydown', clavierOnglets);
   dom.enregistrer.addEventListener('click', () => executer(() => enregistrer()));
+  // Onglet de l'aperçu ouvert pendant le clic (sinon bloqué si l'export dure) ; aucun s'il est déjà occupé.
+  dom.apercu.addEventListener('click', () => {
+    if (ui.occupe || !ui.modele) return;
+    const onglet = window.open('', APERCU);
+    executer(() => apercu(onglet));
+  });
+  dom.publier.addEventListener('click', () => executer(publier));
   dom.fermerCompteRendu.addEventListener('click', () => {
     dom.compteRendu.hidden = true;
     dom.enregistrer.focus();

@@ -381,3 +381,148 @@ test('accessibilité : chaque champ a une étiquette, contrastes AA en clair et 
   }
   await terminer(page);
 });
+
+// ------------------------------------------------------------ aperçu et publication
+
+test('parcours complet puis aperçu : le site local et data.json montrent chaque réglage, sans aucune recherche', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await choisirProjet(page, 'Voxelcraft');
+  await page.fill('#projet-nom', 'Voxelcraft 2');
+  await page.selectOption('#projet-famille', 'jeux');
+  await choisirProjet(page, 'Rogue lite');
+  await page.selectOption('#projet-fusion', 'depths');
+  const fusion = accepterDialogue(page);
+  await page.click('#bouton-fusionner');
+  await fusion;
+  await page.click('#onglet-entrees');
+  await page.locator('#liste-entrees button', { hasText: 'premier réveil' }).click();
+  await page.fill('#entree-titre', 'Jarvis se réveille');
+  await page.locator('#liste-entrees button', { hasText: 'assistant vocal' }).click();
+  await page.check('#entree-masquer');
+
+  const [apercu] = await Promise.all([page.waitForEvent('popup'), page.click('#bouton-apercu')]);
+  await page.locator('#compte-rendu-titre', { hasText: 'Aperçu prêt' }).waitFor();
+  assert.equal(await page.textContent('#compte-rendu-message'), 'Le site local montre les réglages enregistrés. Les voisins '
+    + 'des entrées nouvelles seront calculés à la publication.Ouvrir l’aperçu du site ↗');
+  assert.equal(await page.getAttribute('#compte-rendu-details', 'open'), null, 'détail de l’export replié');
+  assert.match(await page.textContent('#compte-rendu-sortie'), /aucune recherche en --sans-recherche/);
+  assert.equal(banc.dashboard.etat.recherches, 0, 'l’aperçu n’écrit rien dans la mémoire partagée');
+  assert.equal(banc.git('log', '--format=%s'), 'init', 'l’aperçu ne commite rien');
+
+  const donnees = await banc.lire('docs/data.json');
+  const projets = Object.fromEntries(donnees.projets.map((p) => [p.id, p]));
+  assert.deepEqual(Object.keys(projets).sort(), ['depths', 'jarvis', 'voxelcraft'], 'rogue-lite fusionné dans depths');
+  assert.equal(projets.depths.nb, 2);
+  assert.equal(projets.jarvis.nb, 1);
+  assert.equal(projets.voxelcraft.nom, 'Voxelcraft 2');
+  assert.equal(projets.voxelcraft.famille, 'jeux');
+  const entrees = Object.fromEntries(donnees.entrees.map((e) => [e.id.slice(0, 12), e]));
+  assert.equal(entrees['000000000002'].titre, 'Jarvis se réveille');
+  assert.equal(entrees['000000000002'].corrige, true);
+  assert.equal(entrees['000000000001'], undefined, 'entrée masquée');
+  assert.equal(entrees['000000000004'].projet, 'depths');
+
+  await apercu.locator('.project-card').first().waitFor();
+  assert.deepEqual((await apercu.locator('.family-title').allTextContents()).map((titre) => titre.split(' · ')[0].trim()),
+    ['Jeux', 'IA & simulations']);
+  assert.deepEqual(await apercu.locator('.project-card h4').allTextContents(), ['Voxelcraft 2', 'Depths', 'Jarvis']);
+  await apercu.goto(banc.admin.base + '#/entree/000000000002');
+  await apercu.locator('#entry-title', { hasText: 'Jarvis se réveille' }).waitFor();
+  await terminer(page);
+});
+
+test('entrée masquée : après l’aperçu, toujours listée sous son titre mémorisé, réaffichable', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await page.click('#onglet-entrees');
+  await page.locator('#liste-entrees button', { hasText: 'Voxelcraft' }).click();
+  await page.check('#entree-masquer');
+  await cliquerEtAttendre(page, '#bouton-apercu', 'Aperçu prêt');
+  await page.bringToFront();  // l'onglet de l'aperçu, ouvert au clic, a pris le premier plan
+  assert.equal((await banc.lire('docs/data.json')).entrees.some((e) => e.id.startsWith('000000000005')), false);
+  const masquee = page.locator('#liste-entrees button', { hasText: 'Voxelcraft' });
+  assert.equal(await masquee.locator('.admin-item-sous').textContent(), 'masquée');
+  await masquee.click();
+  assert.match(await page.textContent('#detail-entree .admin-aide'), /^Identifiant 000000000005\. Masquée/);
+  await page.uncheck('#entree-masquer');
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual(await banc.lire('config/entrees.json'), { _aide: 'Corrections de test.' });
+  await terminer(page);
+});
+
+test('publier : commit des réglages, export complet, push vers le dépôt distant', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await choisirProjet(page, 'Depths');
+  await page.fill('#projet-nom', 'Depths II');
+  const message = accepterDialogue(page);
+  await page.click('#bouton-publier');
+  assert.match(await message, /^Publier sur le site public \?/);
+  await page.locator('#compte-rendu-titre', { hasText: 'Publié' }).waitFor({ timeout: 30000 });
+  assert.match(await page.textContent('#compte-rendu-sortie'), /git : commit « Réglages : projets et familles »/);
+  assert.match(await page.textContent('#compte-rendu-sortie'), /git : push effectué\./);
+  const sujets = banc.gitDistant('log', '--format=%s', 'main').split('\n');
+  assert.equal(sujets.length, 3);
+  assert.match(sujets[0], /^Export mémoire : 5 entrées/);
+  assert.deepEqual(sujets.slice(1), ['Réglages : projets et familles', 'init']);
+  assert.equal(banc.dashboard.etat.recherches, 5, 'export réel : une recherche par entrée nouvelle');
+  assert.equal(await page.textContent('#etat-git'), 'Branche main · rien en attente de publication.');
+  await terminer(page);
+});
+
+test('réglage invalide écrit à la main : signalé à l’ouverture, Publier refusé, rien commité', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  const projets = await banc.lire('config/projets.json');
+  projets.projets.depths.description = 'Clé : sk-ant-' + 'x'.repeat(30);
+  await banc.remplacer('config/projets.json', JSON.stringify(projets));
+  await page.reload();
+  await page.locator('#compte-rendu-titre', { hasText: 'Réglages à corriger' }).waitFor();
+  const erreur = 'Projet « depths », description : ressemble à un secret (clé, jeton ou mot de passe) ; ce texte serait publié sur le site.';
+  assert.deepEqual(await page.locator('#compte-rendu-message li').allTextContents(), [erreur]);
+  assert.match(await page.textContent('#etat-git'),
+    /Publier est impossible pour l’instant : des réglages enregistrés ne passent pas la vérification \(config\/projets\.json\)/);
+  const message = accepterDialogue(page);
+  await page.click('#bouton-publier');
+  await message;
+  await page.locator('#compte-rendu-titre', { hasText: 'Publication refusée' }).waitFor();
+  assert.deepEqual(await page.locator('#compte-rendu-message li').allTextContents(), [erreur]);
+  assert.equal(banc.git('log', '--format=%s'), 'init');
+  assert.equal(banc.gitDistant('log', '--format=%s', 'main'), 'init');
+  assert.equal(banc.dashboard.etat.recherches, 0);
+  refusAttendu(page, 409);
+  await terminer(page);
+});
+
+test('aperçu de plus de 5 s, bloqueur de fenêtres actif : l’onglet du site s’ouvre quand même', async (t) => {
+  // Playwright coupe d'habitude le bloqueur de fenêtres de Chrome : ici, il reste actif.
+  const bloqueur = await chromium.launch({ executablePath: CHROME, headless: true, ignoreDefaultArgs: ['--disable-popup-blocking'] });
+  t.after(() => bloqueur.close());
+  const banc = await ouvrirBanc();
+  t.after(() => banc.fermer());
+  const page = await pageInstrumentee(bloqueur);
+  await page.goto(banc.admin.adresse);
+  await page.locator('#panneau-projets:not([hidden])').waitFor();
+  banc.dashboard.etat.delai = 6000;  // l'export attend le dashboard 6 s
+  const [apercu] = await Promise.all([page.waitForEvent('popup'), page.click('#bouton-apercu')]);
+  await page.locator('#compte-rendu-titre', { hasText: 'Aperçu prêt' }).waitFor({ timeout: 30000 });
+  await apercu.locator('.project-card').first().waitFor();
+  assert.equal(new URL(apercu.url()).pathname, '/');
+  await terminer(page);
+});
+
+test('publier refusé : fichier sans rapport modifié, explication, rien commité', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await banc.ecrire('scripts/export.py', '# essai en cours\n');
+  await choisirProjet(page, 'Depths');
+  await page.fill('#projet-nom', 'Depths II');
+  const message = accepterDialogue(page);
+  await page.click('#bouton-publier');
+  await message;
+  await page.locator('#compte-rendu-titre', { hasText: 'Publication refusée' }).waitFor();
+  assert.match(await page.textContent('#compte-rendu-message'),
+    /^Publication refusée : d'autres fichiers que les réglages ont des modifications pas encore commitées \(scripts\/export\.py\)/);
+  assert.match(await page.textContent('#etat-git'), /Publier est impossible pour l’instant : d'autres fichiers/);
+  assert.equal(banc.git('log', '--format=%s'), 'init');
+  assert.equal((await banc.lire('config/projets.json')).projets.depths.nom, 'Depths II', 'les réglages sont enregistrés');
+  assert.equal(banc.dashboard.etat.recherches, 0);
+  refusAttendu(page, 409);
+  await terminer(page);
+});

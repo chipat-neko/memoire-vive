@@ -382,6 +382,20 @@ le vrai `data.json`.
 
 Rejouer la suite sur le site publié : `$env:MEMOIRE_SITE_URL = 'https://chipat-neko.github.io/memoire-vive/'; npm test`.
 
+### Vérification automatique (GitHub Actions)
+
+`.github/workflows/tests.yml` rejoue les deux premières suites sur les machines de GitHub à
+chaque envoi vers `main`, à chaque pull request et à la demande (onglet **Actions** →
+**Run workflow**) : un travail « Export et page d'admin (Python) », un travail « Site
+(Node) », tous deux en lecture seule sur le dépôt. Le résultat est dans l'onglet
+**Actions** : une coche verte, ou une croix rouge dont le journal montre le test qui casse.
+Les envois de l'export (`docs/data.json` seul) déclenchent aussi la vérification — c'est
+voulu : `tests/js/schema.test.mjs` et `tests/test_admin.py` lisent le vrai `data.json`.
+
+La suite navigateur n'y est **pas** : elle demande un Chrome installé sur la machine de
+GitHub, ce qui n'a pas pu être vérifié d'ici. La lancer en local avant toute modification
+notable du site.
+
 ## Structure
 
 ```text
@@ -410,32 +424,169 @@ config/             réglages facultatifs : projets.json, entrees.json, recherch
 tests/              tests unitaires et d'intégration de l'export et de la page d'admin (Python)
   js/               tests unitaires du site (node --test)
   navigateur/       tests navigateur (playwright-core, Chrome installé)
-phase2/             modèle de workflow GitHub Actions, inactif
+phase2/             modèle de workflow GitHub Actions, inactif (voir « Phase 2 »)
+.github/workflows/  tests.yml : vérification automatique à chaque envoi
 .env                clé locale (ignoré par git) — modèle : .env.example
 ```
 
 ## Phase 2 : export quotidien automatique
 
-À faire une fois un nom de domaine et un tunnel Cloudflare à adresse fixe en place.
-**Le script ne change pas** : il lit l'URL et la clé dans les variables d'environnement
-avant de regarder `.env`, refuse `http://` vers une adresse distante, et n'écrit pas
-l'adresse du tunnel dans les logs.
+Aujourd'hui, le site se met à jour quand on lance l'export soi-même. En phase 2, GitHub le
+lance tout seul chaque nuit : c'est **le même `scripts/export.py`**, joué sur les machines
+de GitHub, qui vient lire la mémoire de cet ordinateur par un tunnel Cloudflare. Aucune
+ligne de code à écrire — le script lit l'adresse et la clé dans les secrets du dépôt avant
+de regarder `.env`, refuse une adresse distante en `http://`, et n'écrit jamais l'adresse
+du tunnel dans le journal public des exécutions.
 
-1. Exposer le dashboard (port 8000) par un tunnel nommé, par exemple
-   `https://memoire-api.<domaine>`. **Protéger ce sous-domaine par Cloudflare Access**
-   avec un jeton de service : sans cela, tout le dashboard (lecture, modification,
-   suppression en masse) n'est gardé que par la clé API. Si possible, n'autoriser que
-   `GET /api/memories` et `POST /api/search` (règle Access ou WAF sur le nom d'hôte).
-2. Dans le dépôt : Settings → Secrets and variables → Actions → créer `MEMOIRE_API_URL`,
-   `MEMOIRE_API_KEY`, `MEMOIRE_CF_ACCESS_CLIENT_ID` et `MEMOIRE_CF_ACCESS_CLIENT_SECRET`.
-3. Copier `phase2/export-quotidien.yml` dans `.github/workflows/` et pousser.
-   L'export tourne à minuit UTC ; il peut aussi être lancé à la main depuis l'onglet
-   Actions, avec une case « force » pour passer outre le garde-fou de chute.
-4. Supprimer la clé de `.env` si l'export local n'est plus utilisé.
+Ce qu'il faut avant de commencer :
 
-À savoir : GitHub peut retarder de quelques minutes (voire sauter) un cron programmé à
-l'heure pile, et désactive les workflows planifiés d'un dépôt sans activité pendant
-60 jours ; il suffit alors de le réactiver depuis l'onglet Actions.
+- un nom de domaine géré par Cloudflare (quelques euros par an) ;
+- le dashboard mcp-memory-service allumé sur cet ordinateur au moment de l'export (minuit
+  UTC, soit 1 h ou 2 h du matin en France). Ordinateur éteint : l'export de la nuit est
+  raté, il n'y a rien à réparer — le site garde les données de la veille et l'export
+  suivant rattrape tout.
+
+Le raccourci « Mettre à jour Mémoire Vive » du Bureau continue de fonctionner avant,
+pendant et après : c'est le même script, et rien n'empêche de publier à la main entre deux
+nuits.
+
+### 1. Créer le tunnel vers le dashboard
+
+Cloudflare Zero Trust (<https://one.dash.cloudflare.com>) → **Networks → Tunnels → Create a
+tunnel** → **Cloudflared** → un nom, par exemple `memoire-vive`. Cloudflare affiche une
+commande d'installation à coller dans PowerShell ouvert en administrateur : elle installe
+le connecteur comme service Windows, qui redémarrera tout seul avec l'ordinateur.
+
+Puis, dans l'onglet **Public Hostname** du tunnel, **Add a public hostname** :
+
+| Champ | Valeur |
+| --- | --- |
+| Subdomain | `memoire-api` |
+| Domain | le domaine |
+| Type | `HTTP` |
+| URL | `127.0.0.1:8000` |
+
+Vérification : `https://memoire-api.<domaine>/api/memories` dans un navigateur doit donner
+une réponse du dashboard (le plus souvent un refus, faute de clé), et non une page d'erreur
+de Cloudflare.
+
+### 2. Protéger ce sous-domaine par Cloudflare Access
+
+Sans cette étape, tout le dashboard — lecture, modification, **suppression en masse** — se
+retrouve sur une adresse publique, gardé par la seule clé API.
+
+Zero Trust → **Access → Service Auth → Create Service Token** (ce menu s'appelle
+« Service credentials » dans les versions plus récentes de l'interface) : un nom
+(`export-memoire-vive`) et une durée de vie. Cloudflare affiche **une seule fois** le
+*Client ID* (il se termine par `.access`) et le *Client Secret* : les copier tout de suite,
+ils deviendront deux des quatre secrets GitHub de l'étape 4.
+
+Zero Trust → **Access → Applications → Add an application → Self-hosted** :
+
+- *Application domain* : `memoire-api.<domaine>` ;
+- une seule règle (*policy*), **Action : Service Auth**, avec le sélecteur *Service Token*
+  réglé sur le jeton créé juste avant.
+
+Vérification : recharger `https://memoire-api.<domaine>/api/memories` dans le navigateur
+doit maintenant tomber sur une page de connexion Cloudflare. L'export, lui, présente le
+jeton ; s'il tombait un jour sur cette page de connexion, il s'arrêterait en disant
+« redirection inattendue » ou « a répondu autre chose que du JSON » plutôt que de publier
+n'importe quoi.
+
+### 3. N'autoriser que les deux requêtes de l'export
+
+L'export ne fait que deux choses : lire les entrées (`GET /api/memories`) et chercher les
+voisins (`POST /api/search`). Tout le reste peut être fermé.
+
+Tableau de bord du domaine (<https://dash.cloudflare.com>) → **Security → WAF → Custom
+rules → Create rule** : un nom (`Memoire Vive - lecture seule`), **Action : Block**, et
+cette expression (bouton « Edit expression ») :
+
+```text
+(http.host eq "memoire-api.<domaine>"
+ and not (http.request.method eq "GET" and http.request.uri.path eq "/api/memories")
+ and not (http.request.method eq "POST" and http.request.uri.path eq "/api/search"))
+```
+
+Après quoi une suppression, même avec la clé **et** le jeton, est bloquée par Cloudflare
+avant d'atteindre l'ordinateur.
+
+### 4. Créer les quatre secrets du dépôt
+
+Dépôt GitHub → **Settings → Secrets and variables → Actions → New repository secret**,
+quatre fois :
+
+| Nom | Valeur |
+| --- | --- |
+| `MEMOIRE_API_URL` | `https://memoire-api.<domaine>` |
+| `MEMOIRE_API_KEY` | la clé du dashboard : `MCP_API_KEY` du lanceur, celle qui est déjà dans `.env` |
+| `MEMOIRE_CF_ACCESS_CLIENT_ID` | le *Client ID* du jeton de service |
+| `MEMOIRE_CF_ACCESS_CLIENT_SECRET` | le *Client Secret* du jeton de service |
+
+Un secret ne se relit pas ensuite : il se remplace. GitHub les masque dans les journaux.
+
+### 5. Activer le workflow
+
+```powershell
+mkdir .github\workflows -Force
+copy phase2\export-quotidien.yml .github\workflows\
+git add .github/workflows/export-quotidien.yml
+git commit -m "Phase 2 : export quotidien automatique"
+git push
+```
+
+Tant que le fichier reste dans `phase2/`, il ne se passe rien : GitHub ne lit que
+`.github/workflows/`.
+
+### 6. Vérifier la première exécution
+
+Sans attendre minuit : onglet **Actions** → « Export quotidien de la mémoire » → **Run
+workflow** (laisser les deux cases décochées) → ouvrir l'exécution, puis l'étape « Export
+et publication ». On doit y lire :
+
+```text
+Source : dashboard distant (MEMOIRE_API_URL)
+  87 entrées lues, 87 publiables, …
+  git : commit « Export mémoire : 87 entrées (… UTC) »
+  git : push effectué.
+```
+
+L'adresse du tunnel n'apparaît nulle part : c'est voulu, ce journal est public. Une à deux
+minutes plus tard, le site affiche la date du jour.
+
+### Quand l'export échoue
+
+Une exécution ratée ouvre une **issue** dans le dépôt, intitulée « L'export quotidien de la
+mémoire a échoué », avec le lien du journal. Les échecs suivants ajoutent un commentaire à
+cette même issue : jamais une issue par jour. Dès que l'export repasse, elle se referme
+toute seule avec un mot.
+
+Les causes les plus courantes, et leur message : ordinateur éteint ou dashboard arrêté
+(`injoignable`), clé changée (`HTTP 401`), jeton de service expiré (`redirection
+inattendue`, `a répondu autre chose que du JSON`), dépôt GitHub en avance (`git push a
+échoué`). Le tableau « Dépannage » plus bas dit quoi faire dans chaque cas.
+
+Pour ne plus recevoir ces issues : supprimer les deux dernières étapes de
+`.github/workflows/export-quotidien.yml` (une ligne de commentaire le dit sur place).
+L'échec reste visible en rouge dans l'onglet Actions.
+
+### Deux choses à savoir
+
+- **L'heure n'est pas garantie.** GitHub retarde souvent un déclenchement programmé de
+  quelques minutes, et peut sauter une exécution quand ses machines sont chargées. L'export
+  suivant rattrape.
+- **La règle des 60 jours.** GitHub désactive les exécutions planifiées d'un dépôt resté
+  60 jours sans activité, et les commits du robot ne comptent pas toujours comme de
+  l'activité. Un courriel prévient : il suffit d'ouvrir l'onglet **Actions**, de choisir le
+  workflow et de cliquer **Enable workflow**.
+
+### Revenir à l'export manuel
+
+Onglet **Actions** → « Export quotidien de la mémoire » → menu « ··· » → **Disable
+workflow** : le déclenchement s'arrête, le fichier reste. Pour de bon : supprimer
+`.github/workflows/export-quotidien.yml` et pousser. Dans les deux cas, le raccourci
+« Mettre à jour Mémoire Vive » du Bureau reste le moyen normal de publier — il n'a jamais
+cessé de l'être.
 
 ## Ajouter une authentification plus tard (Cloudflare Access)
 
@@ -465,6 +616,7 @@ reste dans l'historique public et dans les éventuelles copies.
 | `récupération incomplète après 3 passes` | base verrouillée ou modifiée en continu ; relancer un peu plus tard |
 | `N entrées contre M au dernier export` | base vide ou mauvais fichier SQLite ; vérifier, puis `--force` |
 | `git push a échoué` | branche en retard : `git pull --rebase`, puis relancer (le push en attente est rattrapé) |
+| issue « L'export quotidien de la mémoire a échoué » | phase 2 : l'export de la nuit n'est pas passé ; le lien de l'issue mène au journal, la cause y est écrite en clair (l'issue se referme seule quand l'export repasse) |
 | `aucun dépôt distant « origin »` | voir « Première mise en place » |
 | `Lien principal configuré refusé` | `lien_principal` d'un projet local, invalide ou contenant un secret : le corriger dans `config/projets.json` |
 | `entrée(s) encore sans recherche de voisins` | budget de temps épuisé ou recherches en échec : elles seront cherchées au prochain export |

@@ -62,9 +62,12 @@ export function fichiersModifies(modele) {
   return FICHIERS.filter((nom) => stable(modele.brouillon[nom]) !== stable(modele.original[nom]));
 }
 
-/* empreinte : celle du fichier écrit, renvoyée par le serveur. */
-export function marquerEnregistre(modele, nom, empreinte) {
-  modele.original[nom] = clone(modele.brouillon[nom]);
+/* empreinte : celle du fichier écrit, renvoyée par le serveur. envoye : ce qui
+   a vraiment été envoyé (figé au moment de l'appel). Une saisie faite pendant
+   l'enregistrement n'en fait pas partie : elle reste « à enregistrer » au lieu
+   d'être comptée comme écrite et perdue au rechargement suivant. */
+export function marquerEnregistre(modele, nom, empreinte, envoye) {
+  modele.original[nom] = clone(envoye === undefined ? modele.brouillon[nom] : envoye);
   if (typeof empreinte === 'string') modele.empreintes[nom] = empreinte;
 }
 
@@ -243,8 +246,11 @@ export function listeEntrees(modele, memo = {}) {
       masquee: Boolean(correction.masquer),
     });
   }
+  // Clés de config/entrees.json qui ne sont plus dans les données : entrées
+  // masquées (à pouvoir réafficher) et corrections orphelines, dont l'entrée a
+  // disparu de la mémoire (à pouvoir retirer sans ouvrir le fichier).
   for (const [court, correction] of Object.entries(toutes)) {
-    if (court.startsWith('_') || vues.has(court) || !correction || !correction.masquer) continue;
+    if (court.startsWith('_') || vues.has(court) || !correction || typeof correction !== 'object') continue;
     liste.push({
       court,
       connue: false,
@@ -254,7 +260,7 @@ export function listeEntrees(modele, memo = {}) {
       resumeOrigine: '',
       titre: correction.titre || memo[court] || '',
       resume: correction.resume || '',
-      masquee: true,
+      masquee: Boolean(correction.masquer),
     });
   }
   return liste;
@@ -266,9 +272,12 @@ function ecrireCorrection(modele, court, correction) {
 }
 
 /* Corrige le titre ou le résumé (champ 'titre' ou 'resume') ; un texte vide
-   ou égal à l'original retire la correction. */
+   ou égal à l'original retire la correction. Une entrée masquée n'est jamais
+   corrigée : config/entrees.json est publié avec le dépôt, et une entrée est
+   souvent masquée parce qu'elle est privée (verrou du Choix 4 du plan). */
 export function corriger(modele, court, champ, texte) {
   const correction = Object.assign({}, corrections(modele)[court]);
+  if (correction.masquer) return;
   const valeur = String(texte || '').trim();
   const origine = String((modele.originaux[court] || {})[champ] || '').trim();
   if (!valeur || valeur === origine) delete correction[champ];
@@ -287,6 +296,12 @@ export function masquer(modele, court, oui) {
   }
   delete correction.masquer;
   ecrireCorrection(modele, court, correction);
+}
+
+/* Retire toute la correction d'une entrée : sert aux corrections orphelines,
+   dont l'entrée a disparu de la mémoire (l'export les signale à chaque fois). */
+export function retirerCorrection(modele, court) {
+  ecrireCorrection(modele, court, {});
 }
 
 // ------------------------------------------------------------ synonymes

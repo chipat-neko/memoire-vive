@@ -40,6 +40,19 @@ function accepterDialogue(page) {
   });
 }
 
+/* Refuse la prochaine boîte de dialogue (confirm) et renvoie son message. */
+function refuserDialogue(page) {
+  return new Promise((ok, ko) => {
+    const delai = setTimeout(() => ko(new Error('aucune boîte de dialogue en 10 s')), 10000);
+    page.once('dialog', async (dialogue) => {
+      clearTimeout(delai);
+      const message = dialogue.message();
+      await dialogue.dismiss();
+      ok(message);
+    });
+  });
+}
+
 async function choisirProjet(page, nom) {
   await page.locator('#liste-projets button', { hasText: nom }).click();
   await page.locator('#titre-projet', { hasText: nom }).waitFor();
@@ -83,6 +96,22 @@ test('sans jeton ou avec un jeton faux : message clair, aucun réglage affiché'
   // La seule erreur de console attendue : le refus 403 du serveur.
   assert.ok(page.erreurs.length > 0 && page.erreurs.every((e) => e.includes('403')), page.erreurs.join('\n'));
   page.erreurs.length = 0;
+  await terminer(page);
+});
+
+test('clavier : Échap ferme le compte rendu, un lien mène droit à la fiche', async (t) => {
+  const { page } = await ouvrirAdmin(t);
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Rien à enregistrer');
+  assert.equal(await page.isVisible('#compte-rendu'), true);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.isHidden('#compte-rendu'), true);
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'bouton-enregistrer');
+  // La fiche est sinon derrière tous les boutons de la liste (46 projets réels).
+  await page.focus('#filtre-projets');
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.textContent), 'Aller à la fiche du projet');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'detail-projet');
   await terminer(page);
 });
 
@@ -292,12 +321,13 @@ test('entrées : masquer du site (sa correction est retirée, après confirmatio
   const message = accepterDialogue(page);
   await page.check('#entree-masquer');
   assert.match(await message, /^Masquer cette entrée retire aussi sa correction de titre et de résumé/);
-  assert.equal(await page.inputValue('#entree-titre'), origine, 'titre d’origine rétabli');
+  assert.equal(await page.locator('#entree-titre').count(), 0, 'plus de champ Titre tant qu’elle est masquée');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'entree-masquer');
   assert.equal(await page.textContent('#liste-entrees [aria-current="true"] .admin-item-sous'), 'Note · Voxelcraft · masquée');
   await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
   assert.deepEqual((await banc.lire('config/entrees.json'))['000000000005'], { masquer: true });
   await page.uncheck('#entree-masquer');
+  assert.equal(await page.inputValue('#entree-titre'), origine, 'titre d’origine rétabli');
   await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
   assert.deepEqual(await banc.lire('config/entrees.json'), { _aide: 'Corrections de test.' });
   await terminer(page);
@@ -339,11 +369,94 @@ test('synonymes : modifier, ajouter et supprimer un groupe', async (t) => {
   await page.click('#bouton-ajouter-groupe');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'groupe-3');
   await page.keyboard.type('local, hors ligne');
+  const suppression = accepterDialogue(page);
   await page.click('[aria-label="Supprimer le groupe n° 2"]');
+  await suppression;
   assert.equal(await page.inputValue('#groupe-2'), 'local, hors ligne');
   await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
   assert.deepEqual(await banc.lire('config/recherche.json'), {
     _aide: 'Synonymes de test.', synonymes: [['ia', 'intelligence artificielle', 'llm'], ['local', 'hors ligne']] });
+  await terminer(page);
+});
+
+test('synonymes : supprimer un groupe se confirme, les numéros sont visibles', async (t) => {
+  const { page } = await ouvrirAdmin(t);
+  await page.click('#onglet-recherche');
+  assert.deepEqual(await page.locator('.admin-groupe-n').allTextContents(), ['n° 1', 'n° 2'],
+    'les refus citent « groupe n° N » : le numéro doit être à l’écran');
+  const refus = refuserDialogue(page);
+  await page.click('[aria-label="Supprimer le groupe n° 1"]');
+  assert.match(await refus, /^Supprimer le groupe de synonymes n° 1 « ia, intelligence artificielle » \?/);
+  assert.equal(await page.inputValue('#groupe-1'), 'ia, intelligence artificielle', 'rien n’est supprimé');
+  assert.equal(await page.textContent('#etat-modifs'), 'Tout est enregistré.');
+  // Le groupe vide que « Ajouter un groupe » vient de créer part sans question.
+  await page.click('#bouton-ajouter-groupe');
+  await page.click('[aria-label="Supprimer le groupe n° 3"]');
+  assert.equal(await page.locator('#liste-groupes li').count(), 2);
+  await terminer(page);
+});
+
+test('entrée masquée : plus de champ Titre ni Résumé (config/ est publié)', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await page.click('#onglet-entrees');
+  await page.locator('#liste-entrees button', { hasText: 'Voxelcraft' }).click();
+  await page.check('#entree-masquer');  // sans correction : aucune confirmation
+  assert.equal(await page.locator('#entree-titre').count(), 0);
+  assert.equal(await page.locator('#entree-resume').count(), 0);
+  assert.match(await page.textContent('#entree-masquee-aide'),
+    /^Entrée masquée : son titre et son résumé ne sont pas écrits dans config\/entrees\.json/);
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual((await banc.lire('config/entrees.json'))['000000000005'], { masquer: true },
+    'aucun titre ni résumé dans le fichier publié avec le dépôt');
+  await terminer(page);
+});
+
+test('correction orpheline : listée dans l’onglet Entrées et retirable d’un bouton', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await banc.remplacer('config/entrees.json',
+    JSON.stringify({ _aide: 'Corrections de test.', ffffffffffff: { titre: 'Entrée disparue de la mémoire' } }));
+  await page.reload();
+  await page.click('#onglet-entrees');
+  await page.locator('#liste-entrees button', { hasText: 'Entrée disparue de la mémoire' }).click();
+  const accord = accepterDialogue(page);
+  await page.click('#bouton-retirer-correction');
+  assert.match(await accord, /^Retirer la correction de l’entrée ffffffffffff \?/);
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual(await banc.lire('config/entrees.json'), { _aide: 'Corrections de test.' });
+  await terminer(page);
+});
+
+test('fusion : la confirmation dit ce qui est perdu, sans promettre une annulation', async (t) => {
+  const { page } = await ouvrirAdmin(t);
+  await choisirProjet(page, 'Depths');
+  await page.selectOption('#projet-fusion', 'jarvis');
+  const refus = refuserDialogue(page);
+  await page.click('#bouton-fusionner');
+  const message = await refus;
+  assert.match(message, /ne peut pas être défaite depuis cette page/);
+  assert.match(message, /ne ramènera pas ses réglages|mais pas ses réglages/);
+  assert.doesNotMatch(message, /Pour annuler/);
+  await page.locator('#titre-projet', { hasText: 'Depths' }).waitFor();
+  await terminer(page);
+});
+
+test('enregistrement partiel : le compte rendu dit ce qui a bien été écrit', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await choisirProjet(page, 'Depths');
+  await page.fill('#projet-nom', 'Depths of Ruin');
+  await page.click('#onglet-recherche');
+  await page.click('#bouton-ajouter-groupe');
+  await page.keyboard.type('un-seul-terme');
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistrement incomplet');
+  const message = await page.textContent('#compte-rendu-message p');
+  assert.match(message, /^Enregistrés sur cet ordinateur : projets et familles\./);
+  assert.match(message, /Seul « recherche » a été refusé, et rien n’y a été écrit\./);
+  assert.deepEqual(await page.locator('#compte-rendu-message li').allTextContents(),
+    ['Synonymes, groupe n° 3 : au moins deux termes différents sont nécessaires.']);
+  assert.equal((await banc.lire('config/projets.json')).projets.depths.nom, 'Depths of Ruin',
+    'le travail déjà envoyé est bien sur le disque');
+  assert.equal(await page.textContent('#etat-modifs'), 'Modifications non enregistrées : recherche.');
+  refusAttendu(page, 422);
   await terminer(page);
 });
 
@@ -443,7 +556,11 @@ test('entrée masquée : après l’aperçu, toujours listée sous son titre mé
   assert.equal(await masquee.locator('.admin-item-sous').textContent(), 'masquée');
   await masquee.click();
   assert.match(await page.textContent('#detail-entree .admin-aide'), /^Identifiant 000000000005\. Masquée/);
-  await page.uncheck('#entree-masquer');
+  await page.click('#entree-masquer');
+  assert.equal(await page.locator('#entree-masquer').count(), 0,
+    'réaffichée, elle quitte la liste jusqu’au prochain aperçu');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'filtre-entrees');
+  assert.match(await page.textContent('#annonce'), /^Entrée 000000000005 réaffichée/);
   await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
   assert.deepEqual(await banc.lire('config/entrees.json'), { _aide: 'Corrections de test.' });
   await terminer(page);
@@ -505,6 +622,21 @@ test('aperçu de plus de 5 s, bloqueur de fenêtres actif : l’onglet du site s
   await page.locator('#compte-rendu-titre', { hasText: 'Aperçu prêt' }).waitFor({ timeout: 30000 });
   await apercu.locator('.project-card').first().waitFor();
   assert.equal(new URL(apercu.url()).pathname, '/');
+  await terminer(page);
+});
+
+test('trop d’entrées masquées : l’aperçu dit la vraie cause, sans accuser le dashboard', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await banc.remplacer('config/entrees.json', JSON.stringify({
+    '000000000001': { masquer: true }, '000000000002': { masquer: true }, '000000000003': { masquer: true } }));
+  await page.reload();
+  await page.locator('#panneau-projets:not([hidden])').waitFor();
+  await cliquerEtAttendre(page, '#bouton-apercu', 'Aperçu impossible');
+  const message = await page.textContent('#compte-rendu-message p');
+  assert.match(message, /baisse de plus de la moitié/);
+  assert.match(message, /onglet « Entrées »/);
+  assert.doesNotMatch(message, /dashboard/, 'le dashboard répond très bien');
+  assert.match(await page.textContent('#compte-rendu-sortie'), /contre 5 au dernier export/);
   await terminer(page);
 });
 

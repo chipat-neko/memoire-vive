@@ -125,7 +125,7 @@ function signalerLecture(etat) {
   const notes = Object.values(etat.normalisations || {}).flat();
   const erreurs = Object.values(etat.erreurs || {}).flat();
   if (erreurs.length) {
-    rapport('erreur', 'Réglages à corriger', 'Ces réglages enregistrés ne passent pas la vérification : « Aperçu » et « Publier » sont refusés tant qu’ils ne sont pas corrigés (ici, ou à la main dans config/).',
+    rapport('erreur', 'Réglages à corriger', 'Ces réglages enregistrés ne passent pas la vérification : « Aperçu » et « Publier » sont refusés tant qu’ils ne sont pas corrigés. La plupart se corrigent dans les onglets ci-dessus ; si l’erreur nomme une entrée ou une clé que la page n’affiche nulle part, ouvrir le fichier de config/ qu’elle cite.',
       { details: [...notes, ...erreurs] });
   } else if (notes.length) {
     rapport('attente', 'Réglages relus', 'Ces réglages étaient écrits sous une forme que l’export accepte, mais que la page écrit autrement (même effet sur le site) : « Enregistrer » écrit la forme de la page.',
@@ -262,17 +262,30 @@ async function enregistrer({ silencieux = false } = {}) {
     return true;
   }
   if (!silencieux) rapport('attente', 'Enregistrement en cours…', 'Envoi des réglages à la page d’admin.');
+  const ecrits = [];  // fichiers déjà écrits sur le disque : un refus plus loin ne les efface pas
   for (const nom of modifies) {
+    // Ce qui part est figé ici : une saisie faite pendant l'envoi n'est pas
+    // dans le corps envoyé, elle doit donc rester « à enregistrer ».
+    const envoye = structuredClone(ui.modele.brouillon[nom]);
     let reponse;
     try {
       // Empreinte du fichier lu : le serveur refuse d'écraser une modification faite ailleurs entre-temps.
-      reponse = await api('PUT', '/api/config/' + nom, ui.modele.brouillon[nom], { 'X-Admin-Base': ui.modele.empreintes[nom] || '' });
+      reponse = await api('PUT', '/api/config/' + nom, envoye, { 'X-Admin-Base': ui.modele.empreintes[nom] || '' });
     } catch (e) {
       rendreBarre();
-      rapport('erreur', 'Enregistrement refusé', e.message, { details: e.details, focus: true });
+      // Le message du serveur ne vaut que pour le fichier refusé : le dire, sinon
+      // « rien n'a été enregistré » laisse croire que tout le travail est perdu.
+      const details = e.details.length ? e.details : [e.message];
+      rapport('erreur', ecrits.length ? 'Enregistrement incomplet' : 'Enregistrement refusé',
+        ecrits.length
+          ? 'Enregistrés sur cet ordinateur : ' + ecrits.map((f) => M.LIBELLES[f]).join(', ')
+            + '. Seul « ' + M.LIBELLES[nom] + ' » a été refusé, et rien n’y a été écrit.'
+          : e.message,
+        { details, focus: true });
       return false;
     }
-    M.marquerEnregistre(ui.modele, nom, reponse.empreinte);
+    M.marquerEnregistre(ui.modele, nom, reponse.empreinte, envoye);
+    ecrits.push(nom);
   }
   await rafraichirGit();
   rendreBarre();
@@ -308,7 +321,10 @@ async function apercu(onglet) {
   }
   if (!resultat.ok) {
     fermerSiVide();
-    rapport('erreur', 'Aperçu impossible', 'L’export a échoué : voir son compte rendu ci-dessous (le dashboard tourne-t-il ?).',
+    // Le serveur explique les causes qu'il reconnaît (trop d'entrées masquées,
+    // dashboard arrêté…) : ne pas accuser le dashboard à tort.
+    rapport('erreur', 'Aperçu impossible',
+      resultat.explication || 'L’export a échoué : voir son compte rendu ci-dessous.',
       { sortie: resultat.sortie, focus: true });
     return;
   }
@@ -336,9 +352,12 @@ async function publier() {
   if (resultat.ok) {
     rapport('ok', 'Publié', 'Le site public se met à jour en une à deux minutes : ' + SITE_PUBLIC, { sortie: resultat.sortie, focus: true });
   } else {
-    rapport('erreur', 'Publication inachevée', resultat.explication || (resultat.commit
-      ? 'Les réglages sont commités, mais l’export a échoué : relancer « Publier » une fois le problème réglé (le commit en attente partira avec).'
-      : 'L’export a échoué : voir son compte rendu ci-dessous.'), { sortie: resultat.sortie, focus: true });
+    // etape « git » : l'export n'a jamais démarré ; ne pas l'accuser.
+    rapport('erreur', 'Publication inachevée', resultat.explication || (resultat.etape === 'git'
+      ? 'Git n’a pas pu enregistrer les réglages : rien n’a été commité ni publié.'
+      : resultat.commit
+        ? 'Les réglages sont commités, mais l’export a échoué : relancer « Publier » une fois le problème réglé (le commit en attente partira avec).'
+        : 'L’export a échoué : voir son compte rendu ci-dessous.'), { sortie: resultat.sortie, focus: true });
   }
 }
 
@@ -445,7 +464,7 @@ function rendreDetailProjet() {
           autres.map((p) => el('option', { value: p.id }, p.nom))),
         el('button', { type: 'button', class: 'btn-secondary', id: 'bouton-fusionner' }, 'Fusionner')),
       el('p', { class: 'admin-aide', id: 'projet-fusion-aide' },
-        'Ce projet devient un alias du projet choisi : ses entrées y passent, ses propres réglages sont abandonnés.')),
+        'Ce projet devient un alias du projet choisi : ses entrées y passent, ses propres réglages (nom, description, famille, lien) sont perdus sans retour possible.')),
   );
 }
 
@@ -496,8 +515,11 @@ function fusionnerProjet() {
   }
   const de = nomProjet(source);
   const dans = nomProjet(cible);
+  // Retirer l'alias ramène les entrées, mais pas les réglages de la source :
+  // ne promettre que ce qui est vrai.
   const accord = window.confirm('Fusionner « ' + de + ' » dans « ' + dans + ' » ?\n\n« ' + de + ' » devient un alias : ses entrées passent dans « '
-    + dans + ' », ses propres réglages (nom, description, lien…) sont abandonnés. Pour annuler, retirer l’alias.');
+    + dans + ' ».\n\nCette fusion ne peut pas être défaite depuis cette page : le nom, la description, la famille et le lien principal de « '
+    + de + ' » sont perdus. Retirer l’alias ramènera ses entrées, mais pas ses réglages.');
   if (!accord) return;
   M.fusionner(ui.modele, source, cible);
   choisirProjet(cible);
@@ -627,10 +649,31 @@ function rendreDetailEntree() {
     el('label', { for: 'entree-masquer' }, 'Masquer du site'),
     el('p', { class: 'admin-aide', id: 'entree-masquer-aide' },
       'L’entrée disparaît du site public à la prochaine publication (la mémoire n’est pas modifiée) ; elle reste listée ici pour pouvoir la réafficher. Masquer retire aussi sa correction de titre et de résumé : config/entrees.json est publié avec le dépôt.'));
+  if (!entree.connue && !entree.masquee) {
+    // Correction orpheline : l'entrée a disparu de la mémoire. L'export le
+    // signale à chaque passage ; on peut la retirer sans ouvrir le fichier.
+    dom.detailEntree.replaceChildren(
+      el('h2', { id: 'titre-entree', tabindex: '-1' }, entree.titre || 'Correction sans entrée'),
+      el('p', { class: 'admin-aide' }, 'Identifiant ' + entree.court + '. Cette correction est écrite dans config/entrees.json, mais l’entrée n’est plus dans la mémoire : elle ne sert plus à rien, et l’export la signale à chaque publication.'),
+      el('div', { class: 'champ' },
+        el('button', { type: 'button', class: 'btn-secondary', id: 'bouton-retirer-correction' }, 'Retirer cette correction')));
+    return;
+  }
   if (!entree.connue) {
     dom.detailEntree.replaceChildren(
       el('h2', { id: 'titre-entree', tabindex: '-1' }, entree.titre || 'Entrée masquée'),
       el('p', { class: 'admin-aide' }, 'Identifiant ' + entree.court + '. Masquée, elle n’est plus dans les données du site : la réafficher puis lancer un aperçu la ramène dans la liste, avec son titre et son résumé.'),
+      caseMasquer);
+    return;
+  }
+  if (entree.masquee) {
+    // Tant qu'elle est masquée, son titre et son résumé ne sont pas modifiables :
+    // ils partiraient dans config/entrees.json, publié avec le dépôt.
+    dom.detailEntree.replaceChildren(
+      el('h2', { id: 'titre-entree', tabindex: '-1' }, entree.titre),
+      el('p', { class: 'admin-aide' },
+        [typeLabel(entree.type), entree.projet ? 'projet ' + nomProjet(entree.projet) : 'sans projet', 'identifiant ' + entree.court].join(' · ')),
+      el('p', { class: 'admin-aide', id: 'entree-masquee-aide' }, 'Entrée masquée : son titre et son résumé ne sont pas écrits dans config/entrees.json, qui est publié avec le dépôt. Décocher « Masquer du site » pour les corriger.'),
       caseMasquer);
     return;
   }
@@ -655,7 +698,7 @@ function choisirEntree(court) {
 /* Après une correction : ligne « d'origine », titre de la fiche, liste, barre. */
 function entreeModifiee() {
   const entree = M.listeEntrees(ui.modele, ui.memo).find((e) => e.court === ui.entree);
-  if (entree && entree.connue) {
+  if (entree && entree.connue && !entree.masquee) {
     $('titre-entree').textContent = entree.titre;
     $('origine-titre').hidden = entree.titre === entree.titreOrigine;
     $('origine-resume').hidden = entree.resume === entree.resumeOrigine;
@@ -675,19 +718,41 @@ function saisieEntree(event) {
 /* Masquer une entrée corrigée retire sa correction (config/ est publié) : on le demande d'abord. */
 function caseMasquer(event) {
   if (event.target.id !== 'entree-masquer') return;
-  const entree = M.listeEntrees(ui.modele, ui.memo).find((e) => e.court === ui.entree);
+  const court = ui.entree;
+  const entree = M.listeEntrees(ui.modele, ui.memo).find((e) => e.court === court);
   const retireCorrection = event.target.checked && entree && entree.connue
     && (entree.titre !== entree.titreOrigine || entree.resume !== entree.resumeOrigine);
   if (retireCorrection && !window.confirm('Masquer cette entrée retire aussi sa correction de titre et de résumé (config/entrees.json est publié avec le dépôt). Continuer ?')) {
     event.target.checked = false;
     return;
   }
-  M.masquer(ui.modele, ui.entree, event.target.checked);
-  if (retireCorrection) {
-    $('entree-titre').value = entree.titreOrigine;
-    $('entree-resume').value = entree.resumeOrigine;
+  M.masquer(ui.modele, court, event.target.checked);
+  // La fiche est refaite : masquée, elle n'offre plus les champs Titre et
+  // Résumé (ils seraient écrits dans config/entrees.json, qui est publié).
+  rendreDetailEntree();
+  rendreListeEntrees();
+  rendreBarre();
+  const boite = $('entree-masquer');
+  if (boite) {
+    boite.focus();
+    return;
   }
-  entreeModifiee();
+  // Entrée réaffichée qui n'était plus dans les données du site : elle quitte
+  // la liste jusqu'au prochain aperçu, qui la ramènera.
+  dom.filtreEntrees.focus();
+  dom.annonce.textContent = 'Entrée ' + court + ' réaffichée : elle revient dans la liste après un aperçu ou une publication.';
+}
+
+/* Correction dont l'entrée a disparu de la mémoire : retirée d'un bouton. */
+function retirerCorrection() {
+  const court = ui.entree;
+  if (!court || !window.confirm('Retirer la correction de l’entrée ' + court + ' ?\n\nCette entrée n’est plus dans la mémoire : sa correction ne sert plus à rien. Cette suppression ne peut pas être défaite depuis cette page.')) return;
+  M.retirerCorrection(ui.modele, court);
+  ui.entree = null;
+  rendreEntrees();
+  rendreBarre();
+  dom.filtreEntrees.focus();
+  dom.annonce.textContent = 'Correction de l’entrée ' + court + ' retirée.';
 }
 
 function retablir(event) {
@@ -707,6 +772,8 @@ function retablir(event) {
 function rendreRecherche() {
   const liste = M.groupes(ui.modele);
   dom.listeGroupes.replaceChildren(...liste.map((groupe, i) => el('li', { class: 'admin-groupe' },
+    // Numéro visible : les refus d'enregistrement citent « groupe n° N ».
+    el('span', { class: 'admin-aide admin-groupe-n', 'aria-hidden': 'true' }, 'n° ' + (i + 1)),
     el('label', { for: 'groupe-' + (i + 1), class: 'visually-hidden' }, 'Groupe de synonymes n° ' + (i + 1)),
     el('input', { type: 'text', id: 'groupe-' + (i + 1), value: groupe.join(', '), 'data-index': String(i),
       placeholder: 'terme, autre terme, …', autocomplete: 'off', spellcheck: 'false' }),
@@ -724,6 +791,14 @@ function supprimerGroupe(event) {
   const bouton = event.target.closest('button[data-supprimer]');
   if (!bouton) return;
   const i = Number(bouton.dataset.supprimer);
+  // Contenu écrit à la main, impossible à reconstruire : on demande d'abord,
+  // comme pour supprimer une famille ou fusionner. Un groupe vide (celui que
+  // « Ajouter un groupe » vient de créer) se supprime sans question.
+  const groupe = M.groupes(ui.modele)[i] || [];
+  if (groupe.length && !window.confirm('Supprimer le groupe de synonymes n° ' + (i + 1) + ' « '
+      + groupe.join(', ') + ' » ?\n\nCette suppression ne peut pas être défaite depuis cette page.')) {
+    return;
+  }
   M.supprimerGroupe(ui.modele, i);
   rendreRecherche();
   rendreBarre();
@@ -752,9 +827,14 @@ function lier() {
     executer(() => apercu(onglet));
   });
   dom.publier.addEventListener('click', () => executer(publier));
-  dom.fermerCompteRendu.addEventListener('click', () => {
+  const fermerCompteRendu = () => {
     dom.compteRendu.hidden = true;
     dom.enregistrer.focus();
+  };
+  dom.fermerCompteRendu.addEventListener('click', fermerCompteRendu);
+  // Échap ferme le compte rendu, d'où qu'on soit dans la page.
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !dom.compteRendu.hidden) fermerCompteRendu();
   });
   // Alerte du navigateur si l'on quitte avec des modifications non enregistrées.
   window.addEventListener('beforeunload', (event) => {
@@ -792,7 +872,10 @@ function lier() {
   });
   dom.detailEntree.addEventListener('input', saisieEntree);
   dom.detailEntree.addEventListener('change', caseMasquer);
-  dom.detailEntree.addEventListener('click', retablir);
+  dom.detailEntree.addEventListener('click', (event) => {
+    if (event.target.id === 'bouton-retirer-correction') retirerCorrection();
+    else retablir(event);
+  });
 
   dom.listeGroupes.addEventListener('input', saisieGroupe);
   dom.listeGroupes.addEventListener('click', supprimerGroupe);

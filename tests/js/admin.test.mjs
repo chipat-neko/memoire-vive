@@ -190,10 +190,47 @@ test('entrées : « masquer » lu comme l’export, toute valeur vraie masque', 
   const modele = M.creerModele(etat());
   modele.brouillon.entrees.cccccccccccc = { masquer: 'false' };
   modele.brouillon.entrees.dddddddddddd = { masquer: 1 };
-  modele.brouillon.entrees.eeeeeeeeeeee = { masquer: 0 };
   const liste = M.listeEntrees(modele);
   assert.equal(liste.find((e) => e.court === 'cccccccccccc').masquee, true);
   assert.deepEqual(liste.filter((e) => !e.connue).map((e) => e.court), ['dddddddddddd']);
+});
+
+test('entrées : masquée, le titre et le résumé ne peuvent plus être corrigés (dépôt public)', () => {
+  const modele = M.creerModele(etat());
+  M.masquer(modele, 'aaaaaaaaaaaa', true);
+  M.corriger(modele, 'aaaaaaaaaaaa', 'titre', 'Mot de passe du coffre');
+  M.corriger(modele, 'aaaaaaaaaaaa', 'resume', 'Contenu privé, à ne pas publier');
+  assert.deepEqual(modele.brouillon.entrees.aaaaaaaaaaaa, { masquer: true });
+  // Réaffichée, elle redevient corrigeable.
+  M.masquer(modele, 'aaaaaaaaaaaa', false);
+  M.corriger(modele, 'aaaaaaaaaaaa', 'titre', 'Titre corrigé');
+  assert.deepEqual(modele.brouillon.entrees.aaaaaaaaaaaa, { titre: 'Titre corrigé' });
+});
+
+test('entrées : une correction orpheline est listée et peut être retirée', () => {
+  const modele = M.creerModele(etat());
+  modele.brouillon.entrees.ffffffffffff = { titre: 'Entrée disparue de la mémoire' };
+  const orpheline = M.listeEntrees(modele).find((e) => e.court === 'ffffffffffff');
+  assert.deepEqual([orpheline.connue, orpheline.masquee, orpheline.titre],
+    [false, false, 'Entrée disparue de la mémoire']);
+  M.retirerCorrection(modele, 'ffffffffffff');
+  assert.equal('ffffffffffff' in modele.brouillon.entrees, false);
+  assert.deepEqual(M.listeEntrees(modele).filter((e) => !e.connue), []);
+});
+
+test('enregistrement : seul ce qui a été envoyé est marqué enregistré', () => {
+  const modele = M.creerModele(etat());
+  M.modifierProjet(modele, 'depths', 'description', 'PREMIÈRE description');
+  const envoye = structuredClone(modele.brouillon.projets);
+  // Saisie faite pendant l'envoi : elle n'est pas dans ce qui part sur le disque.
+  M.modifierProjet(modele, 'depths', 'description', 'SECONDE description');
+  M.marquerEnregistre(modele, 'projets', 'abc', envoye);
+  assert.deepEqual(M.fichiersModifies(modele), ['projets'], 'la saisie reste à enregistrer');
+  assert.equal(modele.original.projets.projets.depths.description, 'PREMIÈRE description');
+  assert.equal(modele.empreintes.projets, 'abc');
+  // Sans quatrième argument (rien d'autre n'a bougé) : le brouillon courant.
+  M.marquerEnregistre(modele, 'projets', 'def');
+  assert.deepEqual(M.fichiersModifies(modele), []);
 });
 
 test('synonymes : modifier, ajouter, supprimer un groupe', () => {

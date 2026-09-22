@@ -101,7 +101,17 @@ body.admin { height: 100vh; display: flex; flex-direction: column; }
 }
 .admin-famille-compte { white-space: nowrap; }
 .admin-famille .btn-secondary, .admin-groupe .btn-secondary { padding: 7px 12px; }
-.admin-groupe { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.admin-groupe { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+/* Numéro visible : les refus d'enregistrement citent « groupe n° N ». */
+.admin-groupe-n { white-space: nowrap; min-width: 2.5rem; }
+
+/* Lien de saut vers la fiche : hors écran jusqu'au focus au clavier. */
+.admin-saut { position: absolute; left: -9999px; top: auto; }
+.admin-saut:focus {
+  position: static; display: inline-block; margin: 4px 0 8px;
+  background: var(--accent-fill); color: var(--on-accent);
+  padding: 8px 14px; border-radius: 10px; text-decoration: none; font-weight: 600;
+}
 .admin-ajout { margin: 0; max-width: 560px; }
 
 /* ------------------------------------------------------- barre du bas */

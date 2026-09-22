@@ -222,10 +222,10 @@ n'est publié (le dossier `admin/` est hors de `docs/`).
 
 | Onglet | Réglages |
 | --- | --- |
-| Projets | nom affiché, famille, description, lien principal (un des liens du projet ou une autre adresse), alias ; « Fusionner dans… » : le projet devient un alias d'un autre, ses entrées y passent |
+| Projets | nom affiché, famille, description, lien principal (un des liens du projet ou une autre adresse), alias ; « Fusionner dans… » : le projet devient un alias d'un autre, ses entrées y passent, ses propres réglages sont perdus sans retour possible (la page le demande d'abord) |
 | Familles | ajouter, renommer, réordonner, couleur (1 à 6), supprimer (ses projets passent « Sans famille ») |
-| Entrées | titre et résumé corrigés (l'original reste affiché, « Rétablir » y revient), « Masquer du site » (retire aussi la correction du titre et du résumé) |
-| Recherche | groupes de synonymes |
+| Entrées | titre et résumé corrigés (l'original reste affiché, « Rétablir » y revient), « Masquer du site » (retire aussi la correction du titre et du résumé, et ferme les deux champs tant que l'entrée est masquée : `config/entrees.json` est publié avec le dépôt) ; une correction dont l'entrée a disparu de la mémoire est listée et se retire d'un bouton |
+| Recherche | groupes de synonymes ; « Supprimer » demande confirmation (contenu écrit à la main) |
 
 - **Enregistrer** écrit les réglages dans `config/`, sur cet ordinateur seulement. Le
   navigateur prévient si l'on quitte la page avec des modifications non enregistrées.

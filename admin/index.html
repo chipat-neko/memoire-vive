@@ -42,10 +42,12 @@
         <div class="admin-liste">
           <label for="filtre-projets">Filtrer les projets</label>
           <input type="search" id="filtre-projets" placeholder="Nom, identifiant ou famille" autocomplete="off" spellcheck="false">
+          <!-- Au clavier, la fiche est sinon derrière tous les boutons de la liste. -->
+          <a class="admin-saut" href="#detail-projet">Aller à la fiche du projet</a>
           <p class="admin-aide" id="compte-projets" aria-live="polite"></p>
           <ul class="admin-items" id="liste-projets" aria-label="Projets"></ul>
         </div>
-        <div class="admin-detail" id="detail-projet"></div>
+        <div class="admin-detail" id="detail-projet" tabindex="-1"></div>
       </div>
     </section>
 
@@ -69,10 +71,12 @@
         <div class="admin-liste">
           <label for="filtre-entrees">Chercher une entrée</label>
           <input type="search" id="filtre-entrees" placeholder="Titre, projet ou identifiant" autocomplete="off" spellcheck="false">
+          <!-- Au clavier, la fiche est sinon derrière tous les boutons de la liste. -->
+          <a class="admin-saut" href="#detail-entree">Aller à la fiche de l’entrée</a>
           <p class="admin-aide" id="compte-entrees" aria-live="polite"></p>
           <ul class="admin-items" id="liste-entrees" aria-label="Entrées"></ul>
         </div>
-        <div class="admin-detail" id="detail-entree"></div>
+        <div class="admin-detail" id="detail-entree" tabindex="-1"></div>
       </div>
     </section>
 

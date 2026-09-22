@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """
-Page d'admin locale de Mémoire Vive : réglages des projets, des familles, des
-entrées et de la recherche. Validation des réglages avant écriture (l'admin
-n'écrit que ce que l'export comprend, sans secret dans ce qui sera publié),
-mise en forme des fichiers, lecture de la configuration.
+Page d'admin locale de Mémoire Vive : régler les projets, les familles, les
+entrées et la recherche sans éditer de fichier à la main.
+
+Usage :
+    python scripts/admin.py                    # ouvre le navigateur sur la page d'admin
+    python scripts/admin.py --port 8800        # premier port essayé (défaut 8790, puis les suivants)
+    python scripts/admin.py --sans-navigateur  # n'ouvre pas le navigateur (l'adresse est affichée)
+
+Le serveur n'écoute que 127.0.0.1. Il sert docs/ à la racine (aperçu fidèle du
+site) et admin/ sous /admin/ ; admin/ est hors de docs/, donc jamais publié.
+Chaque appel /api/* exige le jeton tiré au lancement (en-tête X-Admin-Jeton) ;
+les seuls fichiers modifiables sont les trois réglages de config/.
 
 Aucune dépendance : bibliothèque standard Python 3.9+, et les fonctions de
 scripts/export.py (masquage des secrets, liens, titres).
@@ -11,12 +19,21 @@ scripts/export.py (masquage des secrets, liens, titres).
 
 from __future__ import annotations
 
+import argparse
 import copy
+import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
+import subprocess
 import sys
+import threading
+import webbrowser
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import unquote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import export  # noqa: E402  (même dossier : masquage des secrets, liens, titres)
@@ -416,3 +433,439 @@ def secrets_connus(racine: Path, environ: dict | None = None) -> tuple[str, ...]
     noms = ("MEMOIRE_API_KEY", "MEMOIRE_CF_ACCESS_CLIENT_ID", "MEMOIRE_CF_ACCESS_CLIENT_SECRET")
     valeurs = {(source.get(nom) or "").strip() for source in (environ, fichier) for nom in noms}
     return tuple(sorted(v for v in valeurs if v))
+
+
+def lire_donnees(racine: Path) -> dict | None:
+    """docs/data.json tel que le site le lit ; None s'il manque ou s'il est illisible."""
+    try:
+        donnees = json.loads((racine / "docs" / "data.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return donnees if isinstance(donnees, dict) else None
+
+
+def empreinte(racine: Path, nom: str) -> str:
+    """SHA-256 du fichier de réglages tel qu'il est sur le disque ("" s'il
+    n'existe pas) : la page la renvoie avec chaque enregistrement, et le
+    serveur refuse d'écraser un fichier modifié ailleurs entre-temps."""
+    try:
+        return hashlib.sha256((racine / FICHIERS[nom]).read_bytes()).hexdigest()
+    except OSError:
+        return ""
+
+
+def ecrire_config(racine: Path, nom: str, donnees: dict) -> None:
+    """Écriture atomique : le texte complet part dans un fichier temporaire, qui
+    remplace ensuite l'ancien (remplacement réessayé si Windows le refuse un
+    instant, voir export.replace_file) ; en cas d'échec, l'ancien reste intact
+    et le temporaire (*.json.tmp, ignoré par git) est effacé."""
+    chemin = racine / FICHIERS[nom]
+    texte = formater(donnees)
+    chemin.parent.mkdir(parents=True, exist_ok=True)
+    temporaire = chemin.with_name(chemin.name + ".tmp")
+    try:
+        with open(temporaire, "w", encoding="utf-8", newline="\n") as fichier:
+            fichier.write(texte)
+            fichier.flush()
+            os.fsync(fichier.fileno())
+        export.replace_file(temporaire, chemin)
+    except BaseException:
+        temporaire.unlink(missing_ok=True)
+        raise
+
+
+# --------------------------------------------------------------------------
+# Git : état affiché par la page (lecture seule)
+# --------------------------------------------------------------------------
+
+def git(racine: Path, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=racine, text=True, encoding="utf-8", errors="replace",
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+
+def statut_git(racine: Path, *chemins: str, non_suivis: bool = False) -> list[tuple[str, str]]:
+    """(code XY, chemin) de « git status » ; -z : accents et espaces non échappés.
+    Lève ErreurAdmin si git échoue : une sortie vide n'est pas un arbre propre."""
+    args = ["status", "--porcelain=v1", "-z", "--untracked-files=" + ("all" if non_suivis else "no")]
+    if chemins:
+        args += ["--", *chemins]
+    resultat = git(racine, *args)
+    if resultat.returncode != 0:
+        raise ErreurAdmin(f"git status a échoué : {resultat.stderr.strip() or 'code ' + str(resultat.returncode)}")
+    morceaux = resultat.stdout.split("\0")
+    resultat, i = [], 0
+    while i < len(morceaux):
+        morceau = morceaux[i]
+        i += 1
+        if len(morceau) < 4:
+            continue
+        if "R" in morceau[:2] or "C" in morceau[:2]:
+            i += 1  # renommage : le chemin d'origine suit, il n'est pas retenu
+        resultat.append((morceau[:2], morceau[3:]))
+    return resultat
+
+
+def etat_git(racine: Path) -> dict | None:
+    """Branche, fichiers suivis modifiés et pas encore commités, commits pas
+    encore poussés ; None hors d'un dépôt git (ou sans git)."""
+    try:
+        branche = git(racine, "rev-parse", "--abbrev-ref", "HEAD")
+    except OSError:
+        return None
+    if branche.returncode != 0:
+        return None
+    avance = git(racine, "rev-list", "--count", "@{u}..HEAD")
+    try:
+        modifies = [chemin for _, chemin in statut_git(racine)]
+    except ErreurAdmin:
+        modifies = []  # git en panne : rien d'affiché ici ; la publication, elle, le signale
+    return {
+        "branche": branche.stdout.strip(),
+        "modifies": modifies,
+        "commits_en_attente": int(avance.stdout.strip()) if avance.returncode == 0 else None,
+    }
+
+
+# --------------------------------------------------------------------------
+# Serveur local
+# --------------------------------------------------------------------------
+
+PORT_PAR_DEFAUT = 8790
+ESSAIS_DE_PORT = 20
+CORPS_MAX = 2_000_000
+VIDANGE_MAX = 16_000_000  # corps lu (et jeté) avant un refus ; au-delà, la connexion est coupée
+# Même politique que le site, plus l'interdiction d'être affichée dans le cadre d'une autre page.
+CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; "
+       "manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
+TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".svg": "image/svg+xml",
+}
+OCCUPE = "Occupé : un aperçu ou une publication est en cours. Réessayer quand il sera terminé."
+
+
+class Admin:
+    """État partagé par les requêtes : dépôt servi, jeton, verrou."""
+
+    def __init__(self, racine: Path, jeton: str, environnement: dict | None = None, journal=None):
+        self.racine = Path(racine)
+        self.jeton = jeton
+        # Variables ajoutées à l'environnement d'export.py (tests : faux dashboard).
+        self.environnement = dict(environnement or {})
+        # Messages de la fenêtre de commande (les tests les font taire).
+        self.journal = journal or (lambda message: print(message, flush=True))
+        # Un seul export (aperçu ou publication) à la fois, et aucune écriture de
+        # réglages pendant qu'un export les lit.
+        self.verrou = threading.Lock()
+
+    def secrets(self) -> tuple[str, ...]:
+        """Valeurs réelles des secrets, vues comme l'export les verra."""
+        return secrets_connus(self.racine, {**os.environ, **self.environnement})
+
+
+class ServeurAdmin(ThreadingHTTPServer):
+    daemon_threads = True
+    # Sous Windows, SO_REUSEADDR laisse deux serveurs écouter le même port :
+    # un port déjà pris ne serait pas détecté.
+    allow_reuse_address = os.name != "nt"
+
+    def __init__(self, adresse: tuple[str, int], admin: Admin):
+        self.admin = admin
+        super().__init__(adresse, Gestionnaire)
+
+
+def creer_serveur(racine: Path, jeton: str, port: int = PORT_PAR_DEFAUT, essais: int = ESSAIS_DE_PORT,
+                  environnement: dict | None = None, journal=None) -> ServeurAdmin:
+    """Serveur sur 127.0.0.1 uniquement, au premier port libre à partir de port
+    (0 : port choisi par le système)."""
+    admin = Admin(racine, jeton, environnement, journal)
+    probleme = None
+    for candidat in [0] if port == 0 else range(port, port + essais):
+        try:
+            return ServeurAdmin(("127.0.0.1", candidat), admin)
+        except OSError as err:
+            probleme = err
+    raise ErreurAdmin(f"aucun port libre entre {port} et {port + essais - 1} ({probleme}).")
+
+
+class Gestionnaire(BaseHTTPRequestHandler):
+    server_version = "MemoireViveAdmin"
+    sys_version = ""
+    # Délai de chaque lecture ou écriture sur la connexion (l'export, lui, ne
+    # l'utilise pas : une publication de dix minutes n'est pas coupée). Une
+    # connexion muette, ou un corps annoncé jamais envoyé, ne bloque pas un fil.
+    timeout = 30
+
+    def handle(self) -> None:
+        try:
+            super().handle()
+        except (ConnectionError, TimeoutError):
+            # Onglet fermé ou rechargé avant la réponse, client muet : rien à
+            # répondre. Une ligne en français plutôt qu'une trace Python.
+            self.close_connection = True
+            self.admin.journal("  Connexion interrompue (onglet fermé ou rechargé ?) : réponse non remise.")
+
+    def log_message(self, format, *args):
+        pass  # la console annonce les opérations, pas chaque fichier servi
+
+    @property
+    def admin(self) -> Admin:
+        return self.server.admin
+
+    @property
+    def chemin(self) -> str:
+        return self.path.split("?", 1)[0].split("#", 1)[0]
+
+    # ------------------------------------------------------------ réponses
+
+    def vider(self) -> None:
+        """Lit le corps que la requête n'a pas consommé (refus avant lecture) :
+        sous Windows, fermer la connexion avec des données non lues la coupe
+        (RST) avant que le client ait lu la réponse."""
+        if getattr(self, "corps_lu", False):
+            return
+        self.corps_lu = True
+        try:
+            reste = min(int(self.headers.get("Content-Length") or 0), VIDANGE_MAX)
+        except ValueError:
+            return
+        while reste > 0:
+            morceau = self.rfile.read(min(reste, 65536))
+            if not morceau:
+                break
+            reste -= len(morceau)
+
+    def envoyer(self, code: int, corps: bytes, type_: str, entetes: dict | None = None) -> None:
+        self.vider()
+        self.send_response(code)
+        self.send_header("Content-Type", type_)
+        self.send_header("Content-Length", str(len(corps)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Security-Policy", CSP)
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        for cle, valeur in (entetes or {}).items():
+            self.send_header(cle, valeur)
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(corps)
+
+    def json(self, code: int, donnees) -> None:
+        self.envoyer(code, json.dumps(donnees, ensure_ascii=False).encode("utf-8"), TYPES[".json"])
+
+    def refus(self, code: int, message: str) -> None:
+        if self.chemin.startswith("/api/"):
+            self.json(code, {"erreur": message})
+        else:
+            self.envoyer(code, message.encode("utf-8"), "text/plain; charset=utf-8")
+
+    # ------------------------------------------------------------ contrôles
+
+    def origine_permise(self) -> bool:
+        """Host : 127.0.0.1:<port> ou localhost:<port> seulement (parade au
+        « rebinding » DNS) ; Origin, s'il est présent : exactement la même adresse."""
+        port = self.server.server_address[1]
+        hote = (self.headers.get("Host") or "").lower()
+        if hote not in (f"127.0.0.1:{port}", f"localhost:{port}"):
+            return False
+        origine = self.headers.get("Origin")
+        return origine is None or origine.lower() == f"http://{hote}"
+
+    def jeton_valide(self) -> bool:
+        fourni = self.headers.get("X-Admin-Jeton") or ""
+        return hmac.compare_digest(fourni.encode("utf-8"), self.admin.jeton.encode("utf-8"))
+
+    def controler(self) -> bool:
+        if not self.origine_permise():
+            self.refus(403, "Adresse refusée : ouvrir la page d'admin par l'adresse affichée dans sa fenêtre.")
+            return False
+        if self.chemin.startswith("/api/") and not self.jeton_valide():
+            self.refus(403, "Jeton absent ou refusé : relancer « Gérer Mémoire Vive » et utiliser la page "
+                            "qu'il ouvre.")
+            return False
+        return True
+
+    def lire_corps(self) -> tuple[bool, object]:
+        """(True, corps JSON) ; (False, None) après avoir répondu 415, 411, 413 ou 400.
+        Seul application/json est accepté : un formulaire d'un autre site ne
+        peut pas en envoyer sans l'accord du serveur (pré-vérification CORS)."""
+        type_ = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+        if type_ != "application/json":
+            self.refus(415, "Les écritures n'acceptent que du JSON (Content-Type: application/json).")
+            return False, None
+        if self.headers.get("Content-Length") is None:
+            self.refus(411, "Longueur du corps requise (Content-Length).")
+            return False, None
+        try:
+            longueur = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            longueur = -1
+        if not 0 <= longueur <= CORPS_MAX:
+            self.refus(413, "Requête trop volumineuse.")
+            return False, None
+        brut = self.rfile.read(longueur)
+        self.corps_lu = True
+        try:
+            return True, json.loads(brut.decode("utf-8")) if brut.strip() else {}
+        except (UnicodeDecodeError, ValueError):
+            self.refus(400, "JSON illisible.")
+            return False, None
+
+    # ------------------------------------------------------------ méthodes
+
+    def do_GET(self) -> None:
+        if not self.controler():
+            return
+        if self.chemin == "/api/etat":
+            self.api_etat()
+        elif self.chemin.startswith("/api/"):
+            self.refus(404, "Adresse inconnue.")
+        else:
+            self.fichier()
+
+    do_HEAD = do_GET
+
+    def do_PUT(self) -> None:
+        if not self.controler():
+            return
+        if not self.chemin.startswith("/api/"):
+            self.refus(405, "Méthode non permise.")
+            return
+        prefixe = "/api/config/"
+        nom = self.chemin[len(prefixe):] if self.chemin.startswith(prefixe) else ""
+        if nom not in FICHIERS:
+            self.refus(404, "Fichier de réglages inconnu : seuls projets, entrees et recherche se modifient.")
+            return
+        lu, corps = self.lire_corps()
+        if lu:
+            self.api_ecrire(nom, corps)
+
+    def do_POST(self) -> None:
+        if not self.controler():
+            return
+        if not self.chemin.startswith("/api/"):
+            self.refus(405, "Méthode non permise.")
+            return
+        self.refus(404, "Adresse inconnue.")
+
+    # ------------------------------------------------------------ API
+
+    def api_etat(self) -> None:
+        racine, connus = self.admin.racine, self.admin.secrets()
+        # Empreintes avant la lecture : un fichier modifié entre les deux donne
+        # au pire un refus d'enregistrer (409), jamais une modification écrasée.
+        empreintes = {nom: empreinte(racine, nom) for nom in FICHIERS}
+        fichiers, normalisations = {}, {}
+        try:
+            for nom in FICHIERS:
+                notes: list[str] = []
+                fichiers[nom] = lire_config(racine, nom, notes)
+                if notes:
+                    normalisations[nom] = notes
+        except ErreurAdmin as err:
+            self.json(500, {"erreur": str(err)})
+            return
+        # Réglages enregistrés invalides (modifiés à la main) : la page les liste.
+        erreurs = {nom: liste for nom in FICHIERS if (liste := valider(nom, fichiers[nom], connus))}
+        donnees = lire_donnees(racine)
+        self.json(200, {"fichiers": fichiers, "empreintes": empreintes, "normalisations": normalisations,
+                        "erreurs": erreurs, "donnees": donnees, "originaux": originaux(donnees),
+                        "git": etat_git(racine)})
+
+    def api_ecrire(self, nom: str, donnees) -> None:
+        erreurs = valider(nom, donnees, self.admin.secrets())
+        if erreurs:
+            self.json(422, {"erreur": "Réglages refusés : rien n'a été enregistré.", "erreurs": erreurs})
+            return
+        base = self.headers.get("X-Admin-Base")
+        if base is None:
+            self.json(428, {"erreur": "Empreinte du fichier absente (en-tête X-Admin-Base) : recharger la page."})
+            return
+        if not self.admin.verrou.acquire(blocking=False):
+            self.json(409, {"erreur": OCCUPE})
+            return
+        try:
+            if empreinte(self.admin.racine, nom) != base.strip():
+                self.json(409, {"erreur": f"{FICHIERS[nom]} a changé depuis l'ouverture de la page (modifié à la "
+                                          "main ou dans un autre onglet) : rien n'a été enregistré. Recharger la "
+                                          "page pour repartir du fichier actuel (les modifications non "
+                                          "enregistrées de la page seront perdues)."})
+                return
+            ecrire_config(self.admin.racine, nom, donnees)
+            nouvelle = empreinte(self.admin.racine, nom)
+        except OSError as err:
+            self.json(500, {"erreur": f"Écriture impossible de {FICHIERS[nom]} ({err}) : rien n'a été modifié."})
+            return
+        finally:
+            self.admin.verrou.release()
+        self.admin.journal(f"  Réglages enregistrés : {FICHIERS[nom]}")
+        self.json(200, {"ok": True, "fichier": FICHIERS[nom], "empreinte": nouvelle})
+
+    # ------------------------------------------------------------ fichiers
+
+    def fichier(self) -> None:
+        """docs/ à la racine, admin/ sous /admin/ ; rien d'autre (ni .env, ni
+        scripts/, ni config/), aucun fichier caché, types connus seulement."""
+        chemin = unquote(self.chemin)
+        if chemin == "/admin":
+            self.envoyer(301, b"", "text/plain; charset=utf-8", {"Location": "/admin/"})
+            return
+        if chemin.startswith("/admin/"):
+            base, relatif = self.admin.racine / "admin", chemin[len("/admin/"):]
+        else:
+            base, relatif = self.admin.racine / "docs", chemin[1:]
+        if relatif == "" or relatif.endswith("/"):
+            relatif += "index.html"
+        try:
+            base = base.resolve()
+            cible = (base / relatif).resolve()
+            permis = (cible.is_relative_to(base) and cible.suffix.lower() in TYPES and cible.is_file()
+                      and not any(partie.startswith(".") for partie in cible.relative_to(base).parts))
+        except (OSError, ValueError):
+            permis = False
+        if not permis:
+            self.refus(404, "Introuvable.")
+            return
+        self.envoyer(200, cible.read_bytes(), TYPES[cible.suffix.lower()])
+
+
+def main(argv: list[str] | None = None) -> int:
+    for flux in (sys.stdout, sys.stderr):
+        if hasattr(flux, "reconfigure"):
+            flux.reconfigure(encoding="utf-8", errors="replace")
+    parser = argparse.ArgumentParser(description="Page d'admin locale de Mémoire Vive (réglages du site).")
+    parser.add_argument("--port", type=int, default=PORT_PAR_DEFAUT,
+                        help=f"premier port essayé (défaut {PORT_PAR_DEFAUT}, puis les suivants ; "
+                             "0 : port choisi par le système)")
+    parser.add_argument("--sans-navigateur", action="store_true", help="n'ouvre pas le navigateur")
+    args = parser.parse_args(argv)
+
+    jeton = secrets.token_urlsafe(32)
+    try:
+        serveur = creer_serveur(ROOT, jeton, args.port)
+    except ErreurAdmin as err:
+        print(f"Échec : {err}", file=sys.stderr)
+        return 1
+    port = serveur.server_address[1]
+    adresse = f"http://127.0.0.1:{port}/admin/#jeton={jeton}"
+    print("Page d'admin de Mémoire Vive (locale, jamais publiée).", flush=True)
+    print(f"Adresse : {adresse}", flush=True)
+    print(f"Site local (aperçu) : http://127.0.0.1:{port}/", flush=True)
+    print("Laisser cette fenêtre ouverte pendant les réglages ; Ctrl+C pour arrêter.", flush=True)
+    if not args.sans_navigateur:
+        webbrowser.open(adresse)
+    try:
+        serveur.serve_forever()
+    except KeyboardInterrupt:
+        print("\nPage d'admin arrêtée.", flush=True)
+    finally:
+        serveur.server_close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

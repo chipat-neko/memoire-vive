@@ -86,3 +86,76 @@ test('slug et termes', () => {
   assert.deepEqual(M.termes(' ia, intelligence artificielle ,, llm, ia '), ['ia', 'intelligence artificielle', 'llm']);
   assert.deepEqual(M.termes(''), []);
 });
+
+test('projets : données et réglages réunis, triés par nom, fusionnés masqués', () => {
+  const modele = M.creerModele(etat());
+  assert.deepEqual(M.listeProjets(modele).map((p) => [p.id, p.nom, p.famille, p.nb]),
+    [['depths', 'Depths', 'jeux', 1], ['jarvis', 'Jarvis', 'ia', 2], ['rogue-lite', 'Rogue lite', null, 1]]);
+  modele.brouillon.projets.projets.depths.alias = ['Rogue Lite'];
+  assert.deepEqual(M.listeProjets(modele).map((p) => p.id), ['depths', 'jarvis']);
+});
+
+test('projets : liens en ligne du projet, principal publié d’abord, sans doublon', () => {
+  const modele = M.creerModele(etat());
+  assert.deepEqual(M.liensDuProjet(modele, 'jarvis'), ['https://exemple.github.io/jarvis/', 'https://github.com/exemple/jarvis']);
+  assert.deepEqual(M.liensDuProjet(modele, 'inconnu'), []);
+});
+
+test('projets : une valeur vide retire le réglage, un projet sans réglage disparaît', () => {
+  const modele = M.creerModele(etat());
+  M.modifierProjet(modele, 'rogue-lite', 'nom', '  Rogue  ');
+  assert.deepEqual(modele.brouillon.projets.projets['rogue-lite'], { nom: 'Rogue' });
+  M.modifierProjet(modele, 'rogue-lite', 'nom', ' ');
+  assert.equal('rogue-lite' in modele.brouillon.projets.projets, false);
+  M.modifierProjet(modele, 'jarvis', 'famille', null);
+  assert.equal('jarvis' in modele.brouillon.projets.projets, false);
+  M.modifierProjet(modele, 'depths', 'alias', []);
+  assert.deepEqual(modele.brouillon.projets.projets.depths, { nom: 'Depths', famille: 'jeux' });
+});
+
+test('alias : un seul par slug, un texte seul lu comme une liste', () => {
+  const modele = M.creerModele(etat());
+  M.modifierProjet(modele, 'depths', 'alias', ['rogue-lite', 'Rogue Lite', 'roguelike']);
+  assert.deepEqual(modele.brouillon.projets.projets.depths.alias, ['rogue-lite', 'roguelike']);
+  assert.deepEqual(M.aliasDe({ alias: 'rogue-lite' }), ['rogue-lite']);
+  assert.deepEqual(M.aliasDe({}), []);
+  modele.brouillon.projets.projets.depths.alias = 'rogue-lite';
+  assert.deepEqual(M.listeProjets(modele).map((p) => p.id), ['depths', 'jarvis'], 'rogue-lite rattaché à depths');
+});
+
+test('fusion : la source et ses alias deviennent alias de la cible, ses réglages disparaissent', () => {
+  const modele = M.creerModele(etat());
+  M.modifierProjet(modele, 'rogue-lite', 'alias', ['roguelike']);
+  M.modifierProjet(modele, 'rogue-lite', 'nom', 'Rogue');
+  M.fusionner(modele, 'rogue-lite', 'depths');
+  assert.deepEqual(modele.brouillon.projets.projets.depths, { nom: 'Depths', famille: 'jeux', alias: ['rogue-lite', 'roguelike'] });
+  assert.equal('rogue-lite' in modele.brouillon.projets.projets, false);
+  assert.deepEqual(M.listeProjets(modele).map((p) => p.id), ['depths', 'jarvis']);
+  M.fusionner(modele, 'depths', 'depths');
+  assert.deepEqual(modele.brouillon.projets.projets.depths.alias, ['rogue-lite', 'roguelike'], 'sur lui-même : rien');
+  M.modifierProjet(modele, 'jarvis', 'alias', ['Rogue-Lite']);
+  M.fusionner(modele, 'jarvis', 'depths');
+  assert.deepEqual(modele.brouillon.projets.projets.depths.alias, ['rogue-lite', 'roguelike', 'jarvis'], 'sans doublon de slug');
+});
+
+test('familles : ajouter (identifiant unique, couleur libre), renommer, couleur, déplacer', () => {
+  const modele = M.creerModele(etat());
+  assert.equal(M.ajouterFamille(modele, ' Jeux '), 'jeux-2');
+  assert.equal(M.ajouterFamille(modele, 'Outils Claude'), 'outils-claude');
+  assert.deepEqual(M.familles(modele).slice(2), [{ id: 'jeux-2', nom: 'Jeux', couleur: 2 }, { id: 'outils-claude', nom: 'Outils Claude', couleur: 4 }]);
+  M.modifierFamille(modele, 'outils-claude', 'couleur', '6');
+  M.modifierFamille(modele, 'jeux', 'nom', ' Jeux & univers ');
+  assert.equal(M.familles(modele)[3].couleur, 6);
+  assert.equal(M.familles(modele)[0].nom, 'Jeux & univers');
+  assert.equal(M.deplacerFamille(modele, 'ia', -1), true);
+  assert.equal(M.deplacerFamille(modele, 'ia', -1), false, 'déjà en tête');
+  assert.deepEqual(M.familles(modele).map((f) => f.id), ['ia', 'jeux', 'jeux-2', 'outils-claude']);
+});
+
+test('familles : supprimer, ses projets passent sans famille', () => {
+  const modele = M.creerModele(etat());
+  assert.equal(M.nombreDeProjets(modele, 'jeux'), 1);
+  M.supprimerFamille(modele, 'jeux');
+  assert.deepEqual(M.familles(modele).map((f) => f.id), ['ia']);
+  assert.deepEqual(modele.brouillon.projets.projets.depths, { nom: 'Depths' });
+});

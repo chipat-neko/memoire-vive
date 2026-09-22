@@ -1,17 +1,23 @@
-# PHASE 2 — modèle inactif. Ne rien faire tant qu'il n'y a pas de domaine
-# ni de tunnel Cloudflare à adresse fixe.
+# PHASE 2 — MODÈLE INACTIF. Ce fichier vit dans phase2/ : GitHub ne lit que
+# .github/workflows/, il ne se passe donc rien tant qu'il n'est pas copié là.
+# Ne rien faire tant qu'il n'y a pas de domaine ni de tunnel Cloudflare à
+# adresse fixe. Marche à suivre complète : « Phase 2 » dans le README.
 #
-# Pour l'activer :
-#   1. Créer les secrets du dépôt (Settings → Secrets and variables → Actions) :
-#        MEMOIRE_API_URL   https://<sous-domaine du tunnel>   (ex. https://memoire-api.mondomaine.fr)
-#        MEMOIRE_API_KEY   la clé du dashboard (MCP_API_KEY)
-#      et le jeton de service Cloudflare Access qui protège le tunnel (à mettre
-#      en place : sans lui, tout le dashboard n'est gardé que par la clé API) :
-#        MEMOIRE_CF_ACCESS_CLIENT_ID / MEMOIRE_CF_ACCESS_CLIENT_SECRET
+# En deux lignes :
+#   1. Créer les quatre secrets du dépôt (Settings → Secrets and variables →
+#      Actions) : MEMOIRE_API_URL (https://… du tunnel), MEMOIRE_API_KEY (la
+#      clé du dashboard, MCP_API_KEY côté serveur), MEMOIRE_CF_ACCESS_CLIENT_ID
+#      et MEMOIRE_CF_ACCESS_CLIENT_SECRET (jeton de service Cloudflare Access).
 #   2. Copier ce fichier dans .github/workflows/export-quotidien.yml et pousser.
 #
-# scripts/export.py ne change pas : il lit déjà ces valeurs dans
-# l'environnement avant de regarder .env.
+# scripts/export.py ne change pas : il lit ces quatre valeurs dans
+# l'environnement avant de regarder .env, refuse une adresse distante en
+# http://, et n'écrit jamais l'adresse du tunnel dans le journal public.
+#
+# Pour arrêter l'export automatique : Actions → « Export quotidien de la
+# mémoire » → Disable workflow (ou supprimer le fichier de .github/workflows/).
+# GitHub désactive de lui-même un déclenchement planifié après 60 jours sans
+# activité dans le dépôt ; il se réactive d'un clic depuis l'onglet Actions.
 
 name: Export quotidien de la mémoire
 
@@ -24,34 +30,46 @@ on:
         description: "Publier même si le nombre d'entrées a chuté de plus de moitié"
         type: boolean
         default: false
+      recalculer_voisins:
+        description: "Recalculer les voisins de toutes les entrées (lent : une recherche par entrée)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write          # commit et push de docs/data.json
 
 concurrency:
   group: export-memoire
-  cancel-in-progress: false
+  cancel-in-progress: false   # jamais interrompre un export en cours de publication
 
 jobs:
   export:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15    # lecture + voisins (budget 120 s côté script) + push
     steps:
+      # Profondeur 1 : il suffit d'avoir docs/data.json du dernier export, dont
+      # l'export reprend les voisins déjà calculés. checkout garde le jeton du
+      # dépôt dans la copie de travail, c'est lui qui autorisera le push.
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12"   # export.py : bibliothèque standard, 3.9+
 
       - name: Identité git du bot
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      # Sur une exécution planifiée, « inputs » est vide : aucune option n'est
+      # ajoutée, l'export se fait avec ses garde-fous.
       - name: Export et publication
         env:
           MEMOIRE_API_URL: ${{ secrets.MEMOIRE_API_URL }}
           MEMOIRE_API_KEY: ${{ secrets.MEMOIRE_API_KEY }}
           MEMOIRE_CF_ACCESS_CLIENT_ID: ${{ secrets.MEMOIRE_CF_ACCESS_CLIENT_ID }}
           MEMOIRE_CF_ACCESS_CLIENT_SECRET: ${{ secrets.MEMOIRE_CF_ACCESS_CLIENT_SECRET }}
-        run: python scripts/export.py ${{ inputs.force && '--force' || '' }}
+        run: >-
+          python scripts/export.py
+          ${{ inputs.force && '--force' || '' }}
+          ${{ inputs.recalculer_voisins && '--recalculer-voisins' || '' }}

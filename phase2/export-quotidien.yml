@@ -37,6 +37,7 @@ on:
 
 permissions:
   contents: write          # commit et push de docs/data.json
+  issues: write            # issue d'alerte si l'export échoue
 
 concurrency:
   group: export-memoire
@@ -73,3 +74,38 @@ jobs:
           python scripts/export.py
           ${{ inputs.force && '--force' || '' }}
           ${{ inputs.recalculer_voisins && '--recalculer-voisins' || '' }}
+
+      # Pour ne plus recevoir ces alertes : supprimer les deux étapes ci-dessous
+      # (l'échec reste visible en rouge dans l'onglet Actions).
+      - name: Alerte — ouvrir ou compléter une issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TITRE: "L'export quotidien de la mémoire a échoué"
+          JOURNAL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          numero=$(gh issue list --state open --limit 100 --json number,title \
+            --jq ".[] | select(.title == \"$TITRE\") | .number" | head -n 1)
+          corps=$(printf '%s\n\n%s\n\n%s\n' \
+            "L'export automatique n'est pas passé (exécution du $(date -u '+%d/%m/%Y à %H:%M UTC'))." \
+            "Journal complet : $JOURNAL" \
+            "Le site garde le dernier export réussi. En attendant, le raccourci « Mettre à jour Mémoire Vive » du Bureau fonctionne toujours.")
+          if [ -n "$numero" ]; then
+            gh issue comment "$numero" --body "$corps"   # une seule issue, un commentaire par échec
+          else
+            gh issue create --title "$TITRE" --body "$corps"
+          fi
+
+      - name: Refermer l'issue d'alerte si tout est rentré dans l'ordre
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TITRE: "L'export quotidien de la mémoire a échoué"
+        run: |
+          numero=$(gh issue list --state open --limit 100 --json number,title \
+            --jq ".[] | select(.title == \"$TITRE\") | .number" | head -n 1)
+          if [ -n "$numero" ]; then
+            gh issue close "$numero" --comment "L'export automatique est repassé : rien à faire."
+          fi

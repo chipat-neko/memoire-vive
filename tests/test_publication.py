@@ -208,7 +208,11 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual(code, 0, sortie)
         self.assertIn("déjà à jour", sortie)
 
-    def test_04b_push_refuse_puis_relance(self):
+    def test_04b_depot_distant_en_avance_repris_tout_seul(self):
+        # Phase 2 : l'export quotidien de GitHub a publié pendant la nuit. Une
+        # publication lancée d'ici reprend son commit avant d'écrire quoi que ce
+        # soit, et passe — personne n'a de « git pull --rebase » à taper, et
+        # aucun conflit dans docs/data.json n'est possible.
         autre = self.dossier / "autre"
         sh("git", "clone", str(self.distant), str(autre))
         sh("git", "config", "user.name", "o", cwd=autre)
@@ -219,12 +223,12 @@ class PublicationTest(unittest.TestCase):
         sh("git", "push", cwd=autre)
         ETAT["n"] = 150
         code, sortie = self.exporter()
-        self.assertEqual(code, 1, sortie)
-        self.assertIn("push a échoué", sortie)
-        sh("git", "pull", "--rebase", cwd=self.projet)
-        code, sortie = self.exporter()
         self.assertEqual(code, 0, sortie)
+        self.assertIn("1 commit(s) repris depuis GitHub avant l'export.", sortie)
+        self.assertIn("push effectué", sortie)
         self.assertTrue(self.distant_dernier().startswith("Export mémoire : 150"))
+        self.assertEqual((self.projet / "LISEZMOI").read_text(encoding="utf-8"), "modifié ailleurs",
+                         "le commit venu d'ailleurs est bien dans la copie de travail")
 
     def test_05_page_vide_refusee(self):
         ETAT.update(mode="page2-vide", n=160)

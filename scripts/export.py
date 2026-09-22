@@ -24,6 +24,12 @@ sont donc cherchées ; les autres reprennent leurs voisins du data.json
 précédent (voir add_neighbours). Avec --sans-recherche, les entrées nouvelles
 sont notées dans « voisins_en_attente » et cherchées au prochain export réel.
 
+Git : un export réel (ni --dry-run ni --no-git) reprend d'abord les commits
+que le dépôt distant a en plus, par simple avance (voir sync_with_remote).
+Sans cela, en phase 2, la première publication faite à la main après une nuit
+d'export automatique se ferait refuser son push, et le rattrapage buterait sur
+un conflit dans docs/data.json.
+
 Configuration (voir load_config) — variables d'environnement, sinon .env :
     MEMOIRE_API_URL   adresse du dashboard (défaut http://127.0.0.1:8000)
     MEMOIRE_API_KEY   clé attendue par le dashboard (MCP_API_KEY côté serveur)
@@ -1244,6 +1250,67 @@ def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
     )
 
 
+def upstream() -> str | None:
+    """Branche distante suivie (« origin/main »), ou None quand la branche
+    courante n'en suit aucune (premier export, copie sans origin)."""
+    result = git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}", check=False)
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def count_commits(interval: str) -> int:
+    """Nombre de commits d'un intervalle (« HEAD..origin/main »), 0 si git échoue."""
+    result = git("rev-list", "--count", interval, check=False)
+    valeur = result.stdout.strip()
+    return int(valeur) if result.returncode == 0 and valeur.isdigit() else 0
+
+
+def sync_with_remote() -> None:
+    """
+    Reprend, avant l'export, les commits que le dépôt distant a en plus.
+
+    Phase 2 : l'export quotidien de GitHub publie docs/data.json de son côté
+    chaque nuit. Sans cette avance, la publication suivante faite depuis cet
+    ordinateur verrait son push refusé, et le « git pull --rebase » de
+    rattrapage s'arrêterait sur un conflit dans docs/data.json. Ici, la copie
+    de travail est encore propre : une simple avance (fast-forward) suffit, et
+    l'export repart du data.json le plus récent (voisins déjà calculés).
+
+    Ne lève jamais : réseau coupé ou historiques divergents, l'export continue
+    et c'est le push qui dira ce qui coince.
+    """
+    amont = upstream()
+    if amont is None:
+        return
+    if git("fetch", "--quiet", check=False).returncode != 0:
+        print("  ! git : GitHub n'a pas pu être contacté ; l'export continue avec ce que cet ordinateur a.")
+        return
+    retard = count_commits(f"HEAD..{amont}")
+    if not retard:
+        return
+    avance = count_commits(f"{amont}..HEAD")
+    if avance:
+        print(f"  ! git : GitHub a {retard} commit(s) de plus, et cet ordinateur {avance} commit(s) pas encore "
+              "publié(s) : le push sera refusé. Lancer « git pull --rebase » puis relancer l'export "
+              "(voir « Un rebasage git s'est arrêté » dans le README).")
+        return
+    relative = DATA_FILE.relative_to(ROOT).as_posix()
+    result = git("merge", "--ff-only", amont, check=False)
+    if result.returncode != 0:
+        etat = git("status", "--porcelain", "--", relative, check=False).stdout.strip()
+        if etat and not etat.startswith("??"):
+            # data.json écrit sans être commité (aperçu de la page d'admin,
+            # export interrompu) : il barre l'avance, et cet export le réécrit
+            # de toute façon juste après.
+            git("checkout", "--", relative, check=False)
+            result = git("merge", "--ff-only", amont, check=False)
+    if result.returncode != 0:
+        premiere = (result.stdout.strip().splitlines() or [""])[0]
+        print(f"  ! git : les {retard} commit(s) de GitHub n'ont pas pu être repris ({premiere}) ; "
+              "l'export continue, le push dira ce qui coince.")
+        return
+    print(f"  git : {retard} commit(s) repris depuis GitHub avant l'export.")
+
+
 def publish(payload: dict, push: bool) -> None:
     """
     Commit de data.json s'il diffère de HEAD, puis push de tout commit pas
@@ -1302,6 +1369,11 @@ def main() -> int:
     try:
         config = load_config()
         print(f"Source : {describe_source(config)}" + ("" if config["api_key"] else " (sans clé API)"))
+        # Avant de lire quoi que ce soit : reprendre ce que le dépôt distant a
+        # publié de son côté (phase 2 : l'export quotidien de GitHub). Ni
+        # --dry-run ni --no-git ne touchent à git.
+        if not args.dry_run and not args.no_git:
+            sync_with_remote()
         known_secrets = (config["api_key"], config["cf_client_id"], config["cf_client_secret"])
         if not config["local"]:
             known_secrets += (_host_of(config["api_url"]),)  # adresse du tunnel

@@ -8,6 +8,7 @@ aucun accès au réseau extérieur ni à la mémoire réelle. S'y ajoute une lec
 des deux fichiers de workflow YAML — ils ne sont jamais joués ici, une faute de
 frappe ne se verrait autrement que sur GitHub.
 """
+import io
 import json
 import os
 import re
@@ -17,7 +18,7 @@ import sys
 import tempfile
 import threading
 import unittest
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest import mock
@@ -218,6 +219,114 @@ class AdresseDistanteTest(BancDExport):
         self.assertIn("dashboard distant (MEMOIRE_API_URL)", sortie)
         for secret in (hote, CLE, CF_ID, CF_SECRET):
             self.assertNotIn(secret, sortie, f"« {secret} » ne doit pas sortir")
+
+
+class SynchronisationTest(unittest.TestCase):
+    """
+    sync_with_remote : reprendre, avant d'exporter, les commits que le dépôt
+    distant a en plus. C'est ce qui permet, en phase 2, de publier à la main
+    entre deux nuits sans jamais rencontrer de conflit sur docs/data.json.
+
+    Dépôts git locaux temporaires (un « distant » nu et un ou deux clones) :
+    jamais le vrai dépôt distant, aucun accès au réseau.
+    """
+
+    def sh(self, *args, cwd=None):
+        resultat = subprocess.run(args, cwd=cwd or self.depot, text=True, encoding="utf-8",
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if resultat.returncode:
+            raise AssertionError(f"{args} : {resultat.stdout}")
+        return resultat.stdout.strip()
+
+    def setUp(self):
+        self.temporaire = tempfile.TemporaryDirectory(prefix="mv-sync-")
+        self.addCleanup(self.temporaire.cleanup)
+        self.base = Path(self.temporaire.name)
+        self.depot, self.distant = self.base / "depot", self.base / "distant.git"
+        (self.depot / "docs").mkdir(parents=True)
+        self.donnees = self.depot / "docs" / "data.json"
+        self.donnees.write_text('{"nb_entrees": 1}\n', encoding="utf-8")
+        self.sh("git", "init", "-q", "--bare", "-b", "main", str(self.distant), cwd=self.base)
+        self.sh("git", "init", "-q", "-b", "main")
+        self.sh("git", "config", "user.name", "test")
+        self.sh("git", "config", "user.email", "test@example.invalid")
+        self.sh("git", "add", ".")
+        self.sh("git", "commit", "-q", "-m", "init")
+        self.sh("git", "remote", "add", "origin", str(self.distant))
+        self.sh("git", "push", "-q", "-u", "origin", "main")
+
+    def ailleurs(self, message="Export mémoire : 2 entrées"):
+        """Un commit poussé d'ailleurs : la nuit, le robot de GitHub réécrit
+        docs/data.json et le publie."""
+        autre = self.base / "autre"
+        if not autre.exists():
+            self.sh("git", "clone", "-q", str(self.distant), str(autre), cwd=self.base)
+            self.sh("git", "config", "user.name", "robot", cwd=autre)
+            self.sh("git", "config", "user.email", "robot@example.invalid", cwd=autre)
+        (autre / "docs" / "data.json").write_text('{"nb_entrees": 2}\n', encoding="utf-8")
+        self.sh("git", "add", "docs/data.json", cwd=autre)
+        self.sh("git", "commit", "-q", "-m", message, cwd=autre)
+        self.sh("git", "push", "-q", cwd=autre)
+
+    def synchroniser(self):
+        """sync_with_remote() joué dans le dépôt temporaire ; renvoie ce qu'il
+        a affiché."""
+        sortie = io.StringIO()
+        with mock.patch.object(export, "ROOT", self.depot), \
+                mock.patch.object(export, "DATA_FILE", self.donnees), \
+                redirect_stdout(sortie):
+            export.sync_with_remote()
+        return sortie.getvalue()
+
+    def dernier(self, cwd=None):
+        return self.sh("git", "log", "-1", "--format=%s", cwd=cwd)
+
+    def test_00_rien_a_faire_rien_a_dire(self):
+        self.assertEqual(self.synchroniser(), "")
+        self.assertEqual(self.dernier(), "init")
+
+    def test_01_sans_branche_distante_suivie(self):
+        # Premier export, ou copie sans origin : rien à reprendre, rien à dire.
+        self.sh("git", "branch", "--unset-upstream")
+        self.ailleurs()
+        self.assertEqual(self.synchroniser(), "")
+        self.assertEqual(self.dernier(), "init")
+
+    def test_02_commits_de_github_repris(self):
+        self.ailleurs()
+        sortie = self.synchroniser()
+        self.assertIn("1 commit(s) repris depuis GitHub avant l'export.", sortie)
+        self.assertEqual(self.dernier(), "Export mémoire : 2 entrées")
+        self.assertEqual(self.donnees.read_text(encoding="utf-8"), '{"nb_entrees": 2}\n')
+
+    def test_03_data_json_pas_encore_commite_ne_bloque_pas(self):
+        # Aperçu de la page d'admin : docs/data.json réécrit sans être commité.
+        # Il barrerait l'avance ; l'export le réécrit de toute façon juste après.
+        self.ailleurs()
+        self.donnees.write_text('{"nb_entrees": 99}\n', encoding="utf-8")
+        sortie = self.synchroniser()
+        self.assertIn("1 commit(s) repris depuis GitHub avant l'export.", sortie)
+        self.assertEqual(self.dernier(), "Export mémoire : 2 entrées")
+        self.assertEqual(self.donnees.read_text(encoding="utf-8"), '{"nb_entrees": 2}\n')
+
+    def test_04_historiques_divergents_signales_sans_rien_forcer(self):
+        # Un commit local pas encore poussé, et GitHub qui a avancé : aucune
+        # avance simple n'est possible. L'export continue et prévient ; c'est
+        # le seul cas où « git pull --rebase » reste à faire à la main.
+        self.ailleurs()
+        (self.depot / "NOTE").write_text("local", encoding="utf-8")
+        self.sh("git", "add", "NOTE")
+        self.sh("git", "commit", "-q", "-m", "note locale")
+        sortie = self.synchroniser()
+        self.assertIn("le push sera refusé", sortie)
+        self.assertIn("git pull --rebase", sortie)
+        self.assertEqual(self.dernier(), "note locale", "rien n'est rejoué d'autorité")
+
+    def test_05_github_injoignable_laisse_lexport_continuer(self):
+        self.sh("git", "remote", "set-url", "origin", str(self.base / "nulle-part.git"))
+        sortie = self.synchroniser()
+        self.assertIn("GitHub n'a pas pu être contacté", sortie)
+        self.assertEqual(self.dernier(), "init")
 
 
 class ConfigurationTest(unittest.TestCase):

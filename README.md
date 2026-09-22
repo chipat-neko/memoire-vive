@@ -23,10 +23,12 @@ python scripts/export.py
 Ou double-cliquer sur `exporter.cmd` (raccourci « Mettre à jour Mémoire Vive » sur le Bureau),
 qui affiche le résultat et attend une touche.
 
-La commande lit toutes les entrées, écrit `docs/data.json`, fait un commit et pousse.
-GitHub Pages republie le site en une à deux minutes. Si la mémoire n'a pas changé,
-`data.json` n'est pas réécrit, mais un commit ou un push resté en attente (export
-précédent en `--no-git`, push refusé) est rattrapé.
+La commande reprend d'abord les commits que le dépôt GitHub a en plus (utile en phase 2,
+où l'export tourne aussi tout seul chaque nuit : la copie de travail est encore propre,
+donc aucun conflit possible), puis lit toutes les entrées, écrit `docs/data.json`, fait un
+commit et pousse. GitHub Pages republie le site en une à deux minutes. Si la mémoire n'a
+pas changé, `data.json` n'est pas réécrit, mais un commit ou un push resté en attente
+(export précédent en `--no-git`, push refusé) est rattrapé.
 
 | Option | Effet |
 | --- | --- |
@@ -457,7 +459,19 @@ Ce qu'il faut avant de commencer :
 
 Le raccourci « Mettre à jour Mémoire Vive » du Bureau continue de fonctionner avant,
 pendant et après : c'est le même script, et rien n'empêche de publier à la main entre deux
-nuits.
+nuits. Dès la première nuit, GitHub a pourtant un commit que `D:\memoire_vive` n'a pas :
+celui du robot. C'est prévu — avant d'écrire quoi que ce soit, le raccourci du Bureau
+comme le bouton « Publier » de la page d'admin reprennent d'eux-mêmes les commits de
+GitHub (le compte rendu affiche alors `git : 1 commit(s) repris depuis GitHub`). Rien à
+taper, et aucun conflit possible dans `docs/data.json` : la copie de travail est encore
+propre à ce moment-là.
+
+Un seul cas demande encore la main : un export **déjà commité ici mais jamais publié**
+(push refusé la veille, « Publier » interrompu) pendant que GitHub avance de son côté. Les
+deux historiques ont alors divergé, l'export le dit en clair (`git : GitHub a N commit(s)
+de plus, et cet ordinateur M commit(s) pas encore publié(s) : le push sera refusé`), et il
+faut lancer `git pull --rebase` dans `D:\memoire_vive` avant de republier — voir « Un
+rebasage git s'est arrêté » si git s'arrête sur un conflit.
 
 ### 1. Créer le tunnel vers le dashboard
 
@@ -605,7 +619,9 @@ Onglet **Actions** → « Export quotidien de la mémoire » → menu « ··· 
 workflow** : le déclenchement s'arrête, le fichier reste. Pour de bon : supprimer
 `.github/workflows/export-quotidien.yml` et pousser. Dans les deux cas, le raccourci
 « Mettre à jour Mémoire Vive » du Bureau reste le moyen normal de publier — il n'a jamais
-cessé de l'être.
+cessé de l'être. Les exports que le robot avait publiés restent dans le dépôt : la
+première publication faite ensuite à la main les reprend d'elle-même, comme les autres
+nuits.
 
 ## Ajouter une authentification plus tard (Cloudflare Access)
 
@@ -634,7 +650,7 @@ reste dans l'historique public et dans les éventuelles copies.
 | `a répondu autre chose que du JSON`, `redirection inattendue` | tunnel protégé par Access sans jeton de service |
 | `récupération incomplète après 3 passes` | base verrouillée ou modifiée en continu ; relancer un peu plus tard |
 | `N entrées contre M au dernier export` | base vide ou mauvais fichier SQLite ; vérifier, puis `--force` |
-| `git push a échoué` | branche en retard : `git pull --rebase`, puis relancer (le push en attente est rattrapé) |
+| `git push a échoué` | l'export reprend tout seul les commits de GitHub ; s'il échoue quand même, c'est que des commits locaux pas encore publiés ont divergé : `git pull --rebase`, puis relancer (le push en attente est rattrapé) |
 | issue « L'export quotidien de la mémoire a échoué » | phase 2 : l'export de la nuit n'est pas passé ; le lien de l'issue mène au journal, la cause y est écrite en clair (l'issue se referme seule quand l'export repasse) |
 | `aucun dépôt distant « origin »` | voir « Première mise en place » |
 | `Lien principal configuré refusé` | `lien_principal` d'un projet local, invalide ou contenant un secret : le corriger dans `config/projets.json` |
@@ -646,7 +662,7 @@ reste dans l'historique public et dans les éventuelles copies.
 | `Occupé : un aperçu ou une publication est en cours` | attendre la fin de l'opération en cours |
 | `… a changé depuis l'ouverture de la page` | le fichier a été modifié ailleurs (à la main, autre onglet) : recharger la page, refaire la modification |
 | `Réglages à corriger` (à l'ouverture de la page) | un réglage modifié à la main ne passe pas la vérification : le corriger (la liste dit lequel), sinon « Aperçu » et « Publier » sont refusés |
-| `Le dépôt GitHub a des commits que cet ordinateur n'a pas encore` | dans `D:\memoire_vive`, lancer `git pull --rebase`, puis « Publier » ; si git répond `CONFLICT`, voir « Un rebasage git s'est arrêté » ci-dessous |
+| `Le dépôt GitHub a des commits que cet ordinateur n'a pas encore` | « Publier » reprend d'abord les commits de GitHub : ce message ne reste possible que si des commits locaux pas encore publiés ont divergé. Dans `D:\memoire_vive`, lancer `git pull --rebase`, puis « Publier » ; si git répond `CONFLICT`, voir « Un rebasage git s'est arrêté » ci-dessous |
 | `un rebasage git est en cours`, `un picorage git`, `une annulation de commit git` | git s'est arrêté au milieu d'une commande : la page dit quelle commande l'annule (`git rebase --abort`, …) ; rien n'est perdu — voir « Un rebasage git s'est arrêté » ci-dessous |
 | `L'export refuse par sécurité une baisse de plus de la moitié` | trop d'entrées masquées dans l'onglet « Entrées » (ou mémoire mal lue) : en réafficher, puis recommencer |
 | `Git n'a pas pu enregistrer les réglages` | un autre programme utilise le dépôt (git ouvert ailleurs, `.git/index.lock` resté là) : le fermer, puis « Publier » de nouveau ; rien n'a été commité ni publié |
@@ -658,9 +674,12 @@ reste dans l'historique public et dans les éventuelles copies.
 
 ### Un rebasage git s'est arrêté (« CONFLICT »)
 
-Quand le dépôt GitHub a avancé de son côté, « Publier » conseille `git pull --rebase`.
-Cette commande s'arrête presque toujours sur un conflit dans `docs/data.json` : ce
-fichier est réécrit en entier à chaque export, ici comme sur l'autre ordinateur.
+Cas devenu rare : l'export et « Publier » reprennent d'eux-mêmes les commits de GitHub
+avant d'écrire quoi que ce soit. Il ne reste que la situation où **les deux côtés ont
+avancé** — un export commité ici sans avoir été publié, pendant que GitHub avançait. La
+publication conseille alors `git pull --rebase`, et cette commande s'arrête presque
+toujours sur un conflit dans `docs/data.json` : ce fichier est réécrit en entier à chaque
+export, ici comme sur l'autre ordinateur.
 **Rien n'est perdu**, mais la copie de travail reste « au milieu » du rebasage, et la
 page d'admin refuse alors de publier en le disant.
 

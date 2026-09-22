@@ -1,5 +1,7 @@
 @echo off
-rem Met à jour le site Mémoire Vive : export de la mémoire, commit et push.
+rem Met à jour le site Mémoire Vive : reprise des commits que GitHub a en plus
+rem (phase 2 : l'export quotidien publie aussi la nuit), export de la mémoire,
+rem commit et push.
 rem Double-cliquable. Les options de scripts\export.py passent telles quelles
 rem (ex. exporter.cmd --dry-run).
 chcp 65001 >nul

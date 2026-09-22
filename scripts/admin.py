@@ -563,7 +563,8 @@ def etat_git(racine: Path, connus: tuple = ()) -> dict | None:
 
 
 # --------------------------------------------------------------------------
-# Publication : garde-fous git, commit des réglages, lancement de l'export
+# Publication : garde-fous git, reprise des commits du dépôt distant, commit
+# des réglages, lancement de l'export
 # --------------------------------------------------------------------------
 
 REGLAGES = list(FICHIERS.values())
@@ -571,7 +572,8 @@ LIBELLES = {"config/projets.json": "projets et familles", "config/entrees.json":
             "config/recherche.json": "recherche"}
 # Seuls fichiers qu'une publication peut emporter : les réglages et data.json
 # (qu'un aperçu a pu réécrire).
-PUBLIABLES = set(REGLAGES) | {"docs/data.json"}
+DONNEES = "docs/data.json"
+PUBLIABLES = set(REGLAGES) | {DONNEES}
 EXPORT_DELAI = 900  # secondes : lecture de la mémoire, puis recherches des voisins (budget 120 s)
 EN_PANNE = "git ne répond pas normalement ({}) : publication impossible pour l'instant."
 # L'export et ses sous-processus (git) dans un groupe à part : au bout du délai,
@@ -678,6 +680,55 @@ def refus_publication(racine: Path, connus: tuple = ()) -> str | None:
                 f"({', '.join(FICHIERS[nom] for nom in invalides)}) : les corriger d'abord (la page liste les "
                 "erreurs à son ouverture) ; rien n'est commité d'ici là.")
     return None
+
+
+def git_reseau(racine: Path, *args: str) -> subprocess.CompletedProcess:
+    """Comme git(), mais sans jamais demander d'identifiant au clavier : une
+    commande qui attendrait une saisie bloquerait la page d'admin."""
+    return subprocess.run(["git", *args], cwd=racine, text=True, encoding="utf-8", errors="replace",
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
+
+
+def synchroniser(racine: Path) -> str | None:
+    """
+    Reprend les commits que le dépôt distant a en plus, avant de commiter les
+    réglages ; renvoie une ligne à montrer, ou None s'il n'y avait rien à faire.
+
+    Phase 2 : l'export quotidien de GitHub publie docs/data.json chaque nuit.
+    Sans cette avance, le commit des réglages partirait d'un historique en
+    retard, le push serait refusé, et Noah devrait démêler un conflit dans
+    docs/data.json. Ici, rien n'est encore commité : une simple avance
+    (fast-forward) suffit. Ne lève jamais — scripts/export.py fait le même
+    geste juste après et c'est le push qui dit ce qui coince.
+    """
+    amont = git(racine, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+    if amont.returncode != 0:
+        return None
+    amont = amont.stdout.strip()
+    if git_reseau(racine, "fetch", "--quiet").returncode != 0:
+        return "git : GitHub n'a pas pu être contacté ; publication avec ce que cet ordinateur a."
+    retard = compter_commits(racine, f"HEAD..{amont}")
+    if not retard or compter_commits(racine, f"{amont}..HEAD"):
+        return None  # à jour, ou historiques divergents : l'export le dira
+    resultat = git(racine, "merge", "--ff-only", amont)
+    if resultat.returncode != 0:
+        etat = git(racine, "status", "--porcelain", "--", DONNEES).stdout.strip()
+        if etat and not etat.startswith("??"):
+            # data.json écrit par un aperçu sans être commité : il barre
+            # l'avance, et la publication le réécrit de toute façon juste après.
+            git(racine, "checkout", "--", DONNEES)
+            resultat = git(racine, "merge", "--ff-only", amont)
+    if resultat.returncode != 0:
+        return None  # l'export réessaiera, puis le push expliquera le refus
+    return f"git : {retard} commit(s) repris depuis GitHub avant la publication."
+
+
+def compter_commits(racine: Path, intervalle: str) -> int:
+    """Nombre de commits d'un intervalle (« HEAD..origin/main »), 0 si git échoue."""
+    resultat = git(racine, "rev-list", "--count", intervalle)
+    valeur = resultat.stdout.strip()
+    return int(valeur) if resultat.returncode == 0 and valeur.isdigit() else 0
 
 
 def commit_reglages(racine: Path) -> str | None:
@@ -1129,9 +1180,9 @@ class Gestionnaire(BaseHTTPRequestHandler):
                         "sortie": sortie})
 
     def api_publier(self) -> None:
-        """Commit des réglages modifiés, puis export complet (commit de data.json
-        et push de tout, jamais forcé), après les garde-fous git et la
-        vérification des réglages enregistrés."""
+        """Reprise des commits de GitHub, commit des réglages modifiés, puis
+        export complet (commit de data.json et push de tout, jamais forcé),
+        après les garde-fous git et la vérification des réglages enregistrés."""
         racine, connus = self.admin.racine, self.admin.secrets()
         refus = refus_publication(racine, connus)
         if refus:
@@ -1139,6 +1190,12 @@ class Gestionnaire(BaseHTTPRequestHandler):
             self.json(409, {"erreur": f"Publication refusée : {refus}",
                             "erreurs": [erreur for liste in invalides.values() for erreur in liste]})
             return
+        # Avant tout commit : reprendre ce que le dépôt distant a publié de son
+        # côté (phase 2, export quotidien de GitHub), sinon le push serait
+        # refusé et le rattrapage buterait sur un conflit dans data.json.
+        avance = synchroniser(racine)
+        if avance:
+            self.admin.journal(f"  {avance}")
         try:
             message = commit_reglages(racine)
         except ErreurAdmin as err:
@@ -1167,6 +1224,8 @@ class Gestionnaire(BaseHTTPRequestHandler):
                            "le README : rien n'est perdu.")
         if message:
             sortie = f"git : commit « {message} »\n{sortie}"
+        if avance:
+            sortie = f"{avance}\n{sortie}"
         self.admin.journal("  Publication terminée." if code == 0 else "  Publication en échec (voir la page).")
         self.json(200, {"ok": code == 0, "code": code, "etape": "export", "commit": message,
                         "explication": explication, "sortie": sortie})

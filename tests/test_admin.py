@@ -1075,13 +1075,39 @@ class PublicationAdminTest(unittest.TestCase):
                                           "fatal: index file corrupt) : publication impossible pour l'instant.")
         self.assertEqual(FauxDashboard.recherches, 0)
 
-    def test_push_refuse_explique(self):
-        # Le dépôt distant a avancé depuis ailleurs (GitHub, autre ordinateur).
+    def ailleurs(self, message="ailleurs"):
+        """Un commit poussé depuis ailleurs (GitHub, export quotidien de la nuit)."""
         autre = Path(self.dossier.name) / "autre"
-        sh("git", "clone", "-q", str(self.distant), str(autre), cwd=self.dossier.name)
+        if not autre.exists():
+            sh("git", "clone", "-q", str(self.distant), str(autre), cwd=self.dossier.name)
         sh("git", "-c", "user.name=test", "-c", "user.email=test@example.invalid", "commit", "-q", "--allow-empty",
-           "-m", "ailleurs", cwd=autre)
+           "-m", message, cwd=autre)
         sh("git", "push", "-q", cwd=autre)
+
+    def test_publier_reprend_dabord_les_commits_de_github(self):
+        # Phase 2 : l'export quotidien a publié cette nuit. « Publier » reprend
+        # son commit avant de commiter les réglages, donc le push passe — sans
+        # « git pull --rebase » ni conflit dans docs/data.json.
+        self.ailleurs("Export mémoire : 1 entrée (robot)")
+        self.renommer_depths()
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertTrue(corps["ok"], corps["sortie"])
+        self.assertIn("git : 1 commit(s) repris depuis GitHub avant la publication.", corps["sortie"])
+        sujets = self.git("log", "--format=%s", "main", cwd=self.distant).splitlines()
+        self.assertTrue(sujets[0].startswith("Export mémoire : 3 entrées"), sujets)
+        self.assertEqual(sujets[1:], ["Réglages : projets et familles", "Export mémoire : 1 entrée (robot)", "init"])
+        self.assertEqual(self.git("rev-parse", "HEAD"), self.git("rev-parse", "main", cwd=self.distant))
+
+    def test_push_refuse_explique(self):
+        # Historiques divergents : un export commité ici sans avoir été poussé,
+        # et le dépôt distant qui a avancé de son côté. Aucune avance simple
+        # n'est possible (voir admin.synchroniser) : le push est refusé, et la
+        # page dit quoi faire.
+        (self.depot / "docs" / "data.json").write_text('{"nb_entrees": 1}\n', encoding="utf-8")
+        self.git("add", "docs/data.json")
+        self.git("commit", "-q", "-m", "Export mémoire : 1 entrée")
+        self.ailleurs()
         self.renommer_depths()
         statut, corps = self.client.json("POST", "/api/publier", {})
         self.assertEqual(statut, 200, corps)

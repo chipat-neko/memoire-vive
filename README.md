@@ -475,7 +475,39 @@ reste dans l'historique public et dans les éventuelles copies.
 | `Occupé : un aperçu ou une publication est en cours` | attendre la fin de l'opération en cours |
 | `… a changé depuis l'ouverture de la page` | le fichier a été modifié ailleurs (à la main, autre onglet) : recharger la page, refaire la modification |
 | `Réglages à corriger` (à l'ouverture de la page) | un réglage modifié à la main ne passe pas la vérification : le corriger (la liste dit lequel), sinon « Aperçu » et « Publier » sont refusés |
-| `Le dépôt GitHub a des commits que cet ordinateur n'a pas encore` | dans `D:\memoire_vive`, lancer `git pull --rebase`, puis « Publier » |
+| `Le dépôt GitHub a des commits que cet ordinateur n'a pas encore` | dans `D:\memoire_vive`, lancer `git pull --rebase`, puis « Publier » ; si git répond `CONFLICT`, voir « Un rebasage git s'est arrêté » ci-dessous |
+| `un rebasage git est en cours`, `un picorage git`, `une annulation de commit git` | git s'est arrêté au milieu d'une commande : la page dit quelle commande l'annule (`git rebase --abort`, …) ; rien n'est perdu — voir « Un rebasage git s'est arrêté » ci-dessous |
+| `L'export refuse par sécurité une baisse de plus de la moitié` | trop d'entrées masquées dans l'onglet « Entrées » (ou mémoire mal lue) : en réafficher, puis recommencer |
+| `Git n'a pas pu enregistrer les réglages` | un autre programme utilise le dépôt (git ouvert ailleurs, `.git/index.lock` resté là) : le fermer, puis « Publier » de nouveau ; rien n'a été commité ni publié |
+| `est illisible : ce n'est pas du JSON valide` | un fichier de `config/` a été mal modifié à la main : le message donne son dossier et la commande qui rétablit la dernière version publiée |
+| `ressemble à des réglages en version 2, mais sa ligne "version": 2 manque` | remettre la ligne `"version": 2,` au début de `config/projets.json` : sans elle, tous les réglages des projets seraient perdus |
 | `la page d'admin de ce dépôt tourne déjà` | utiliser la fenêtre « Mémoire Vive - page d'admin » déjà ouverte, ou la fermer d'abord |
 | `aucun port libre entre 8790 et 8809` | ces ports sont pris par d'autres programmes : `admin.cmd --port 8900` |
 | `Aperçu impossible` avec `injoignable (…)` | lancer `start-memory-rest.ps1` : l'aperçu lit la mémoire |
+
+### Un rebasage git s'est arrêté (« CONFLICT »)
+
+Quand le dépôt GitHub a avancé de son côté, « Publier » conseille `git pull --rebase`.
+Cette commande s'arrête presque toujours sur un conflit dans `docs/data.json` : ce
+fichier est réécrit en entier à chaque export, ici comme sur l'autre ordinateur.
+**Rien n'est perdu**, mais la copie de travail reste « au milieu » du rebasage, et la
+page d'admin refuse alors de publier en le disant.
+
+Deux façons d'en sortir, dans `D:\memoire_vive` :
+
+1. **Revenir en arrière** (le plus simple) : `git rebase --abort`. Tout revient
+   exactement comme avant la commande ; le dernier export est toujours là.
+   La publication redevient possible, mais le dépôt GitHub est encore en avance :
+   redemander de l'aide plutôt que de relancer la même commande en boucle.
+2. **Aller au bout** : garder la version de cet ordinateur pour `docs/data.json`
+   (elle sera de toute façon réécrite à la prochaine publication), puis continuer :
+
+   ```powershell
+   git checkout --theirs -- docs/data.json
+   git add docs/data.json
+   git rebase --continue
+   ```
+
+   Pendant un rebasage, `--theirs` désigne le commit qu'on est en train de rejouer,
+   c'est-à-dire l'export de cet ordinateur. **Ne pas utiliser `--ours`** : pendant un
+   rebasage, c'est l'autre côté, et l'export de cet ordinateur serait jeté.

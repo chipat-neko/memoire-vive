@@ -32,6 +32,8 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
+import traceback
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -183,7 +185,12 @@ def valider_projets(donnees: dict, connus: tuple = ()) -> list[str]:
             erreurs.append(f"{lieu} : identifiant « {fid} » en double.")
         else:
             ids.append(fid)
-            lieu = f"Famille « {fid} »"
+            # L'identifiant d'une famille n'est affiché nulle part dans la page :
+            # on cite le nom, qui est sous les yeux (sauf s'il ressemble à un
+            # secret : il ne doit pas repartir vers le navigateur).
+            nom_vu = famille.get("nom")
+            sur = isinstance(nom_vu, str) and nom_vu.strip() and not export.redact(nom_vu, connus)[1]
+            lieu = f"Famille « {nom_vu.strip() if sur else fid} »"
         _cles(erreurs, lieu, famille, CLES_FAMILLE)
         _texte(erreurs, f"{lieu}, nom", famille.get("nom"), connus, facultatif=False)
         couleur = famille.get("couleur")
@@ -397,17 +404,37 @@ def lire_config(racine: Path, nom: str, notes: list | None = None) -> dict:
     chemin = racine / FICHIERS[nom]
     if not chemin.is_file():
         return copy.deepcopy(DEFAUTS[nom])
+    issue = (f" Le fichier est dans {racine / 'config'} ; pour revenir à la dernière version enregistrée dans "
+             f"l'historique git, lancer « git checkout -- {FICHIERS[nom]} » dans {racine} (les modifications "
+             "faites à la main depuis seront perdues).")
     try:
         donnees = json.loads(chemin.read_text(encoding="utf-8-sig"))
     except (OSError, ValueError) as err:
-        raise ErreurAdmin(f"{FICHIERS[nom]} est illisible ({err}) : le corriger à la main.") from None
+        raise ErreurAdmin(f"{FICHIERS[nom]} est illisible : ce n'est pas du JSON valide ({err}).{issue}") from None
     if not isinstance(donnees, dict):
-        raise ErreurAdmin(f"{FICHIERS[nom]} : un objet JSON est attendu ; le corriger à la main.")
+        raise ErreurAdmin(f"{FICHIERS[nom]} : un objet JSON est attendu (entre accolades).{issue}")
     corrections = []
     if nom == "projets" and donnees.get("version") != 2:
-        donnees = vers_v2(donnees)
+        # Un fichier v2 dont la ligne « "version": 2 » a disparu serait lu comme
+        # une v1 : tous les réglages des projets seraient perdus, en silence,
+        # puis effacés du fichier au premier « Enregistrer ». Une vraie v1 n'a
+        # pas de bloc « projets ».
+        if "projets" in donnees:
+            raise ErreurAdmin(
+                f'{FICHIERS[nom]} ressemble à des réglages en version 2, mais sa ligne "version": 2 manque '
+                "(ou ne vaut pas 2). Sans elle, les noms, familles, descriptions, liens et alias des projets ne "
+                f'seraient pas lus. Ajouter la ligne "version": 2, au début du fichier.{issue}')
+        try:
+            donnees = vers_v2(donnees)
+        except Exception as err:
+            raise ErreurAdmin(
+                f"{FICHIERS[nom]} : réglages en version 1 illisibles ({err}) ; « alias » et « noms » doivent être "
+                f"des objets, « tags_generiques » et « tags_exclus » des listes de textes.{issue}") from None
         corrections.append(f"{FICHIERS[nom]} : réglages en version 1, lus et convertis en version 2.")
-    corrections += normaliser(nom, donnees)
+    try:
+        corrections += normaliser(nom, donnees)
+    except Exception as err:
+        raise ErreurAdmin(f"{FICHIERS[nom]} : réglages illisibles ({err}).{issue}") from None
     if notes is not None:
         notes.extend(corrections)
     return donnees
@@ -554,6 +581,31 @@ GROUPE_A_PART = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.na
                  else {"start_new_session": True})
 
 
+# Opérations git qu'un conflit laisse à moitié faites : la copie de travail est
+# alors en « HEAD détachée » ou l'index est bloqué, et git refuse « git checkout
+# main ». Chacune s'annule par une commande, sans rien perdre.
+OPERATIONS_EN_COURS = (
+    ("rebase-merge", "un rebasage git", "git rebase --abort"),
+    ("rebase-apply", "un rebasage git", "git rebase --abort"),
+    ("CHERRY_PICK_HEAD", "un picorage git (cherry-pick)", "git cherry-pick --abort"),
+    ("REVERT_HEAD", "une annulation de commit git (revert)", "git revert --abort"),
+)
+
+
+def operation_git_en_cours(racine: Path) -> tuple[str, str] | None:
+    """(ce que git a commencé, commande qui l'annule) si une opération git est
+    restée en plan (rebasage arrêté par un conflit, picorage, annulation), ou
+    None. « git rev-parse --git-path » trouve le fichier témoin même dans une
+    copie de travail liée (git worktree)."""
+    for fichier, libelle, annulation in OPERATIONS_EN_COURS:
+        resultat = git(racine, "rev-parse", "--git-path", fichier)
+        if resultat.returncode != 0:
+            return None  # pas un dépôt git : le reste des garde-fous le dira
+        if (racine / resultat.stdout.strip()).exists():
+            return libelle, annulation
+    return None
+
+
 def erreurs_reglages(racine: Path, connus: tuple = ()) -> dict[str, list[str]]:
     """Erreurs de validation des réglages enregistrés, par fichier ({} si tout
     est bon) : un réglage modifié à la main n'est pas passé par la page."""
@@ -581,6 +633,14 @@ def refus_publication(racine: Path, connus: tuple = ()) -> str | None:
         return "git est introuvable."
     if branche.returncode != 0:
         return "ce dossier n'est pas un dépôt git."
+    # Avant le test de branche : un rebasage arrêté par un conflit détache HEAD,
+    # et le conseil « revenir sur main » serait alors refusé par git.
+    en_cours = operation_git_en_cours(racine)
+    if en_cours:
+        libelle, annulation = en_cours
+        return (f"{libelle} est en cours (git s'est arrêté au milieu, sans doute sur un conflit). Rien n'est "
+                f"perdu : dans {racine}, lancer « {annulation} » pour revenir exactement à l'état d'avant, puis "
+                "« Publier » de nouveau. Voir « Dépannage » dans le README.")
     nom = branche.stdout.strip()
     if nom != "main":
         ou = "aucune branche (HEAD détachée)" if nom == "HEAD" else f"la branche « {nom} »"
@@ -676,6 +736,34 @@ def lancer_export(admin: Admin, options: list[str]) -> tuple[int, str]:
     return code, sortie
 
 
+# « Échec : 24 entrées contre 80 au dernier export. » — garde-fou de l'export
+# (export.MIN_RATIO_VS_PREVIOUS) : masquer des entrées depuis la page suffit à
+# le déclencher.
+BAISSE_RE = re.compile(r"Échec\s*: (\d+) entrées contre (\d+) au dernier export")
+
+
+def explication_export(code: int, sortie: str) -> str | None:
+    """Phrase en français qui dit la vraie cause d'un export en échec et quoi
+    faire, quand elle se reconnaît dans son compte rendu ; None sinon (la page
+    renvoie alors au compte rendu détaillé)."""
+    if code == 0:
+        return None
+    baisse = BAISSE_RE.search(sortie)
+    if baisse:
+        return (f"Le site n'aurait plus que {baisse.group(1)} entrées, contre {baisse.group(2)} à la dernière "
+                "publication : l'export refuse par sécurité une baisse de plus de la moitié (une mémoire vidée "
+                "ou mal lue effacerait le site). Si vous venez de masquer des entrées, en réafficher dans "
+                "l'onglet « Entrées », puis recommencer.")
+    if "aucune entrée à publier" in sortie:
+        return ("Il n'y aurait aucune entrée à publier : soit toutes les entrées sont masquées dans l'onglet "
+                "« Entrées », soit la mémoire partagée n'a rien renvoyé. Réafficher des entrées, ou vérifier "
+                "que le dashboard tourne, puis recommencer.")
+    if "injoignable" in sortie or "refuse l'accès" in sortie:
+        return ("La mémoire partagée n'a pas répondu : vérifier que le dashboard tourne (lancer "
+                "« start-memory-rest.ps1 »), puis recommencer.")
+    return None
+
+
 # --------------------------------------------------------------------------
 # Serveur local
 # --------------------------------------------------------------------------
@@ -684,6 +772,7 @@ PORT_PAR_DEFAUT = 8790
 ESSAIS_DE_PORT = 20
 CORPS_MAX = 2_000_000
 VIDANGE_MAX = 16_000_000  # corps lu (et jeté) avant un refus ; au-delà, la connexion est coupée
+VIDANGE_DELAI = 2  # secondes : au-delà, on répond sans finir de lire (fil jamais retenu)
 # Même politique que le site, plus l'interdiction d'être affichée dans le cadre d'une autre page.
 CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; "
        "manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
@@ -746,7 +835,8 @@ class Gestionnaire(BaseHTTPRequestHandler):
     sys_version = ""
     # Délai de chaque lecture ou écriture sur la connexion (l'export, lui, ne
     # l'utilise pas : une publication de dix minutes n'est pas coupée). Une
-    # connexion muette, ou un corps annoncé jamais envoyé, ne bloque pas un fil.
+    # connexion muette est fermée au bout de ce délai ; un corps annoncé jamais
+    # envoyé, ou envoyé au compte-gouttes, est abandonné bien avant (vider()).
     timeout = 30
 
     def handle(self) -> None:
@@ -774,7 +864,11 @@ class Gestionnaire(BaseHTTPRequestHandler):
     def vider(self) -> None:
         """Lit le corps que la requête n'a pas consommé (refus avant lecture) :
         sous Windows, fermer la connexion avec des données non lues la coupe
-        (RST) avant que le client ait lu la réponse."""
+        (RST) avant que le client ait lu la réponse. Borné dans le temps
+        (VIDANGE_DELAI) : un client qui annonce un corps sans l'envoyer, ou qui
+        l'envoie au compte-gouttes, ne retient jamais un fil — la réponse part,
+        la connexion se ferme. Sur la boucle locale, un vrai corps de 2 Mo est
+        lu en quelques millisecondes."""
         if getattr(self, "corps_lu", False):
             return
         self.corps_lu = True
@@ -782,13 +876,32 @@ class Gestionnaire(BaseHTTPRequestHandler):
             reste = min(int(self.headers.get("Content-Length") or 0), VIDANGE_MAX)
         except ValueError:
             return
-        while reste > 0:
-            morceau = self.rfile.read(min(reste, 65536))
-            if not morceau:
-                break
-            reste -= len(morceau)
+        if reste <= 0:
+            return
+        ancien = self.connection.gettimeout()
+        fin = time.monotonic() + VIDANGE_DELAI
+        try:
+            while reste > 0:
+                restant = fin - time.monotonic()
+                if restant <= 0:
+                    break
+                self.connection.settimeout(restant)
+                morceau = self.rfile.read(min(reste, 65536))
+                if not morceau:
+                    break
+                reste -= len(morceau)
+        except OSError:  # délai dépassé (TimeoutError) ou connexion coupée
+            pass
+        finally:
+            try:
+                self.connection.settimeout(ancien)
+            except OSError:
+                pass
+        if reste > 0:
+            self.close_connection = True
 
     def envoyer(self, code: int, corps: bytes, type_: str, entetes: dict | None = None) -> None:
+        self.repondu = True
         self.vider()
         self.send_response(code)
         self.send_header("Content-Type", type_)
@@ -860,14 +973,34 @@ class Gestionnaire(BaseHTTPRequestHandler):
         brut = self.rfile.read(longueur)
         self.corps_lu = True
         try:
+            # RecursionError : corps trop imbriqué (json.loads est récursif) ;
+            # ce n'est ni une ValueError ni une UnicodeDecodeError.
             return True, json.loads(brut.decode("utf-8")) if brut.strip() else {}
-        except (UnicodeDecodeError, ValueError):
+        except (UnicodeDecodeError, ValueError, RecursionError):
             self.refus(400, "JSON illisible.")
             return False, None
 
     # ------------------------------------------------------------ méthodes
 
+    def securiser(self, action) -> None:
+        """Filet : une erreur non prévue donne une ligne en français, jamais une
+        connexion coupée sans réponse (la page dirait « le serveur ne répond
+        pas ») ; le détail va dans la fenêtre « Gérer Mémoire Vive »."""
+        try:
+            action()
+        except (ConnectionError, TimeoutError):
+            raise  # onglet fermé ou client muet : handle() le dit déjà
+        except Exception:
+            self.admin.journal("  Erreur interne de la page d'admin :\n" + traceback.format_exc())
+            if not getattr(self, "repondu", False):
+                self.refus(500, "Erreur interne de la page d'admin ; voir la fenêtre « Gérer Mémoire Vive ».")
+
     def do_GET(self) -> None:
+        self.securiser(self._get)
+
+    do_HEAD = do_GET
+
+    def _get(self) -> None:
         if not self.controler():
             return
         if self.chemin == "/api/etat":
@@ -877,9 +1010,10 @@ class Gestionnaire(BaseHTTPRequestHandler):
         else:
             self.fichier()
 
-    do_HEAD = do_GET
-
     def do_PUT(self) -> None:
+        self.securiser(self._put)
+
+    def _put(self) -> None:
         if not self.controler():
             return
         if not self.chemin.startswith("/api/"):
@@ -895,6 +1029,9 @@ class Gestionnaire(BaseHTTPRequestHandler):
             self.api_ecrire(nom, corps)
 
     def do_POST(self) -> None:
+        self.securiser(self._post)
+
+    def _post(self) -> None:
         if not self.controler():
             return
         if not self.chemin.startswith("/api/"):
@@ -981,7 +1118,8 @@ class Gestionnaire(BaseHTTPRequestHandler):
         self.admin.journal("  Aperçu : export sans git ni recherche de voisins…")
         code, sortie = lancer_export(self.admin, ["--no-git", "--sans-recherche"])
         self.admin.journal("  Aperçu prêt." if code == 0 else "  Aperçu en échec (voir la page).")
-        self.json(200, {"ok": code == 0, "code": code, "sortie": sortie})
+        self.json(200, {"ok": code == 0, "code": code, "explication": explication_export(code, sortie),
+                        "sortie": sortie})
 
     def api_publier(self) -> None:
         """Commit des réglages modifiés, puis export complet (commit de data.json
@@ -997,21 +1135,34 @@ class Gestionnaire(BaseHTTPRequestHandler):
         try:
             message = commit_reglages(racine)
         except ErreurAdmin as err:
-            self.json(200, {"ok": False, "code": 1, "commit": None, "explication": None, "sortie": f"Échec : {err}"})
+            # L'export n'a même pas démarré : le dire, plutôt que de le laisser accuser.
+            self.admin.journal("  Publication en échec : git n'a pas pu commiter les réglages.")
+            self.json(200, {"ok": False, "code": 1, "etape": "git", "commit": None, "sortie": f"Échec : {err}",
+                            "explication": "Git n'a pas pu enregistrer les réglages dans l'historique du dépôt "
+                                           "(un autre programme s'en sert-il ?) : rien n'a été commité ni publié. "
+                                           "Vos réglages restent enregistrés sur cet ordinateur. Fermer les autres "
+                                           "programmes qui utilisent le dépôt, puis « Publier » de nouveau."})
             return
         self.admin.journal("  Publication : " + (f"commit « {message} », puis export…" if message else "export…"))
         code, sortie = lancer_export(self.admin, [])
-        explication = None
-        if code != 0 and any(mot in sortie for mot in ("[rejected]", "non-fast-forward", "fetch first")):
+        explication = explication_export(code, sortie)
+        if code != 0 and "remote rejected" in sortie:
+            # Refus venu de GitHub lui-même (règle du dépôt, droits) : un « git
+            # pull --rebase » n'y changerait rien.
+            explication = ("Le dépôt GitHub a refusé la publication (règle du dépôt, ou droits d'écriture) : rien "
+                           "n'a changé en ligne. Le message exact de GitHub est dans le détail ci-dessous. Ce qui "
+                           "est commité ici est gardé et repartira à la prochaine publication.")
+        elif code != 0 and any(mot in sortie for mot in ("[rejected]", "non-fast-forward", "fetch first")):
             # Push refusé : le dépôt distant a avancé (modification faite sur GitHub ou ailleurs).
             explication = (f"Le dépôt GitHub a des commits que cet ordinateur n'a pas encore : dans {racine}, "
                            "lancer « git pull --rebase », puis « Publier » de nouveau (ce qui est déjà commité "
-                           "ici partira avec).")
+                           "ici partira avec). Si git s'arrête en disant « CONFLICT », voir « Dépannage » dans "
+                           "le README : rien n'est perdu.")
         if message:
             sortie = f"git : commit « {message} »\n{sortie}"
         self.admin.journal("  Publication terminée." if code == 0 else "  Publication en échec (voir la page).")
-        self.json(200, {"ok": code == 0, "code": code, "commit": message, "explication": explication,
-                        "sortie": sortie})
+        self.json(200, {"ok": code == 0, "code": code, "etape": "export", "commit": message,
+                        "explication": explication, "sortie": sortie})
 
     # ------------------------------------------------------------ fichiers
 

@@ -58,7 +58,7 @@ class ValidationProjetsTest(unittest.TestCase):
             with self.subTest(couleur=couleur):
                 familles = [{"id": "jeux", "nom": "Jeux", "couleur": couleur}]
                 self.assertEqual(self.erreurs(projets(familles=familles, projets={})),
-                                 ["Famille « jeux » : la couleur doit être un nombre entier de 1 à 6."])
+                                 ["Famille « Jeux » : la couleur doit être un nombre entier de 1 à 6."])
 
     def test_famille_identifiant_nom_doublon(self):
         familles = [{"id": "Jeux Vidéo", "nom": "Jeux", "couleur": 1}, {"id": "a", "nom": " ", "couleur": 2},
@@ -69,6 +69,18 @@ class ValidationProjetsTest(unittest.TestCase):
             "Famille n° 3 : identifiant « a » en double.",
             "Famille n° 4 : un objet est attendu.",
         ])
+
+    def test_famille_nommee_comme_a_l_ecran(self):
+        # L'identifiant d'une famille n'est affiché nulle part dans la page :
+        # le refus doit citer le nom, qui, lui, est sous les yeux.
+        familles = [{"id": "jeux", "nom": "Jeux vidéo", "couleur": 9}]
+        self.assertEqual(self.erreurs(projets(familles=familles, projets={})),
+                         ["Famille « Jeux vidéo » : la couleur doit être un nombre entier de 1 à 6."])
+        # Un nom qui ressemble à un secret n'est jamais renvoyé au navigateur.
+        secret = "sk-" + "a" * 40
+        familles = [{"id": "jeux", "nom": secret, "couleur": 9}]
+        for erreur in self.erreurs(projets(familles=familles, projets={})):
+            self.assertNotIn(secret, erreur)
 
     def test_projet_famille_inconnue_et_cle_inconnue(self):
         self.assertEqual(self.erreurs(un_projet(famille="sport", couleur=2)), [
@@ -352,10 +364,45 @@ class LectureTest(unittest.TestCase):
         self.ecrire("recherche.json", "{ oups")
         with self.assertRaises(admin.ErreurAdmin) as contexte:
             admin.lire_config(self.racine, "recherche")
-        self.assertIn("config/recherche.json est illisible", str(contexte.exception))
+        message = str(contexte.exception)
+        self.assertIn("config/recherche.json est illisible", message)
+        # Une issue, pas seulement « le corriger à la main » : où est le fichier,
+        # et comment revenir à la dernière version enregistrée dans git.
+        self.assertIn(str(self.racine / "config"), message)
+        self.assertIn("git checkout -- config/recherche.json", message)
         self.ecrire("entrees.json", "[]")
         with self.assertRaises(admin.ErreurAdmin):
             admin.lire_config(self.racine, "entrees")
+
+    def test_v1_mal_formee_expliquee_au_lieu_de_planter(self):
+        # « alias » et « noms » doivent être des objets : écrits autrement à la
+        # main, export.normalize_projects_config lève une erreur qui n'est pas
+        # une ErreurAdmin et tuait la requête (page inutilisable, trace Python).
+        for brut in ({"alias": "pas un objet"}, {"alias": ["rogue-lite"]}, {"alias": {"a": None}},
+                     {"noms": "texte"}, {"tags_generiques": 5}, {"tags_exclus": {"a": 1}}):
+            with self.subTest(brut=brut):
+                self.ecrire("projets.json", json.dumps(brut))
+                with self.assertRaises(admin.ErreurAdmin) as contexte:
+                    admin.lire_config(self.racine, "projets")
+                self.assertIn("config/projets.json", str(contexte.exception))
+                self.assertIn("version 1", str(contexte.exception))
+
+    def test_v2_sans_ligne_version_refusee_au_lieu_de_perdre_les_projets(self):
+        # Un fichier v2 dont la ligne « "version": 2 » a disparu serait lu comme
+        # une v1 : noms, familles, descriptions, liens et alias de tous les
+        # projets disparaîtraient, et le premier « Enregistrer » les effacerait.
+        v2 = projets()
+        del v2["version"]
+        self.ecrire("projets.json", json.dumps(v2))
+        with self.assertRaises(admin.ErreurAdmin) as contexte:
+            admin.lire_config(self.racine, "projets")
+        message = str(contexte.exception)
+        self.assertIn('"version": 2', message)
+        self.assertIn("config/projets.json", message)
+        # Une vraie v1 (« alias » et « noms », sans bloc « projets ») reste lue.
+        self.ecrire("projets.json", json.dumps({"alias": {"rogue-lite": "depths"}, "noms": {"depths": "Depths"}}))
+        self.assertEqual(admin.lire_config(self.racine, "projets")["projets"],
+                         {"depths": {"nom": "Depths", "alias": ["rogue-lite"]}})
 
 
 class OriginauxTest(unittest.TestCase):
@@ -575,7 +622,7 @@ class ServeurTest(unittest.TestCase):
                                          projets(familles=[{"id": "jeux", "nom": "Jeux", "couleur": "3"}], projets={}))
         self.assertEqual(statut, 422)
         self.assertEqual(corps["erreur"], "Réglages refusés : rien n'a été enregistré.")
-        self.assertEqual(corps["erreurs"], ["Famille « jeux » : la couleur doit être un nombre entier de 1 à 6."])
+        self.assertEqual(corps["erreurs"], ["Famille « Jeux » : la couleur doit être un nombre entier de 1 à 6."])
         self.assertEqual(self.projets.read_bytes(), self.avant)
 
     def test_secret_refuse_et_cle_jamais_renvoyee(self):
@@ -654,6 +701,62 @@ class ServeurTest(unittest.TestCase):
         finally:
             connexion.close()
         self.assertFalse((self.racine / "config" / "entrees.json").exists())
+
+    def test_json_trop_imbrique_refuse_sans_trace_python(self):
+        # json.loads lève RecursionError (ni ValueError ni UnicodeDecodeError) :
+        # la requête mourait sans réponse, avec une trace dans la fenêtre d'admin.
+        corps = ("[" * 40_000 + "]" * 40_000).encode("utf-8")
+        statut, reponse = self.client.json("PUT", "/api/config/recherche", corps)
+        self.assertEqual((statut, reponse), (400, {"erreur": "JSON illisible."}))
+        self.assertFalse((self.racine / "config" / "recherche.json").exists())
+
+    def test_erreur_imprevue_donne_une_ligne_en_francais(self):
+        # Filet : aucune erreur non prévue ne doit couper la connexion sans
+        # réponse (le navigateur dirait « le serveur ne répond pas »).
+        with mock.patch.object(admin, "originaux", side_effect=RuntimeError("boum")):
+            statut, corps = self.client.json("GET", "/api/etat")
+        self.assertEqual(statut, 500)
+        self.assertIn("Erreur interne de la page d'admin", corps["erreur"])
+        self.assertNotIn("Traceback", corps["erreur"])
+        statut, _ = self.client.json("GET", "/api/etat")
+        self.assertEqual(statut, 200, "le serveur continue de répondre")
+
+    def test_reglages_v1_mal_formes_page_encore_utilisable(self):
+        # Le fichier lu sur le disque ne doit jamais tuer la requête : un
+        # message en français, pas une trace Python et une page vide.
+        self.projets.write_text(json.dumps({"_aide": "x", "alias": ["rogue-lite"]}), encoding="utf-8")
+        try:
+            statut, corps = self.client.json("GET", "/api/etat")
+            self.assertEqual(statut, 500)
+            self.assertIn("config/projets.json", corps["erreur"])
+            statut, corps = self.client.json("POST", "/api/apercu", {})
+            self.assertEqual(statut, 409)
+            self.assertIn("config/projets.json", " ".join(corps["erreurs"]))
+        finally:
+            self.projets.write_bytes(self.avant)
+
+    def test_corps_annonce_jamais_envoye_ne_retient_pas_un_fil(self):
+        # Le corps est lu (et jeté) avant un refus : sous Windows, fermer la
+        # connexion sans le lire la couperait avant la réponse. Un client qui
+        # annonce un corps sans jamais l'envoyer ne doit pas retenir un fil.
+        port = self.serveur.server_address[1]
+        with socket.create_connection(("127.0.0.1", port), timeout=60) as brut:
+            brut.sendall(f"PUT /api/config/recherche HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\n"
+                         f"X-Admin-Jeton: {JETON}\r\nContent-Type: application/json\r\n"
+                         "Content-Length: 3000000\r\n\r\n".encode())  # corps jamais envoyé
+            debut = time.monotonic()
+            recu = b""
+            while b"\r\n" not in recu:
+                try:
+                    morceau = brut.recv(200)
+                except OSError:
+                    break
+                if not morceau:
+                    break
+                recu += morceau
+            duree = time.monotonic() - debut
+        self.assertIn(b"413", recu.split(b"\r\n")[0], recu)
+        self.assertLess(duree, 15, "le refus n'attend pas le corps annoncé")
 
     def test_occupe_pendant_un_export(self):
         self.assertTrue(self.serveur.admin.verrou.acquire(blocking=False))
@@ -934,17 +1037,115 @@ class PublicationAdminTest(unittest.TestCase):
         self.assertEqual(corps["commit"], "Réglages : projets et familles")
         self.assertEqual(corps["explication"], f"Le dépôt GitHub a des commits que cet ordinateur n'a pas encore : dans "
                                                f"{self.depot}, lancer « git pull --rebase », puis « Publier » de nouveau "
-                                               "(ce qui est déjà commité ici partira avec).")
+                                               "(ce qui est déjà commité ici partira avec). Si git s'arrête en disant "
+                                               "« CONFLICT », voir « Dépannage » dans le README : rien n'est perdu.")
         self.assertIn("[rejected]", corps["sortie"])
         self.assertEqual(self.git("log", "-1", "--format=%s", "main", cwd=self.distant), "ailleurs")
+
+    def test_rebasage_interrompu_explique_au_lieu_de_conseiller_l_impossible(self):
+        # Le conseil « git pull --rebase » s'arrête presque toujours sur un
+        # conflit dans docs/data.json (réécrit à chaque export des deux côtés) :
+        # la copie de travail reste en HEAD détachée, rebasage en cours.
+        autre = Path(self.dossier.name) / "autre"
+        sh("git", "clone", "-q", str(self.distant), str(autre), cwd=self.dossier.name)
+        sh("git", "config", "user.name", "test", cwd=autre)
+        sh("git", "config", "user.email", "test@example.invalid", cwd=autre)
+        (autre / "docs").mkdir(exist_ok=True)
+        (autre / "docs" / "data.json").write_text('{"nb_entrees": 1}\n', encoding="utf-8")
+        sh("git", "add", "docs/data.json", cwd=autre)
+        sh("git", "commit", "-q", "-m", "Export mémoire : 1 entrée", cwd=autre)
+        sh("git", "push", "-q", cwd=autre)
+        (self.depot / "docs" / "data.json").write_text('{"nb_entrees": 2}\n', encoding="utf-8")
+        self.git("add", "docs/data.json")
+        self.git("commit", "-q", "-m", "Export mémoire : 2 entrées")
+        rebasage = subprocess.run(["git", "pull", "--rebase"], cwd=self.depot, text=True, encoding="utf-8",
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.assertNotEqual(rebasage.returncode, 0, "le rebasage doit s'arrêter sur un conflit")
+        self.assertTrue((self.depot / ".git" / "rebase-merge").exists(), rebasage.stdout)
+
+        statut, corps = self.client.json("GET", "/api/etat")
+        refus = corps["git"]["refus_publication"]
+        self.assertIn("rebasage", refus)
+        self.assertIn("git rebase --abort", refus)
+        self.assertNotIn("Revenir sur main", refus, "git refuserait ce conseil pendant un rebasage")
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 409)
+        self.assertIn("rebasage", corps["erreur"])
+        self.assertEqual(FauxDashboard.recherches, 0)
+        # Le conseil marche : le rebasage annulé, la publication redevient possible.
+        self.git("rebase", "--abort")
+        statut, corps = self.client.json("GET", "/api/etat")
+        self.assertIsNone(corps["git"]["refus_publication"])
+
+    def test_picorage_interrompu_explique(self):
+        # Même famille d'états interrompus : la publication doit le dire, pas
+        # laisser passer un git à moitié dans une opération.
+        (self.depot / ".git" / "CHERRY_PICK_HEAD").write_text(self.git("rev-parse", "HEAD") + "\n", encoding="utf-8")
+        statut, corps = self.client.json("GET", "/api/etat")
+        self.assertIn("picorage", corps["git"]["refus_publication"])
+        self.assertIn("git cherry-pick --abort", corps["git"]["refus_publication"])
+
+    def test_baisse_d_entrees_expliquee_au_lieu_d_accuser_le_dashboard(self):
+        statut, corps = self.client.json("POST", "/api/apercu", {})
+        self.assertTrue(corps["ok"], corps["sortie"])
+        self.assertEqual(self.donnees()["nb_entrees"], 3)
+        # Deux entrées sur trois masquées : exactement ce qu'écrit la case
+        # « Masquer du site » de l'onglet « Entrées ».
+        entrees = self.depot / "config" / "entrees.json"
+        statut, corps = self.client.json("PUT", "/api/config/entrees",
+                                         {"000000000001": {"masquer": True}, "000000000002": {"masquer": True}},
+                                         base=empreinte_de(entrees))
+        self.assertEqual(statut, 200, corps)
+        statut, corps = self.client.json("POST", "/api/apercu", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertFalse(corps["ok"])
+        self.assertIn("contre 3 au dernier export", corps["sortie"])
+        self.assertIn("masqu", corps["explication"])
+        self.assertIn("Entrées", corps["explication"])
+        self.assertNotIn("dashboard", corps["explication"])
+
+    def test_dashboard_injoignable_explique(self):
+        with mock.patch.dict(self.serveur.admin.environnement, {"MEMOIRE_API_URL": "http://127.0.0.1:1"}):
+            statut, corps = self.client.json("POST", "/api/apercu", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertFalse(corps["ok"])
+        self.assertIn("dashboard", corps["explication"])
+
+    def test_echec_de_git_avant_l_export_nomme_la_bonne_etape(self):
+        # Un git bloqué (verrou .git/index.lock, autre programme) : l'export
+        # n'a jamais démarré, le message ne doit pas l'accuser.
+        self.renommer_depths()
+        with mock.patch.object(admin, "commit_reglages",
+                               side_effect=admin.ErreurAdmin("git add a échoué : fatal: Unable to create index.lock")):
+            statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertFalse(corps["ok"])
+        self.assertEqual(corps["etape"], "git")
+        self.assertIn("Git", corps["explication"])
+        self.assertIn("rien n'a été commité ni publié", corps["explication"])
+        self.assertEqual(FauxDashboard.recherches, 0)
+        self.assertEqual(self.git("log", "--format=%s"), "init", "aucun commit")
+
+    def test_refus_du_depot_distant_explique_sans_conseiller_un_pull(self):
+        crochet = self.distant / "hooks" / "pre-receive"
+        crochet.write_text("#!/bin/sh\necho 'refus de la règle du dépôt' >&2\nexit 1\n", encoding="utf-8")
+        crochet.chmod(0o755)
+        self.renommer_depths()
+        statut, corps = self.client.json("POST", "/api/publier", {})
+        self.assertEqual(statut, 200, corps)
+        self.assertFalse(corps["ok"])
+        self.assertIn("remote rejected", corps["sortie"])
+        self.assertIn("refusé", corps["explication"])
+        self.assertNotIn("git pull --rebase", corps["explication"])
 
     def test_export_trop_long_arrete(self):
         FauxDashboard.delai = 4
         debut = time.monotonic()
         with mock.patch.object(admin, "EXPORT_DELAI", 1):
             statut, corps = self.client.json("POST", "/api/apercu", {})
-        self.assertEqual((statut, corps), (200, {"ok": False, "code": 1, "sortie": "Échec : l'export n'a pas fini "
-                                                 "en 1 s ; il a été arrêté (git compris)."}))
+        self.assertEqual((statut, corps), (200, {"ok": False, "code": 1, "explication": None,
+                                                 "sortie": "Échec : l'export n'a pas fini en 1 s ; il a été arrêté "
+                                                           "(git compris)."}))
         self.assertLess(time.monotonic() - debut, 4, "arrêté au bout du délai, sans attendre le dashboard")
         self.assertTrue(self.serveur.admin.verrou.acquire(blocking=False), "verrou relâché")
         self.serveur.admin.verrou.release()

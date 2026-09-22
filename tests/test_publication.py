@@ -12,9 +12,10 @@ import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
-from tests.aides import hash_de
+from tests.aides import export, hash_de
 
 RACINE = Path(__file__).resolve().parent.parent
 CLE = "cle-de-test-123"
@@ -180,6 +181,20 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual(ETAT["posts"], 131, sortie)
         self.assertIn("recalcul complet", sortie)
 
+    def test_02f_sans_recherche_ecrit_sans_chercher(self):
+        # Aperçu de la page d'admin : data.json écrit, aucune recherche ; l'entrée
+        # nouvelle attend le prochain export réel.
+        ETAT["n"] = 132
+        code, sortie = self.exporter("--no-git", "--sans-recherche")
+        self.assertEqual(code, 0, sortie)
+        self.assertEqual(ETAT["posts"], 0, "--sans-recherche ne lance aucune recherche")
+        self.assertIn("aucune recherche en --sans-recherche", sortie)
+        self.assertIn("1 nouvelle(s) entrée(s) : voisins calculés au prochain export réel.", sortie)
+        self.assertEqual(self.donnees()["nb_entrees"], 132, "data.json est bien écrit")
+        self.assertEqual(self.donnees()["voisins_en_attente"], [hash_de(131)])
+        self.assertEqual(self.entree(131)["voisins"], [])
+        self.assertIn({"id": hash_de(1), "score": 0.9}, self.entree(0)["voisins"], "les voisins connus restent")
+
     def test_03_no_git_puis_rattrapage(self):
         ETAT["n"] = 140
         self.assertEqual(self.exporter("--no-git")[0], 0)
@@ -264,6 +279,33 @@ class PublicationTest(unittest.TestCase):
         self.assertEqual(ETAT["posts"], 0)
         self.assertIn("Lien principal configuré refusé, calcul automatique à la place : test3 (adresse locale)",
                       sortie)
+
+
+
+class RemplacementTest(unittest.TestCase):
+    """Sous Windows, remplacer un fichier qu'un autre programme lit échoue
+    (PermissionError) : l'écriture de data.json réessaie avant d'abandonner."""
+
+    def test_remplacement_reessaye_puis_abandonne(self):
+        with tempfile.TemporaryDirectory() as dossier:
+            cible, tmp = Path(dossier) / "data.json", Path(dossier) / "data.json.tmp"
+            cible.write_text("ancien", encoding="utf-8")
+            tmp.write_text("nouveau", encoding="utf-8")
+            vrai, essais = os.replace, []
+
+            def replace(*args):
+                essais.append(args)
+                if len(essais) <= 2:
+                    raise PermissionError(13, "fichier ouvert par un autre programme")
+                return vrai(*args)
+
+            with mock.patch.object(export.os, "replace", side_effect=replace):
+                export.replace_file(tmp, cible, pause=0)
+            self.assertEqual(len(essais), 3)
+            self.assertEqual(cible.read_text(encoding="utf-8"), "nouveau")
+            with mock.patch.object(export.os, "replace", side_effect=PermissionError(13, "toujours ouvert")):
+                with self.assertRaises(PermissionError):
+                    export.replace_file(tmp, cible, attempts=3, pause=0)
 
 
 if __name__ == "__main__":

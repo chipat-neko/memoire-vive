@@ -14,11 +14,15 @@ Usage :
     python scripts/export.py --force               # passe outre le garde-fou de baisse
     python scripts/export.py --recalculer-voisins  # recherche les voisins de toutes les
                                                    # entrées, pas seulement des nouvelles
+    python scripts/export.py --no-git --sans-recherche
+                                                   # aperçu (page d'admin) : écrit data.json
+                                                   # sans aucune recherche de voisins
 
 Voisins : chaque recherche (POST /api/search) met à jour l'historique d'accès
 des entrées trouvées dans la mémoire partagée. Seules les entrées nouvelles
 sont donc cherchées ; les autres reprennent leurs voisins du data.json
-précédent (voir add_neighbours).
+précédent (voir add_neighbours). Avec --sans-recherche, les entrées nouvelles
+sont notées dans « voisins_en_attente » et cherchées au prochain export réel.
 
 Configuration (voir load_config) — variables d'environnement, sinon .env :
     MEMOIRE_API_URL   adresse du dashboard (défaut http://127.0.0.1:8000)
@@ -1206,6 +1210,22 @@ def read_previous() -> dict | None:
         return None
 
 
+def replace_file(tmp: Path, target: Path, attempts: int = 20, pause: float = 0.05) -> None:
+    """
+    os.replace, réessayé : sous Windows, il échoue (PermissionError) tant qu'un
+    autre programme lit le fichier cible — le site local qui sert data.json,
+    un antivirus. L'erreur n'est levée qu'après le dernier essai.
+    """
+    for attempt in range(attempts):
+        try:
+            os.replace(tmp, target)
+            return
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(pause)
+
+
 def write_payload(payload: dict) -> None:
     # Sérialisé avant d'ouvrir quoi que ce soit : une valeur non finie lève
     # ValueError sans laisser de fichier (ni data.json invalide, ni .tmp).
@@ -1214,7 +1234,7 @@ def write_payload(payload: dict) -> None:
     tmp = DATA_FILE.with_suffix(".json.tmp")
     with open(tmp, "w", encoding="utf-8", newline="\n") as handle:
         handle.write(text)
-    os.replace(tmp, DATA_FILE)
+    replace_file(tmp, DATA_FILE)
 
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -1274,6 +1294,9 @@ def main() -> int:
     parser.add_argument("--force", action="store_true", help="publie même si le nombre d'entrées chute")
     parser.add_argument("--recalculer-voisins", action="store_true",
                         help="recalcule les voisins de toutes les entrées (une recherche par entrée)")
+    parser.add_argument("--sans-recherche", action="store_true",
+                        help="écrit data.json sans lancer de recherche de voisins (aperçu de la page d'admin) ; "
+                             "les entrées nouvelles sont cherchées au prochain export")
     args = parser.parse_args()
 
     try:
@@ -1315,16 +1338,18 @@ def main() -> int:
         return 1
 
     # Voisins après les garde-fous : un export refusé ne lance aucune recherche
-    # (chacune écrit dans la mémoire partagée), et --dry-run n'en lance jamais.
+    # (chacune écrit dans la mémoire partagée), et ni --dry-run ni
+    # --sans-recherche n'en lancent jamais.
+    no_search = "--dry-run" if args.dry_run else "--sans-recherche" if args.sans_recherche else ""
     neighbours = update_neighbours(payload, previous, api.search, recompute=args.recalculer_voisins,
-                                   allow_search=not args.dry_run)
+                                   allow_search=not no_search)
     waiting = len(neighbours.pending)
-    if args.dry_run and neighbours.full:
-        print(f"  Voisins : aucune recherche en --dry-run ; recalcul complet à l'export réel "
+    if no_search and neighbours.full:
+        print(f"  Voisins : aucune recherche en {no_search} ; recalcul complet à l'export réel "
               f"({waiting} recherche(s)).")
-    elif args.dry_run:
+    elif no_search:
         print(f"  Voisins : {neighbours.linked} entrées reliées (voisins repris de l'export précédent) ; "
-              "aucune recherche en --dry-run.")
+              f"aucune recherche en {no_search}.")
         if waiting:
             print(f"  {waiting} nouvelle(s) entrée(s) : voisins calculés au prochain export réel.")
     else:

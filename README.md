@@ -34,7 +34,7 @@ pas changé, `data.json` n'est pas réécrit, mais un commit ou un push resté e
 | --- | --- |
 | `--dry-run` | récupère et résume ; n'écrit rien et ne lance **aucune** recherche de voisins |
 | `--no-git` | écrit `data.json` sans commit ni push (pour tester le site en local) |
-| `--no-push` | commit sans push |
+| `--no-push` | commit sans push — mais **joint quand même GitHub** au début, pour reprendre les commits qu'il a en plus (hors ligne, la commande le dit et continue). Seuls `--dry-run` et `--no-git` ne touchent jamais à git |
 | `--force` | publie même si le nombre d'entrées a chuté de plus de moitié |
 | `--recalculer-voisins` | recherche les voisins de toutes les entrées, pas seulement des nouvelles (une recherche par entrée) |
 | `--sans-recherche` | écrit `data.json` sans **aucune** recherche de voisins (aperçu de la page d'admin) : les entrées nouvelles attendent le prochain export (`voisins_en_attente`) |
@@ -662,7 +662,7 @@ reste dans l'historique public et dans les éventuelles copies.
 | `Occupé : un aperçu ou une publication est en cours` | attendre la fin de l'opération en cours |
 | `… a changé depuis l'ouverture de la page` | le fichier a été modifié ailleurs (à la main, autre onglet) : recharger la page, refaire la modification |
 | `Réglages à corriger` (à l'ouverture de la page) | un réglage modifié à la main ne passe pas la vérification : le corriger (la liste dit lequel), sinon « Aperçu » et « Publier » sont refusés |
-| `Le dépôt GitHub a des commits que cet ordinateur n'a pas encore` | « Publier » reprend d'abord les commits de GitHub : ce message ne reste possible que si des commits locaux pas encore publiés ont divergé. Dans `D:\memoire_vive`, lancer `git pull --rebase`, puis « Publier » ; si git répond `CONFLICT`, voir « Un rebasage git s'est arrêté » ci-dessous |
+| `Le dépôt GitHub a des commits que cet ordinateur n'a pas encore` | « Publier » reprend d'abord les commits de GitHub : ce message ne reste possible que si des commits locaux pas encore publiés ont divergé, ou si GitHub a publié pendant la publication (la nuit du robot, un autre ordinateur). Dans `D:\memoire_vive`, lancer `git pull --rebase`, puis « Publier » ; si git répond `CONFLICT`, voir « Un rebasage git s'est arrêté » ci-dessous |
 | `un rebasage git est en cours`, `un picorage git`, `une annulation de commit git` | git s'est arrêté au milieu d'une commande : la page dit quelle commande l'annule (`git rebase --abort`, …) ; rien n'est perdu — voir « Un rebasage git s'est arrêté » ci-dessous |
 | `L'export refuse par sécurité une baisse de plus de la moitié` | trop d'entrées masquées dans l'onglet « Entrées » (ou mémoire mal lue) : en réafficher, puis recommencer |
 | `Git n'a pas pu enregistrer les réglages` | un autre programme utilise le dépôt (git ouvert ailleurs, `.git/index.lock` resté là) : le fermer, puis « Publier » de nouveau ; rien n'a été commité ni publié |
@@ -674,10 +674,16 @@ reste dans l'historique public et dans les éventuelles copies.
 
 ### Un rebasage git s'est arrêté (« CONFLICT »)
 
-Cas devenu rare : l'export et « Publier » reprennent d'eux-mêmes les commits de GitHub
-avant d'écrire quoi que ce soit. Il ne reste que la situation où **les deux côtés ont
-avancé** — un export commité ici sans avoir été publié, pendant que GitHub avançait. La
-publication conseille alors `git pull --rebase`, et cette commande s'arrête presque
+L'export et « Publier » reprennent d'eux-mêmes les commits de GitHub avant d'écrire quoi
+que ce soit — mais seulement quand ils arrivent à joindre GitHub. Il reste donc la
+situation où **les deux côtés ont avancé**, et **un seul export fait hors ligne suffit à y
+mener** : sans réseau, la reprise échoue (« GitHub n'a pas pu être contacté »), le commit
+est fait quand même sur cet ordinateur, et le push échoue. Il suffit ensuite d'une nuit
+d'export automatique pour que les deux historiques aient vraiment divergé. Même chose,
+plus rarement, si le robot de la nuit (ou un autre ordinateur) publie pendant une
+publication faite à la main.
+
+La publication conseille alors `git pull --rebase`, et cette commande s'arrête presque
 toujours sur un conflit dans `docs/data.json` : ce fichier est réécrit en entier à chaque
 export, ici comme sur l'autre ordinateur.
 **Rien n'est perdu**, mais la copie de travail reste « au milieu » du rebasage, et la

@@ -371,6 +371,41 @@ class SynchronisationTest(unittest.TestCase):
         self.assertEqual(self.dernier(), "init")
 
 
+class DocumentationGitTest(unittest.TestCase):
+    """
+    Le README dit ce que le code fait vraiment sur la divergence des
+    historiques — c'est la seule page que Noah lit quand git coince.
+    """
+
+    def setUp(self):
+        self.readme = (RACINE / "README.md").read_text(encoding="utf-8")
+        self.source = (RACINE / "scripts" / "export.py").read_text(encoding="utf-8")
+
+    def ligne(self, debut):
+        return next(l for l in self.readme.splitlines() if l.startswith(debut))
+
+    def test_no_push_annonce_quil_joint_quand_meme_github(self):
+        # C'est l'option qu'on prend en se croyant hors ligne : elle fait
+        # pourtant un « git fetch ». Seuls --dry-run et --no-git sautent la reprise.
+        self.assertRegex(self.source, r"if not args\.dry_run and not args\.no_git:\s*\n\s*sync_with_remote\(\)")
+        self.assertIn("GitHub", self.ligne("| `--no-push`"),
+                      "le tableau des options doit dire que --no-push joint quand même GitHub")
+
+    def test_message_de_divergence_nomme_ses_deux_causes(self):
+        # L'historique diverge aussi quand tout est propre ici : il suffit que
+        # le robot de la nuit (ou un autre ordinateur) pousse pendant la publication.
+        self.assertIn("ou si GitHub a publié pendant la publication",
+                      self.ligne("| `Le dépôt GitHub a des commits que cet ordinateur n'a pas encore`"))
+
+    def test_divergence_presentee_comme_possible_et_non_comme_rare(self):
+        # Un seul export fait hors ligne suffit à y mener : la reprise échoue,
+        # le commit est fait quand même, le push échoue, et la nuit suivante
+        # publie de son côté.
+        section = self.readme.split("### Un rebasage git s'est arrêté")[1]
+        self.assertNotIn("Cas devenu rare", section)
+        self.assertIn("hors ligne", section)
+
+
 class ConfigurationTest(unittest.TestCase):
     """load_config, describe_source et les en-têtes, sans lancer de processus."""
 

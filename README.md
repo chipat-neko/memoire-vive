@@ -369,9 +369,10 @@ npm test
 Chaque fichier de test démarre son propre serveur statique sur un port libre (`docs/` servi
 sous `/memoire-vive/`, comme GitHub Pages) et l'arrête à la fin. Les données viennent de
 jeux synthétiques (`donnees-test.mjs`), sauf `reel.test.mjs` qui lit le vrai `data.json`.
-La page d'admin (`admin.test.mjs`) est testée contre `scripts/admin.py`, que
-`banc-admin.mjs` lance dans un dépôt git temporaire (copie du site, faux dashboard, dépôt
-distant local).
+La page d'admin (`admin.test.mjs`, `admin-reel.test.mjs`) est testée contre
+`scripts/admin.py`, que `banc-admin.mjs` lance dans un dépôt git temporaire (copie du site,
+faux dashboard, dépôt distant local) ; `admin-reel.test.mjs` y copie les vrais réglages et
+le vrai `data.json`.
 
 | Variable | Effet |
 | --- | --- |

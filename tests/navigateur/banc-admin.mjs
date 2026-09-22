@@ -89,27 +89,32 @@ export function git(dossier, ...args) {
   return execFileSync('git', args, { cwd: dossier, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
-/* Dépôt de travail dans dossier : copie de scripts/, docs/ (sans le vrai
-   data.json) et admin/, réglages de test, data.json tiré du faux dashboard ;
-   premier commit poussé vers un dépôt distant local (branche main suivie). */
-export async function preparerDepot(dossier, dashboard) {
+/* Dépôt de travail dans dossier : copie de scripts/, docs/ et admin/ ;
+   réglages de test et data.json tiré du faux dashboard, ou (reel) copies des
+   vrais réglages et du vrai data.json ; premier commit poussé vers un dépôt
+   distant local (branche main suivie). */
+export async function preparerDepot(dossier, dashboard, { reel = false } = {}) {
   const racine = path.join(dossier, 'depot');
   const distant = path.join(dossier, 'distant.git');
   for (const sous of ['scripts', 'docs', 'admin']) {
     await fs.cp(path.join(RACINE_DEPOT, sous), path.join(racine, sous),
       { recursive: true, filter: (source) => !source.includes('__pycache__') });
   }
-  await fs.rm(path.join(racine, 'docs', 'data.json'), { force: true });
+  if (!reel) await fs.rm(path.join(racine, 'docs', 'data.json'), { force: true });
   for (const fichier of ['.gitignore', '.gitattributes']) {
     await fs.copyFile(path.join(RACINE_DEPOT, fichier), path.join(racine, fichier));
   }
-  await fs.mkdir(path.join(racine, 'config'));
-  for (const [nom, contenu] of Object.entries(REGLAGES)) {
-    await fs.writeFile(path.join(racine, 'config', nom + '.json'), JSON.stringify(contenu, null, 2) + '\n');
+  if (reel) {
+    await fs.cp(path.join(RACINE_DEPOT, 'config'), path.join(racine, 'config'), { recursive: true });
+  } else {
+    await fs.mkdir(path.join(racine, 'config'));
+    for (const [nom, contenu] of Object.entries(REGLAGES)) {
+      await fs.writeFile(path.join(racine, 'config', nom + '.json'), JSON.stringify(contenu, null, 2) + '\n');
+    }
+    // Asynchrone : le faux dashboard tourne dans ce processus et doit pouvoir répondre.
+    await promisify(execFile)(PYTHON, ['scripts/export.py', '--no-git', '--sans-recherche'],
+      { cwd: racine, env: environnement(dashboard), encoding: 'utf8' });
   }
-  // Asynchrone : le faux dashboard tourne dans ce processus et doit pouvoir répondre.
-  await promisify(execFile)(PYTHON, ['scripts/export.py', '--no-git', '--sans-recherche'],
-    { cwd: racine, env: environnement(dashboard), encoding: 'utf8' });
   git(dossier, 'init', '-q', '--bare', '-b', 'main', distant);
   git(racine, 'init', '-q', '-b', 'main');
   git(racine, 'config', 'user.name', 'test');
@@ -160,15 +165,16 @@ export async function lancerAdmin(racine, dashboard) {
   };
 }
 
-/* Banc complet ; fermer() arrête tout et efface le dossier temporaire. */
-export async function ouvrirBanc() {
+/* Banc complet ; fermer() arrête tout et efface le dossier temporaire.
+   reel : vrais réglages et vrai data.json (copiés, jamais modifiés). */
+export async function ouvrirBanc({ reel = false } = {}) {
   const dossier = await fs.mkdtemp(path.join(os.tmpdir(), 'mv-admin-'));
   const effacer = () => fs.rm(dossier, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   const dashboard = await demarrerDashboard();
   let depot;
   let admin;
   try {
-    depot = await preparerDepot(dossier, dashboard);
+    depot = await preparerDepot(dossier, dashboard, { reel });
     admin = await lancerAdmin(depot.racine, dashboard);
   } catch (erreur) {
     // Montage raté (admin/ absent, Python introuvable…) : tout est arrêté,

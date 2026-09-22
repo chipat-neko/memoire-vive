@@ -1,13 +1,13 @@
 {
  "schema": 2,
- "genere_le": "2026-09-22T08:24:56Z",
+ "genere_le": "2026-09-22T11:14:00Z",
  "source": "mcp-memory-service",
- "nb_entrees": 87,
+ "nb_entrees": 89,
  "types": {
   "note": 45,
-  "milestone": 26,
+  "milestone": 27,
   "reference": 9,
-  "decision": 6,
+  "decision": 7,
   "error": 1
  },
  "ordre_types": [
@@ -116,12 +116,25 @@
     "url": "https://chipat-neko.github.io/memoire-vive/",
     "genre": "site"
    },
-   "nb": 6,
+   "nb": 7,
    "types": {
-    "milestone": 6
+    "milestone": 7
    },
    "premiere": "2026-09-18T06:46:26.560365Z",
-   "derniere": "2026-09-22T08:24:54.639328Z"
+   "derniere": "2026-09-22T11:13:55.104278Z"
+  },
+  {
+   "id": "trade-sandbox",
+   "nom": "Trade sandbox",
+   "famille": null,
+   "description": null,
+   "lien_principal": null,
+   "nb": 1,
+   "types": {
+    "decision": 1
+   },
+   "premiere": "2026-09-22T10:25:47.728973Z",
+   "derniere": "2026-09-22T10:25:47.728973Z"
   },
   {
    "id": "jarvis",
@@ -811,6 +824,65 @@
  ],
  "entrees": [
   {
+   "id": "eda1395fdfffea38940282d6caf1c72ceaaa101016f643100efd50dae1b68b27",
+   "titre": "Mémoire Vive — jalon livré le 22/09/2026",
+   "resume": "Préparation de la phase 2 fusionnée dans main. Trois apports durables. (1) Vérification automatique : .github/workflows/tests.yml rejoue les suites Python et Node à chaque envoi sur GitHub (les tests navigateur restent locaux : Chrome n'est pas garanti sur le…",
+   "contenu": "Mémoire Vive — jalon livré le 22/09/2026 : préparation de la phase 2 fusionnée dans main. Trois apports durables. (1) Vérification automatique : .github/workflows/tests.yml rejoue les suites Python et Node à chaque envoi sur GitHub (les tests navigateur restent locaux : Chrome n'est pas garanti sur le runner). (2) scripts/export.py et la page d'admin récupèrent désormais eux-mêmes les commits du dépôt distant (git fetch + merge --ff-only) avant d'écrire ou de commiter, avec un délai de 60 s sur chaque opération réseau : si GitHub ne répond pas, l'export continue en local et le dit ; plus aucune commande git à taper après une nuit d'export automatique. (3) phase2/export-quotidien.yml (toujours inactif, dans phase2/) est à jour : export en --no-push, puis les deux suites relisent le data.json produit, puis push ; une seule issue d'alerte en cas d'échec, refermée au retour à la normale ; le contrôle est dans ce workflow parce qu'un envoi fait avec GITHUB_TOKEN ne déclenche aucun autre workflow. La marche à suivre complète de la phase 2 (tunnel nommé, jeton de service Cloudflare Access limité à GET /api/memories et POST /api/search, secrets, activation, 60 jours) est dans le README. Tests : 224 Python, 72 Node, 138 navigateur.",
+   "type": "milestone",
+   "tags": [
+    "memoire-vive",
+    "projet",
+    "jalon",
+    "decision"
+   ],
+   "cree_le": "2026-09-22T11:13:55.104278Z",
+   "modifie_le": "2026-09-22T11:13:55.104278Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "memoire-vive",
+   "voisins": []
+  },
+  {
+   "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
+   "titre": "Décision durable : Trade Sandbox utilise désormais qwen3.5:9b au lieu de qwen3-vl:8b prévu par la spec",
+   "resume": "Comparatif sur les tâches réelles de l'app (RTX 5070 Ti 16 Go, mêmes données) : mémoire graphique 7,2 Go contre 10 Go ; Coach premier mot 1,2 s contre 54 s (qwen3-vl réfléchit en silence malgré think=false) ; plans Analyzer valides du premier coup pour les…",
+   "contenu": "Décision durable (22/09/2026, validée par Noah) : Trade Sandbox (D:\\trade-sandbox) utilise désormais qwen3.5:9b (Ollama, texte + vision, 9,7 B, Q4_K_M, 6,6 Go) au lieu de qwen3-vl:8b prévu par la spec. Comparatif sur les tâches réelles de l'app (RTX 5070 Ti 16 Go, mêmes données) : mémoire graphique 7,2 Go contre 10 Go ; Coach premier mot 1,2 s contre 54 s (qwen3-vl réfléchit en silence malgré think=false) ; plans Analyzer valides du premier coup pour les deux, mais qwen3.5 cohérent d'une analyse à l'autre (qwen3-vl donnait LONG puis SHORT sur les mêmes données) et plus prudent (souvent AUCUN, raisons argumentées). Lecture de capture équivalente. qwen3-vl:8b reste installé en secours (rubrique ai de config.json). Autres candidats vérifiés sur le registre Ollama : ministral-3:8b (6,0 Go), gemma3:12b (8,1 Go) ; les modèles de 24 B et plus débordent de la carte graphique (mistral-small3.2:24b : 71 s par analyse).",
+   "type": "decision",
+   "tags": [
+    "trade-sandbox",
+    "ollama",
+    "modele-ia",
+    "decision",
+    "benchmark"
+   ],
+   "cree_le": "2026-09-22T10:25:47.728973Z",
+   "modifie_le": "2026-09-22T10:25:47.728973Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trade-sandbox",
+   "voisins": [
+    {
+     "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
+     "score": 0.836
+    },
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.82
+    },
+    {
+     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
+     "score": 0.811
+    }
+   ]
+  },
+  {
    "id": "3205081d7249cc22599dd23ad31de422627b8efd059dc8abfed9ef8eb543e113",
    "titre": "Mémoire Vive — jalon livré le 22/09/2026",
    "resume": "Page d'admin locale (chantier C) fusionnée dans main et publiée. scripts/admin.py sert une page « Réglages de Mémoire Vive » sur 127.0.0.1 uniquement, jamais mise en ligne (dossier admin/, hors docs/) ; lancement par admin.cmd et le raccourci « Gérer Mémoire…",
@@ -964,6 +1036,10 @@
     {
      "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
      "score": 0.837
+    },
+    {
+     "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
+     "score": 0.82
     }
    ]
   },
@@ -1066,6 +1142,10 @@
     {
      "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
      "score": 0.848
+    },
+    {
+     "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
+     "score": 0.836
     }
    ]
   },
@@ -1100,6 +1180,10 @@
     {
      "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
      "score": 0.816
+    },
+    {
+     "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
+     "score": 0.811
     }
    ]
   },
@@ -3504,5 +3588,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "27b2e457d1dfe018464e10a742ab865cb35bffddc0187bce936739e3d5cea7a6"
+ "empreinte": "6b5958dc5791d56f6137918e0ca1bdf0e1e2f44cc6dac52878635b75ca760f47"
 }

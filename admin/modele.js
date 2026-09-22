@@ -209,3 +209,105 @@ export function supprimerFamille(modele, id) {
 export function nombreDeProjets(modele, id) {
   return listeProjets(modele).filter((p) => p.famille === id).length;
 }
+
+// ------------------------------------------------------------ entrées
+
+function corrections(modele) {
+  return modele.brouillon.entrees;
+}
+
+/* Entrées à régler : celles des données (titre et résumé d'origine à côté
+   des corrections), puis les entrées masquées qui n'y sont plus. memo :
+   titres déjà vus, par identifiant court (une entrée masquée n'est plus dans
+   data.json). */
+export function listeEntrees(modele, memo = {}) {
+  const toutes = corrections(modele);
+  const vues = new Set();
+  const liste = [];
+  for (const entree of entreesPubliees(modele)) {
+    if (!entree || typeof entree.id !== 'string') continue;
+    const court = entree.id.slice(0, 12);
+    vues.add(court);
+    const origine = modele.originaux[court] || { titre: entree.titre, resume: entree.resume };
+    const correction = toutes[court] || {};
+    liste.push({
+      court,
+      connue: true,
+      type: entree.type || null,
+      projet: entree.projet || null,
+      titreOrigine: origine.titre || '',
+      resumeOrigine: origine.resume || '',
+      titre: correction.titre || origine.titre || '',
+      resume: correction.resume || origine.resume || '',
+      // Comme l'export : toute valeur vraie masque (le serveur ramène déjà « masquer » à true ou false).
+      masquee: Boolean(correction.masquer),
+    });
+  }
+  for (const [court, correction] of Object.entries(toutes)) {
+    if (court.startsWith('_') || vues.has(court) || !correction || !correction.masquer) continue;
+    liste.push({
+      court,
+      connue: false,
+      type: null,
+      projet: null,
+      titreOrigine: memo[court] || '',
+      resumeOrigine: '',
+      titre: correction.titre || memo[court] || '',
+      resume: correction.resume || '',
+      masquee: true,
+    });
+  }
+  return liste;
+}
+
+function ecrireCorrection(modele, court, correction) {
+  if (Object.keys(correction).length) corrections(modele)[court] = correction;
+  else delete corrections(modele)[court];
+}
+
+/* Corrige le titre ou le résumé (champ 'titre' ou 'resume') ; un texte vide
+   ou égal à l'original retire la correction. */
+export function corriger(modele, court, champ, texte) {
+  const correction = Object.assign({}, corrections(modele)[court]);
+  const valeur = String(texte || '').trim();
+  const origine = String((modele.originaux[court] || {})[champ] || '').trim();
+  if (!valeur || valeur === origine) delete correction[champ];
+  else correction[champ] = valeur;
+  ecrireCorrection(modele, court, correction);
+}
+
+/* Masquer retire aussi la correction du titre et du résumé : config/entrees.json
+   est publié avec le dépôt, et une entrée est souvent masquée parce qu'elle est
+   privée. Réafficher ne la rend pas. */
+export function masquer(modele, court, oui) {
+  const correction = Object.assign({}, corrections(modele)[court]);
+  if (oui) {
+    ecrireCorrection(modele, court, { masquer: true });
+    return;
+  }
+  delete correction.masquer;
+  ecrireCorrection(modele, court, correction);
+}
+
+// ------------------------------------------------------------ synonymes
+
+export function groupes(modele) {
+  return modele.brouillon.recherche.synonymes || [];
+}
+
+export function modifierGroupe(modele, i, texte) {
+  const recherche = modele.brouillon.recherche;
+  recherche.synonymes = recherche.synonymes || [];
+  recherche.synonymes[i] = termes(texte);
+}
+
+export function ajouterGroupe(modele) {
+  const recherche = modele.brouillon.recherche;
+  recherche.synonymes = recherche.synonymes || [];
+  recherche.synonymes.push([]);
+  return recherche.synonymes.length - 1;
+}
+
+export function supprimerGroupe(modele, i) {
+  groupes(modele).splice(i, 1);
+}

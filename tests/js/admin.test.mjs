@@ -159,3 +159,49 @@ test('familles : supprimer, ses projets passent sans famille', () => {
   assert.deepEqual(M.familles(modele).map((f) => f.id), ['ia']);
   assert.deepEqual(modele.brouillon.projets.projets.depths, { nom: 'Depths' });
 });
+
+test('entrées : titre et résumé d’origine, corrections, entrées masquées hors des données', () => {
+  const modele = M.creerModele(etat());
+  modele.brouillon.entrees.bbbbbbbbbbbb = { titre: 'Titre corrigé' };
+  modele.brouillon.entrees.dddddddddddd = { masquer: true };
+  const liste = M.listeEntrees(modele, { dddddddddddd: 'Une entrée masquée' });
+  assert.deepEqual(liste.map((e) => [e.court, e.titre, e.titreOrigine, e.masquee, e.connue]), [
+    ['aaaaaaaaaaaa', 'Jarvis — architecture', 'Jarvis — architecture', false, true],
+    ['bbbbbbbbbbbb', 'Titre corrigé', 'Jarvis — premier réveil', false, true],
+    ['cccccccccccc', 'Depths — donjon', 'Depths — donjon', false, true],
+    ['dddddddddddd', 'Une entrée masquée', 'Une entrée masquée', true, false],
+  ]);
+  assert.equal(M.listeEntrees(modele).at(-1).titre, '', 'titre inconnu sans mémo');
+});
+
+test('entrées : corriger (égal à l’original : retiré), masquer (correction retirée), réafficher', () => {
+  const modele = M.creerModele(etat());
+  M.corriger(modele, 'aaaaaaaaaaaa', 'titre', '  Jarvis, l’architecture  ');
+  M.corriger(modele, 'aaaaaaaaaaaa', 'resume', 'Pipeline vocal.');
+  assert.deepEqual(modele.brouillon.entrees.aaaaaaaaaaaa, { titre: 'Jarvis, l’architecture' });
+  M.masquer(modele, 'aaaaaaaaaaaa', true);
+  assert.deepEqual(modele.brouillon.entrees.aaaaaaaaaaaa, { masquer: true }, 'le titre corrigé ne part pas dans le dépôt public');
+  M.masquer(modele, 'aaaaaaaaaaaa', false);
+  assert.equal('aaaaaaaaaaaa' in modele.brouillon.entrees, false);
+  assert.deepEqual(M.fichiersModifies(modele), []);
+});
+
+test('entrées : « masquer » lu comme l’export, toute valeur vraie masque', () => {
+  const modele = M.creerModele(etat());
+  modele.brouillon.entrees.cccccccccccc = { masquer: 'false' };
+  modele.brouillon.entrees.dddddddddddd = { masquer: 1 };
+  modele.brouillon.entrees.eeeeeeeeeeee = { masquer: 0 };
+  const liste = M.listeEntrees(modele);
+  assert.equal(liste.find((e) => e.court === 'cccccccccccc').masquee, true);
+  assert.deepEqual(liste.filter((e) => !e.connue).map((e) => e.court), ['dddddddddddd']);
+});
+
+test('synonymes : modifier, ajouter, supprimer un groupe', () => {
+  const modele = M.creerModele(etat());
+  M.modifierGroupe(modele, 0, 'ia, intelligence artificielle, llm');
+  assert.equal(M.ajouterGroupe(modele), 2);
+  M.modifierGroupe(modele, 2, 'local, hors ligne,');
+  M.supprimerGroupe(modele, 1);
+  assert.deepEqual(M.groupes(modele), [['ia', 'intelligence artificielle', 'llm'], ['local', 'hors ligne']]);
+  assert.deepEqual(M.fichiersModifies(modele), ['recherche']);
+});

@@ -2,11 +2,12 @@
    publiée) : projets, familles, entrées et synonymes ; Enregistrer, Aperçu,
    Publier. Réutilise les composants, la recherche et le style du site ; le
    DOM est construit par el() (jamais d'innerHTML avec des données). */
-import { el, plural } from '../js/composants.js';
+import { el, plural, typeLabel } from '../js/composants.js';
 import { normalize } from '../js/recherche.js';
 import * as M from './modele.js';
 
 const CLE_JETON = 'memoire-vive:admin-jeton';
+const CLE_TITRES = 'memoire-vive:admin-titres';
 const ONGLETS = ['projets', 'familles', 'entrees', 'recherche'];
 const APERCU = 'memoire-vive-apercu';  // onglet de l'aperçu, réutilisé d'une fois sur l'autre
 
@@ -108,6 +109,7 @@ function echec(message) {
 async function charger() {
   const etat = await api('GET', '/api/etat');
   ui.modele = M.creerModele(etat);
+  memoriserTitres(etat.donnees);
   dom.status.hidden = true;
   dom.onglets.hidden = false;
   for (const bouton of [dom.enregistrer, dom.apercu, dom.publier]) bouton.disabled = false;
@@ -132,6 +134,22 @@ function signalerLecture(etat) {
 
 async function rafraichirGit() {
   try { ui.modele.git = (await api('GET', '/api/etat')).git; } catch (e) { /* l'état affiché reste l'ancien */ }
+}
+
+/* Titres vus dans data.json, gardés dans ce navigateur : une entrée masquée
+   n'y est plus, la liste des masquées affiche ainsi son titre. Jamais écrits
+   dans config/ (dépôt public). */
+function memoriserTitres(donnees) {
+  try {
+    const memo = JSON.parse(localStorage.getItem(CLE_TITRES) || '{}');
+    for (const entree of (donnees && Array.isArray(donnees.entrees)) ? donnees.entrees : []) {
+      if (entree && typeof entree.id === 'string' && entree.titre) memo[entree.id.slice(0, 12)] = entree.titre;
+    }
+    localStorage.setItem(CLE_TITRES, JSON.stringify(memo));
+    ui.memo = memo;
+  } catch (e) {
+    ui.memo = {};
+  }
 }
 
 // ------------------------------------------------------------ onglets
@@ -481,9 +499,167 @@ function ajouterFamille() {
   dom.nouvelleFamille.focus();
 }
 
+// ------------------------------------------------------------ entrées
+
+function rendreEntrees() {
+  rendreListeEntrees();
+  rendreDetailEntree();
+}
+
+function descriptionEntree(entree) {
+  return [
+    entree.type ? typeLabel(entree.type) : null,
+    entree.projet ? nomProjet(entree.projet) : (entree.connue ? 'Sans projet' : null),
+    entree.masquee ? 'masquée' : null,
+    entree.connue && (entree.titre !== entree.titreOrigine || entree.resume !== entree.resumeOrigine) ? 'corrigée' : null,
+  ].filter(Boolean).join(' · ');
+}
+
+function rendreListeEntrees() {
+  const toutes = M.listeEntrees(ui.modele, ui.memo);
+  const requete = dom.filtreEntrees.value;
+  const visibles = toutes.filter((e) => correspond([e.titre, e.titreOrigine, e.court, e.projet ? nomProjet(e.projet) : ''].join(' '), requete));
+  dom.compteEntrees.textContent = (requete.trim() ? visibles.length + ' sur ' : '') + plural(toutes.length, 'entrée', 'entrées');
+  dom.listeEntrees.replaceChildren(...visibles.map((e) => el('li', null,
+    el('button', { type: 'button', class: 'admin-item', 'data-court': e.court, 'aria-current': e.court === ui.entree ? 'true' : null },
+      el('span', { class: 'admin-item-titre' }, e.titre || 'Entrée masquée ' + e.court),
+      el('span', { class: 'admin-item-sous' }, descriptionEntree(e))))));
+}
+
+function ligneOrigine(champEntree, entree) {
+  const origine = champEntree === 'titre' ? entree.titreOrigine : entree.resumeOrigine;
+  const actuel = champEntree === 'titre' ? entree.titre : entree.resume;
+  return el('p', { class: 'admin-origine', id: 'origine-' + champEntree, hidden: actuel === origine },
+    champEntree === 'titre' ? 'Titre d’origine : ' : 'Résumé d’origine : ',
+    el('span', { class: 'admin-origine-texte' }, origine || '(vide)'), ' ',
+    el('button', { type: 'button', class: 'link-button', 'data-retablir': champEntree }, 'Rétablir'));
+}
+
+function rendreDetailEntree() {
+  const entree = M.listeEntrees(ui.modele, ui.memo).find((e) => e.court === ui.entree);
+  if (!entree) {
+    ui.entree = null;
+    dom.detailEntree.replaceChildren(vide('Choisir une entrée dans la liste pour corriger son titre ou son résumé, ou la masquer du site.'));
+    return;
+  }
+  const caseMasquer = el('div', { class: 'champ admin-case' },
+    el('input', { type: 'checkbox', id: 'entree-masquer', checked: entree.masquee, 'aria-describedby': 'entree-masquer-aide' }),
+    el('label', { for: 'entree-masquer' }, 'Masquer du site'),
+    el('p', { class: 'admin-aide', id: 'entree-masquer-aide' },
+      'L’entrée disparaît du site public à la prochaine publication (la mémoire n’est pas modifiée) ; elle reste listée ici pour pouvoir la réafficher. Masquer retire aussi sa correction de titre et de résumé : config/entrees.json est publié avec le dépôt.'));
+  if (!entree.connue) {
+    dom.detailEntree.replaceChildren(
+      el('h2', { id: 'titre-entree', tabindex: '-1' }, entree.titre || 'Entrée masquée'),
+      el('p', { class: 'admin-aide' }, 'Identifiant ' + entree.court + '. Masquée, elle n’est plus dans les données du site : la réafficher puis lancer un aperçu la ramène dans la liste, avec son titre et son résumé.'),
+      caseMasquer);
+    return;
+  }
+  dom.detailEntree.replaceChildren(
+    el('h2', { id: 'titre-entree', tabindex: '-1' }, entree.titre),
+    el('p', { class: 'admin-aide' },
+      [typeLabel(entree.type), entree.projet ? 'projet ' + nomProjet(entree.projet) : 'sans projet', 'identifiant ' + entree.court].join(' · ') + ' · ',
+      el('a', { href: '/#/entree/' + entree.court, target: APERCU }, 'Voir la fiche sur le site local ↗')),
+    champ('entree-titre', 'Titre', el('input', { type: 'text', id: 'entree-titre', value: entree.titre, autocomplete: 'off' })),
+    ligneOrigine('titre', entree),
+    champ('entree-resume', 'Résumé', el('textarea', { id: 'entree-resume', rows: '4' }, entree.resume)),
+    ligneOrigine('resume', entree),
+    caseMasquer);
+}
+
+function choisirEntree(court) {
+  ui.entree = court;
+  rendreEntrees();
+  $('titre-entree').focus();
+}
+
+/* Après une correction : ligne « d'origine », titre de la fiche, liste, barre. */
+function entreeModifiee() {
+  const entree = M.listeEntrees(ui.modele, ui.memo).find((e) => e.court === ui.entree);
+  if (entree && entree.connue) {
+    $('titre-entree').textContent = entree.titre;
+    $('origine-titre').hidden = entree.titre === entree.titreOrigine;
+    $('origine-resume').hidden = entree.resume === entree.resumeOrigine;
+  }
+  rendreListeEntrees();
+  rendreBarre();
+}
+
+function saisieEntree(event) {
+  const champs = { 'entree-titre': 'titre', 'entree-resume': 'resume' };
+  const champEntree = champs[event.target.id];
+  if (!champEntree) return;
+  M.corriger(ui.modele, ui.entree, champEntree, event.target.value);
+  entreeModifiee();
+}
+
+/* Masquer une entrée corrigée retire sa correction (config/ est publié) : on le demande d'abord. */
+function caseMasquer(event) {
+  if (event.target.id !== 'entree-masquer') return;
+  const entree = M.listeEntrees(ui.modele, ui.memo).find((e) => e.court === ui.entree);
+  const retireCorrection = event.target.checked && entree && entree.connue
+    && (entree.titre !== entree.titreOrigine || entree.resume !== entree.resumeOrigine);
+  if (retireCorrection && !window.confirm('Masquer cette entrée retire aussi sa correction de titre et de résumé (config/entrees.json est publié avec le dépôt). Continuer ?')) {
+    event.target.checked = false;
+    return;
+  }
+  M.masquer(ui.modele, ui.entree, event.target.checked);
+  if (retireCorrection) {
+    $('entree-titre').value = entree.titreOrigine;
+    $('entree-resume').value = entree.resumeOrigine;
+  }
+  entreeModifiee();
+}
+
+function retablir(event) {
+  const bouton = event.target.closest('button[data-retablir]');
+  if (!bouton) return;
+  const champEntree = bouton.dataset.retablir;
+  M.corriger(ui.modele, ui.entree, champEntree, '');
+  const entree = M.listeEntrees(ui.modele, ui.memo).find((e) => e.court === ui.entree);
+  const saisie = $(champEntree === 'titre' ? 'entree-titre' : 'entree-resume');
+  saisie.value = champEntree === 'titre' ? entree.titreOrigine : entree.resumeOrigine;
+  entreeModifiee();
+  saisie.focus();
+}
+
+// ------------------------------------------------------------ recherche
+
+function rendreRecherche() {
+  const liste = M.groupes(ui.modele);
+  dom.listeGroupes.replaceChildren(...liste.map((groupe, i) => el('li', { class: 'admin-groupe' },
+    el('label', { for: 'groupe-' + (i + 1), class: 'visually-hidden' }, 'Groupe de synonymes n° ' + (i + 1)),
+    el('input', { type: 'text', id: 'groupe-' + (i + 1), value: groupe.join(', '), 'data-index': String(i),
+      placeholder: 'terme, autre terme, …', autocomplete: 'off', spellcheck: 'false' }),
+    el('button', { type: 'button', class: 'btn-secondary', 'data-supprimer': String(i),
+      'aria-label': 'Supprimer le groupe n° ' + (i + 1) }, 'Supprimer'))));
+}
+
+function saisieGroupe(event) {
+  if (event.target.dataset.index === undefined) return;
+  M.modifierGroupe(ui.modele, Number(event.target.dataset.index), event.target.value);
+  rendreBarre();
+}
+
+function supprimerGroupe(event) {
+  const bouton = event.target.closest('button[data-supprimer]');
+  if (!bouton) return;
+  const i = Number(bouton.dataset.supprimer);
+  M.supprimerGroupe(ui.modele, i);
+  rendreRecherche();
+  rendreBarre();
+  ($('groupe-' + (i + 1)) || $('groupe-' + i) || dom.ajouterGroupe).focus();
+}
+
+function ajouterGroupe() {
+  const i = M.ajouterGroupe(ui.modele);
+  rendreRecherche();
+  rendreBarre();
+  $('groupe-' + (i + 1)).focus();
+}
+
 // ------------------------------------------------------------ événements
 
-const PANNEAUX = { projets: rendreProjets, familles: rendreFamilles };
+const PANNEAUX = { projets: rendreProjets, familles: rendreFamilles, entrees: rendreEntrees, recherche: rendreRecherche };
 
 function lier() {
   for (const nom of ONGLETS) $('onglet-' + nom).addEventListener('click', () => afficherOnglet(nom, true));
@@ -521,6 +697,19 @@ function lier() {
       ajouterFamille();
     }
   });
+
+  dom.filtreEntrees.addEventListener('input', rendreListeEntrees);
+  dom.listeEntrees.addEventListener('click', (event) => {
+    const bouton = event.target.closest('button[data-court]');
+    if (bouton) choisirEntree(bouton.dataset.court);
+  });
+  dom.detailEntree.addEventListener('input', saisieEntree);
+  dom.detailEntree.addEventListener('change', caseMasquer);
+  dom.detailEntree.addEventListener('click', retablir);
+
+  dom.listeGroupes.addEventListener('input', saisieGroupe);
+  dom.listeGroupes.addEventListener('click', supprimerGroupe);
+  dom.ajouterGroupe.addEventListener('click', ajouterGroupe);
 }
 
 demarrer();

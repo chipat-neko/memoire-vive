@@ -3,7 +3,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
-import { CHROME, pageInstrumentee, terminer, debordement } from './outils.mjs';
+import { CHROME, pageInstrumentee, terminer, debordement, contraste } from './outils.mjs';
 import { ouvrirBanc } from './banc-admin.mjs';
 
 let navigateur;
@@ -256,5 +256,128 @@ test('familles : supprimer, ses projets passent « Sans famille »', async (t) =
   const reglages = await banc.lire('config/projets.json');
   assert.deepEqual(reglages.familles, [{ id: 'ia', nom: 'IA & simulations', couleur: 3 }]);
   assert.deepEqual(reglages.projets.depths, { nom: 'Depths' });
+  await terminer(page);
+});
+
+// ------------------------------------------------------------ entrées
+
+test('entrées : corriger un titre, voir l’original, rétablir', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await page.click('#onglet-entrees');
+  await page.fill('#filtre-entrees', 'reveil');
+  assert.deepEqual(await page.locator('#liste-entrees .admin-item-titre').allTextContents(), ['Jarvis — premier réveil vocal']);
+  await page.click('#liste-entrees button');
+  await page.fill('#entree-titre', 'Jarvis se réveille');
+  assert.equal(await page.isVisible('#origine-titre'), true);
+  assert.equal(await page.textContent('#origine-titre .admin-origine-texte'), 'Jarvis — premier réveil vocal');
+  assert.equal(await page.textContent('#liste-entrees .admin-item-sous'), 'Jalon · Jarvis · corrigée');
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual((await banc.lire('config/entrees.json')), { _aide: 'Corrections de test.', '000000000002': { titre: 'Jarvis se réveille' } });
+
+  await page.click('#origine-titre button');
+  assert.equal(await page.inputValue('#entree-titre'), 'Jarvis — premier réveil vocal');
+  assert.equal(await page.isHidden('#origine-titre'), true);
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'entree-titre');
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual((await banc.lire('config/entrees.json')), { _aide: 'Corrections de test.' });
+  await terminer(page);
+});
+
+test('entrées : masquer du site (sa correction est retirée, après confirmation), puis réafficher', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await page.click('#onglet-entrees');
+  await page.locator('#liste-entrees button', { hasText: 'Voxelcraft' }).click();
+  const origine = await page.inputValue('#entree-titre');
+  await page.fill('#entree-titre', 'Voxelcraft, un jeu de cubes');
+  const message = accepterDialogue(page);
+  await page.check('#entree-masquer');
+  assert.match(await message, /^Masquer cette entrée retire aussi sa correction de titre et de résumé/);
+  assert.equal(await page.inputValue('#entree-titre'), origine, 'titre d’origine rétabli');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'entree-masquer');
+  assert.equal(await page.textContent('#liste-entrees [aria-current="true"] .admin-item-sous'), 'Note · Voxelcraft · masquée');
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual((await banc.lire('config/entrees.json'))['000000000005'], { masquer: true });
+  await page.uncheck('#entree-masquer');
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual(await banc.lire('config/entrees.json'), { _aide: 'Corrections de test.' });
+  await terminer(page);
+});
+
+test('réglages écrits à la main sous une forme que l’export tolère : signalés, réécrits par Enregistrer', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  const projets = await banc.lire('config/projets.json');
+  projets.projets.depths.alias = 'rogue-lite';
+  await banc.remplacer('config/projets.json', JSON.stringify(projets));
+  await banc.remplacer('config/entrees.json', JSON.stringify({ '000000000005': { masquer: 'false' } }));
+  await page.reload();
+  await page.locator('#compte-rendu-titre', { hasText: 'Réglages relus' }).waitFor();
+  assert.deepEqual(await page.locator('#compte-rendu-message li').allTextContents(), [
+    "config/projets.json, projet « depths » : alias écrit comme un texte seul, lu comme une liste d'un alias.",
+    'config/entrees.json, entrée 000000000005 : « masquer » vaut "false" (ni true ni false) ; '
+      + "pour l'export l'entrée est masquée, la page l'écrit true.",
+  ]);
+  assert.equal(await page.textContent('#etat-modifs'), 'Modifications non enregistrées : projets et familles, entrées.');
+  assert.deepEqual(await page.locator('#liste-projets .admin-item-titre').allTextContents(), ['Depths', 'Jarvis', 'Voxelcraft']);
+  await choisirProjet(page, 'Depths');
+  assert.equal(await page.inputValue('#projet-alias'), 'rogue-lite');
+  await page.click('#onglet-entrees');
+  assert.equal(await page.locator('#liste-entrees button', { hasText: 'Voxelcraft' }).locator('.admin-item-sous').textContent(),
+    'Note · Voxelcraft · masquée', 'comme sur le site');
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual((await banc.lire('config/entrees.json')), { '000000000005': { masquer: true } });
+  assert.deepEqual((await banc.lire('config/projets.json')).projets.depths.alias, ['rogue-lite']);
+  await terminer(page);
+});
+
+// ------------------------------------------------------------ recherche
+
+test('synonymes : modifier, ajouter et supprimer un groupe', async (t) => {
+  const { banc, page } = await ouvrirAdmin(t);
+  await page.click('#onglet-recherche');
+  assert.equal(await page.inputValue('#groupe-1'), 'ia, intelligence artificielle');
+  await page.fill('#groupe-1', 'ia, intelligence artificielle, llm');
+  await page.click('#bouton-ajouter-groupe');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'groupe-3');
+  await page.keyboard.type('local, hors ligne');
+  await page.click('[aria-label="Supprimer le groupe n° 2"]');
+  assert.equal(await page.inputValue('#groupe-2'), 'local, hors ligne');
+  await cliquerEtAttendre(page, '#bouton-enregistrer', 'Enregistré');
+  assert.deepEqual(await banc.lire('config/recherche.json'), {
+    _aide: 'Synonymes de test.', synonymes: [['ia', 'intelligence artificielle', 'llm'], ['local', 'hors ligne']] });
+  await terminer(page);
+});
+
+// ------------------------------------------------------------ accessibilité
+
+test('accessibilité : chaque champ a une étiquette, contrastes AA en clair et en sombre', async (t) => {
+  const { page } = await ouvrirAdmin(t);
+  await choisirProjet(page, 'Jarvis');
+  for (const onglet of ['projets', 'familles', 'entrees', 'recherche']) {
+    await page.click('#onglet-' + onglet);
+    if (onglet === 'entrees') await page.click('#liste-entrees button >> nth=0');
+    const sansEtiquette = await page.evaluate(() => Array.from(document.querySelectorAll('input, select, textarea'))
+      .filter((c) => c.offsetParent !== null && !(c.labels && c.labels.length) && !c.getAttribute('aria-label'))
+      .map((c) => c.id || c.outerHTML));
+    assert.deepEqual(sansEtiquette, [], onglet);
+  }
+  await page.click('#onglet-projets');
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate((valeur) => { document.documentElement.dataset.theme = valeur; }, theme);
+    const couleurs = await page.evaluate(() => {
+      const style = (selecteur) => getComputedStyle(document.querySelector(selecteur));
+      return {
+        aide: style('#detail-projet .admin-aide').color,
+        fond: style('#detail-projet').backgroundColor,
+        bord: style('#projet-nom').borderTopColor,
+        champ: style('#projet-nom').backgroundColor,
+        sous: style('#liste-projets .admin-item-sous').color,
+        item: style('#liste-projets .admin-item').backgroundColor,
+      };
+    });
+    assert.ok(contraste(couleurs.aide, couleurs.fond) >= 4.5, theme + ' : texte d’aide');
+    assert.ok(contraste(couleurs.sous, couleurs.item) >= 4.5, theme + ' : détails de la liste');
+    assert.ok(contraste(couleurs.bord, couleurs.champ) >= 3, theme + ' : bord des champs');
+    assert.ok(contraste(couleurs.bord, couleurs.fond) >= 3, theme + ' : bord des champs sur la fiche');
+  }
   await terminer(page);
 });

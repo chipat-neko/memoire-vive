@@ -33,23 +33,7 @@ export async function ouvrirSite() {
        page.erreurs recueille erreurs et avertissements de la console, erreurs
        JavaScript, requêtes échouées et violations de la CSP. */
     async page({ donnees, mobile = false, horloge } = {}) {
-      const contexte = await navigateur.newContext({
-        ...(mobile ? MOBILE : BUREAU), locale: 'fr-FR', timezoneId: 'Europe/Paris',
-      });
-      // 10 s par attente (au lieu de 30) : un test en échec le dit vite.
-      contexte.setDefaultTimeout(10000);
-      const page = await contexte.newPage();
-      page.erreurs = [];
-      page.on('console', (m) => {
-        if (m.type() === 'error' || m.type() === 'warning') page.erreurs.push(`[console.${m.type()}] ${m.text()}`);
-      });
-      page.on('pageerror', (e) => page.erreurs.push(`[pageerror] ${e.message}`));
-      page.on('requestfailed', (r) => page.erreurs.push(`[requestfailed] ${r.url()} ${r.failure()?.errorText}`));
-      await page.addInitScript(() => {
-        document.addEventListener('securitypolicyviolation', (e) => {
-          console.error('Violation CSP : ' + e.violatedDirective + ' ' + e.blockedURI);
-        });
-      });
+      const page = await pageInstrumentee(navigateur, { mobile });
       const heure = horloge === undefined ? (donnees ? MAINTENANT_TEST : null) : horloge;
       if (heure) await page.clock.setFixedTime(new Date(heure));
       if (typeof donnees === 'function') {
@@ -66,6 +50,31 @@ export async function ouvrirSite() {
       if (serveur) await serveur.arreter();
     },
   };
+}
+
+/* Page neuve dans un contexte isolé (stockage vide), écran d'ordinateur
+   (1280 × 900) ou de téléphone ; 10 s d'attente au plus par action.
+   page.erreurs recueille erreurs et avertissements de la console, erreurs
+   JavaScript, requêtes échouées et violations de la CSP. */
+export async function pageInstrumentee(navigateur, { mobile = false } = {}) {
+  const contexte = await navigateur.newContext({
+    ...(mobile ? MOBILE : BUREAU), locale: 'fr-FR', timezoneId: 'Europe/Paris',
+  });
+  // 10 s par attente (au lieu de 30) : un test en échec le dit vite.
+  contexte.setDefaultTimeout(10000);
+  const page = await contexte.newPage();
+  page.erreurs = [];
+  page.on('console', (m) => {
+    if (m.type() === 'error' || m.type() === 'warning') page.erreurs.push(`[console.${m.type()}] ${m.text()}`);
+  });
+  page.on('pageerror', (e) => page.erreurs.push(`[pageerror] ${e.message}`));
+  page.on('requestfailed', (r) => page.erreurs.push(`[requestfailed] ${r.url()} ${r.failure()?.errorText}`));
+  await page.addInitScript(() => {
+    document.addEventListener('securitypolicyviolation', (e) => {
+      console.error('Violation CSP : ' + e.violatedDirective + ' ' + e.blockedURI);
+    });
+  });
+  return page;
 }
 
 /* Ferme la page ; échoue si la console a reçu une erreur, un avertissement

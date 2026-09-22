@@ -1,0 +1,145 @@
+/* Page d'admin locale : mises en page propres à l'admin. Couleurs, boutons,
+   pastilles, familles et typographie viennent de ../style.css (mêmes jetons,
+   thèmes clair et sombre). */
+
+:root {
+  /* Bord des champs : contraste ≥ 3 sur --bg, --surface et --surface-2 (WCAG 1.4.11). */
+  --champ-bord: #857E6E;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --champ-bord: #827B6A; }
+}
+
+:root[data-theme="dark"] { --champ-bord: #827B6A; }
+
+/* Page en colonne : la zone de réglages défile, la barre du bas reste en
+   dessous (jamais par-dessus le contenu, même quand le compte rendu s'ouvre). */
+body.admin { height: 100vh; display: flex; flex-direction: column; }
+.admin-defilement { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.admin-wrap { max-width: 1240px; padding-bottom: 32px; }
+.admin .site-header h1 { font-size: 34px; }
+.admin .header-top .btn-secondary { flex: none; }
+
+/* ------------------------------------------------------------- onglets */
+
+.admin-onglets {
+  display: inline-flex; margin-bottom: 26px;
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface);
+}
+.admin-onglets [role="tab"] {
+  border: 0; background: transparent; color: var(--text-muted);
+  padding: 11px 18px; font: 600 14px var(--sans); cursor: pointer;
+}
+.admin-onglets [role="tab"] + [role="tab"] { border-left: 1px solid var(--border); }
+.admin-onglets [role="tab"]:hover { color: var(--text); }
+.admin-onglets [role="tab"][aria-selected="true"] { background: var(--accent-fill); color: var(--on-accent); }
+.admin-onglets [role="tab"]:focus-visible { outline-offset: -4px; border-radius: 9px; }
+.admin-onglets [role="tab"][aria-selected="true"]:focus-visible { outline-color: var(--on-accent); }
+
+/* ------------------------------------------------------ liste et fiche */
+
+.admin-colonnes { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.admin-liste { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.admin-liste > label { font: 600 14px var(--sans); }
+.admin-items { list-style: none; margin: 0; padding: 0 4px 0 0; max-height: 62vh; overflow-y: auto; display: grid; gap: 6px; }
+.admin-item {
+  width: 100%; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-left: 4px solid var(--famille); border-radius: 10px;
+  padding: 8px 12px; font: 15px var(--sans);
+}
+.admin-item:hover { border-color: var(--border-strong); border-left-color: var(--famille); }
+.admin-item[aria-current="true"] { border-color: var(--accent-fill); border-left-color: var(--famille); box-shadow: inset 0 0 0 1px var(--accent-fill); }
+.admin-item-titre { font-weight: 600; overflow-wrap: anywhere; }
+.admin-item-sous { font-size: 12px; color: var(--text-muted); }
+
+.admin-detail {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 22px 24px; min-width: 0;
+}
+.admin-detail h2 {
+  font-family: var(--serif); font-weight: 600; font-size: 26px; line-height: 1.25;
+  margin: 0 0 8px; overflow-wrap: anywhere;
+}
+.admin-detail h2:focus { outline: none; }
+.admin-detail > .admin-aide:first-of-type { margin-bottom: 20px; }
+.admin-vide { color: var(--text-muted); margin: 0; }
+
+/* -------------------------------------------------------------- champs */
+
+.champ { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; min-width: 0; }
+.champ > label { font: 600 14px var(--sans); }
+.admin-aide { font-size: 13px; color: var(--text-muted); margin: 0; overflow-wrap: anywhere; }
+.admin-ligne { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.admin-ligne > input, .admin-ligne > select { flex: 1 1 220px; min-width: 0; }
+
+.admin input[type="text"], .admin input[type="url"], .admin input[type="search"], .admin textarea {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--champ-bord); background: var(--bg); color: var(--text);
+  font: 15px var(--sans);
+}
+.admin textarea { resize: vertical; line-height: 1.5; }
+.admin input::placeholder, .admin textarea::placeholder { color: var(--text-muted); }
+.admin select { border-color: var(--champ-bord); max-width: 100%; }
+.admin input:focus-visible, .admin textarea:focus-visible, .admin select:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+.admin-case { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; }
+.admin-case input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent-fill); }
+.admin-case .admin-aide { grid-column: 2; }
+
+.admin-origine { font-size: 13px; color: var(--text-muted); margin: -10px 0 18px; overflow-wrap: anywhere; }
+.admin-origine-texte { color: var(--text); }
+
+/* ------------------------------------------------------------ familles */
+
+.admin-familles, .admin-groupes { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 8px; }
+.admin-famille {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) 11rem 6rem auto; gap: 10px; align-items: center;
+  border: 1px solid var(--border); border-left: 4px solid var(--famille); border-radius: 12px; padding: 8px 12px;
+}
+.admin-famille-compte { white-space: nowrap; }
+.admin-famille .btn-secondary, .admin-groupe .btn-secondary { padding: 7px 12px; }
+.admin-groupe { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.admin-ajout { margin: 0; max-width: 560px; }
+
+/* ------------------------------------------------------- barre du bas */
+
+.admin-barre {
+  flex: none; background: var(--surface); border-top: 1px solid var(--border-strong);
+  box-shadow: 0 -4px 14px rgba(38, 37, 33, 0.08);
+}
+.admin-barre-dedans { max-width: 1240px; margin: 0 auto; padding: 12px 24px; }
+.admin-barre-haut { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; }
+#etat-modifs { margin: 0; font-size: 14px; color: var(--text-muted); }
+#etat-modifs.admin-a-enregistrer { color: var(--text); font-weight: 600; }
+.admin-boutons { display: flex; gap: 8px; flex-wrap: wrap; }
+.admin-boutons .btn-primary { flex: none; }
+.admin-boutons button { min-width: 7.5rem; }
+.admin-boutons [aria-disabled="true"], .admin-boutons [disabled] { opacity: 0.55; cursor: progress; }
+
+.admin-compte-rendu {
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+  max-height: 38vh; overflow-y: auto;
+}
+.admin-compte-rendu-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.admin-compte-rendu h2 { font: 700 15px var(--sans); margin: 0 0 6px; }
+.admin-compte-rendu h2:focus { outline: none; }
+.admin-compte-rendu[data-genre="erreur"] h2 { color: var(--danger); }
+.admin-compte-rendu p, .admin-compte-rendu ul { margin: 0 0 8px; font-size: 14px; }
+.admin-compte-rendu ul { padding-left: 20px; }
+.admin-compte-rendu summary { cursor: pointer; font-size: 13px; color: var(--accent-strong); margin-bottom: 6px; }
+.admin-compte-rendu pre {
+  margin: 0; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere;
+  font: 12.5px/1.5 var(--mono); background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+}
+
+/* ------------------------------------------------------ écran étroit */
+
+@media (max-width: 820px) {
+  .admin-colonnes { grid-template-columns: 1fr; }
+  .admin-items { max-height: 40vh; }
+  .admin-famille { grid-template-columns: auto minmax(0, 1fr); }
+  .admin-famille > select, .admin-famille > .admin-famille-compte, .admin-famille > .admin-ligne { grid-column: 2; }
+}

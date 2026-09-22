@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Réglages — Mémoire Vive</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="admin.css">
+<script src="../theme.js"></script>
+<script type="module" src="admin.js"></script>
+</head>
+<body class="admin">
+<a class="skip-link" href="#contenu">Aller au contenu</a>
+
+<!-- La page défile au-dessus de la barre du bas, qui ne cache donc jamais rien. -->
+<div class="admin-defilement">
+<div class="wrap admin-wrap">
+  <header class="site-header">
+    <div class="header-top">
+      <h1>Réglages de Mémoire Vive</h1>
+      <a class="btn-secondary" href="/" target="memoire-vive-apercu">Site local ↗</a>
+    </div>
+    <p class="subtitle">Page locale, jamais publiée. <strong>Enregistrer</strong> garde les réglages sur cet ordinateur, <strong>Aperçu</strong> les montre sur le site local, <strong>Publier</strong> met le site public à jour.</p>
+    <p class="stats" id="etat-git"></p>
+    <div class="admin-onglets" role="tablist" aria-label="Réglages" id="onglets" hidden>
+      <button type="button" role="tab" id="onglet-projets" aria-controls="panneau-projets" aria-selected="true">Projets</button>
+      <button type="button" role="tab" id="onglet-familles" aria-controls="panneau-familles" aria-selected="false" tabindex="-1">Familles</button>
+      <button type="button" role="tab" id="onglet-entrees" aria-controls="panneau-entrees" aria-selected="false" tabindex="-1">Entrées</button>
+      <button type="button" role="tab" id="onglet-recherche" aria-controls="panneau-recherche" aria-selected="false" tabindex="-1">Recherche</button>
+    </div>
+  </header>
+
+  <main id="contenu" tabindex="-1">
+    <div class="status" id="status">Chargement des réglages…</div>
+
+    <section id="panneau-projets" role="tabpanel" aria-labelledby="onglet-projets" hidden>
+      <div class="admin-colonnes">
+        <div class="admin-liste">
+          <label for="filtre-projets">Filtrer les projets</label>
+          <input type="search" id="filtre-projets" placeholder="Nom, identifiant ou famille" autocomplete="off" spellcheck="false">
+          <p class="admin-aide" id="compte-projets" aria-live="polite"></p>
+          <ul class="admin-items" id="liste-projets" aria-label="Projets"></ul>
+        </div>
+        <div class="admin-detail" id="detail-projet"></div>
+      </div>
+    </section>
+
+    <section id="panneau-familles" role="tabpanel" aria-labelledby="onglet-familles" hidden>
+      <div class="admin-detail">
+        <h2>Familles</h2>
+        <p class="admin-aide">Ordre d’affichage sur l’accueil du site, puis « Sans famille ». La couleur borde les cartes des projets de la famille ; son nom est toujours écrit à côté.</p>
+        <ol class="admin-familles" id="liste-familles"></ol>
+        <div class="champ admin-ajout">
+          <label for="nouvelle-famille">Nouvelle famille</label>
+          <div class="admin-ligne">
+            <input type="text" id="nouvelle-famille" autocomplete="off">
+            <button type="button" class="btn-secondary" id="bouton-ajouter-famille">Ajouter la famille</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panneau-entrees" role="tabpanel" aria-labelledby="onglet-entrees" hidden>
+      <div class="admin-colonnes">
+        <div class="admin-liste">
+          <label for="filtre-entrees">Chercher une entrée</label>
+          <input type="search" id="filtre-entrees" placeholder="Titre, projet ou identifiant" autocomplete="off" spellcheck="false">
+          <p class="admin-aide" id="compte-entrees" aria-live="polite"></p>
+          <ul class="admin-items" id="liste-entrees" aria-label="Entrées"></ul>
+        </div>
+        <div class="admin-detail" id="detail-entree"></div>
+      </div>
+    </section>
+
+    <section id="panneau-recherche" role="tabpanel" aria-labelledby="onglet-recherche" hidden>
+      <div class="admin-detail">
+        <h2>Synonymes</h2>
+        <p class="admin-aide">Chaque groupe réunit des termes équivalents pour la recherche du site, séparés par des virgules (majuscules et accents indifférents) : chercher l’un trouve aussi les autres.</p>
+        <ol class="admin-groupes" id="liste-groupes"></ol>
+        <button type="button" class="btn-secondary" id="bouton-ajouter-groupe">Ajouter un groupe</button>
+      </div>
+    </section>
+  </main>
+</div>
+</div>
+
+<div class="admin-barre" role="region" aria-label="Enregistrer et publier">
+  <div class="admin-barre-dedans">
+    <div class="admin-barre-haut">
+      <p id="etat-modifs"></p>
+      <div class="admin-boutons">
+        <button type="button" class="btn-primary" id="bouton-enregistrer" disabled>Enregistrer</button>
+        <button type="button" class="btn-secondary" id="bouton-apercu" disabled>Aperçu</button>
+        <button type="button" class="btn-secondary" id="bouton-publier" disabled>Publier</button>
+      </div>
+    </div>
+    <section class="admin-compte-rendu" id="compte-rendu" aria-labelledby="compte-rendu-titre" hidden>
+      <div class="admin-compte-rendu-tete">
+        <h2 id="compte-rendu-titre" tabindex="-1"></h2>
+        <button type="button" class="link-button" id="fermer-compte-rendu">Fermer</button>
+      </div>
+      <div id="compte-rendu-message"></div>
+      <details id="compte-rendu-details" hidden>
+        <summary>Détail de l’export</summary>
+        <pre id="compte-rendu-sortie"></pre>
+      </details>
+    </section>
+    <p class="visually-hidden" id="annonce" role="status" aria-live="polite"></p>
+  </div>
+</div>
+</body>
+</html>

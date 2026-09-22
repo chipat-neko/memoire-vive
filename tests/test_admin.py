@@ -3,13 +3,16 @@ Page d'admin locale (scripts/admin.py) : validation des réglages, format des
 fichiers écrits, serveur (sécurité, API), aperçu et publication. Aucune donnée
 réelle modifiée, aucun accès au réseau extérieur ni au vrai dépôt distant.
 """
+import contextlib
 import hashlib
 import http.client
+import io
 import json
 import os
 import shutil
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -1003,6 +1006,43 @@ class PublicationAdminTest(unittest.TestCase):
         self.assertFalse(corps["ok"])
         self.assertNotIn(CLE_DASHBOARD, corps["sortie"])
         self.assertIn("[masqué]", corps["sortie"])
+
+
+class LanceurTest(unittest.TestCase):
+    def test_admin_cmd_lance_le_serveur_en_crlf(self):
+        brut = (RACINE / "admin.cmd").read_bytes()
+        self.assertIn(b"python scripts\\admin.py %*", brut)
+        self.assertIn(b"pause", brut)
+        self.assertNotIn(b"\n", brut.replace(b"\r\n", b""), "cmd.exe exige des fins de ligne CRLF")
+        attribut = sh("git", "check-attr", "eol", "--", "admin.cmd", cwd=RACINE)
+        self.assertEqual(attribut, "admin.cmd: eol: crlf", ".gitattributes garde le CRLF au checkout")
+
+    def test_aide_de_la_ligne_de_commande(self):
+        sortie = sh(sys.executable, str(RACINE / "scripts" / "admin.py"), "--help", cwd=RACINE)
+        self.assertIn("--sans-navigateur", sortie)
+        self.assertIn("premier port essayé (défaut 8790", sortie)
+
+    def test_une_seule_page_d_admin_par_depot(self):
+        with tempfile.TemporaryDirectory() as dossier:
+            premier = admin.verrou_d_instance(Path(dossier))
+            self.assertIsNotNone(premier)
+            try:
+                self.assertIsNone(admin.verrou_d_instance(Path(dossier)), "second lancement sur le même dépôt")
+                autre = admin.verrou_d_instance(Path(dossier) / "autre-depot")
+                self.assertIsNotNone(autre, "un autre dépôt a sa propre page d'admin")
+                autre.close()
+            finally:
+                premier.close()
+            apres = admin.verrou_d_instance(Path(dossier))
+            self.assertIsNotNone(apres, "relâché à la fermeture")
+            apres.close()
+
+    def test_seconde_page_d_admin_refusee_avec_explication(self):
+        erreurs = io.StringIO()
+        with mock.patch.object(admin, "verrou_d_instance", return_value=None), contextlib.redirect_stderr(erreurs):
+            self.assertEqual(admin.main(["--sans-navigateur"]), 1)
+        self.assertEqual(erreurs.getvalue(), admin.DEJA_OUVERTE + "\n")
+        self.assertIn("tourne déjà", admin.DEJA_OUVERTE)
 
 
 if __name__ == "__main__":

@@ -30,11 +30,17 @@ import secrets
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
+
+if os.name == "nt":
+    import msvcrt
+else:
+    import fcntl
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import export  # noqa: E402  (même dossier : masquage des secrets, liens, titres)
@@ -1035,6 +1041,30 @@ class Gestionnaire(BaseHTTPRequestHandler):
         self.envoyer(200, cible.read_bytes(), TYPES[cible.suffix.lower()])
 
 
+DEJA_OUVERTE = ("Échec : la page d'admin de ce dépôt tourne déjà, dans une autre fenêtre « Mémoire Vive - page "
+                "d'admin » (son adresse y est affichée). L'utiliser, ou la fermer (Ctrl+C) avant d'en relancer une.")
+
+
+def verrou_d_instance(racine: Path):
+    """Verrou système exclusif sur un fichier propre à ce dépôt (dans le dossier
+    temporaire) : une seule page d'admin par dépôt, sinon deux publications
+    lanceraient deux exports à la fois. Tenu tant que le fichier renvoyé reste
+    ouvert, relâché par le système même si le processus meurt ; None si une
+    autre page d'admin le tient déjà."""
+    cle = hashlib.sha256(str(Path(racine).resolve()).lower().encode("utf-8")).hexdigest()[:16]
+    fichier = open(Path(tempfile.gettempdir()) / f"memoire-vive-admin-{cle}.lock", "a+b")
+    try:
+        fichier.seek(0)
+        if os.name == "nt":
+            msvcrt.locking(fichier.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            fcntl.flock(fichier.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        fichier.close()
+        return None
+    return fichier
+
+
 def main(argv: list[str] | None = None) -> int:
     for flux in (sys.stdout, sys.stderr):
         if hasattr(flux, "reconfigure"):
@@ -1046,6 +1076,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sans-navigateur", action="store_true", help="n'ouvre pas le navigateur")
     args = parser.parse_args(argv)
 
+    instance = verrou_d_instance(ROOT)  # gardé jusqu'à la fin du processus
+    if instance is None:
+        print(DEJA_OUVERTE, file=sys.stderr)
+        return 1
     jeton = secrets.token_urlsafe(32)
     try:
         serveur = creer_serveur(ROOT, jeton, args.port)

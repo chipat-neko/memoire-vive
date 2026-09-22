@@ -30,6 +30,7 @@ const state = {
   filters: defaultFilters(),
   shown: CONFIG.pageSize,
   showAllProjects: false,
+  openFilter: '',        // groupe de pastilles déplié : '', 'type', 'famille' ou 'projet'
   lastList: [],          // entrées de la vue affichée, pour « précédente / suivante »
   lastListHash: '#/',    // ancre de la dernière vue qui n'est pas une fiche
   scroll: new Map(),     // position de défilement par ancre
@@ -45,6 +46,7 @@ const $ = (id) => document.getElementById(id);
 const dom = {
   stats: $('stats'), listView: $('list-view'), entryView: $('entry-view'), pageView: $('page-view'),
   search: $('search-input'), sort: $('sort-select'),
+  filterTabs: $('filter-tabs'),
   typeChips: $('type-chips'), familyChips: $('family-chips'), projectChips: $('project-chips'),
   activeFilters: $('active-filters'), resultCount: $('result-count'), status: $('status'),
   grid: $('grid'), lines: $('lines'), announce: $('annonce'),

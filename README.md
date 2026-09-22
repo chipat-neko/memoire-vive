@@ -195,6 +195,14 @@ d'origine.
 - score : titre ×6, projet, tags et type ×3, résumé ×2, texte ×1 (plafonné) ; une
   correspondance exacte compte plus qu'une approchée.
 
+**Filtres rangés** : sur « Toutes les entrées », les trois rangées de pastilles (type,
+famille, projet) ne sont pas dépliées au chargement. La barre d'outils porte un bouton
+par groupe — Type, Famille, Projet — et un seul se déplie à la fois, en place au-dessus
+des cartes ; rien ne flotte par-dessus la page. Un filtre posé reste écrit sur son bouton
+même groupe rangé (`Famille : IA & simulations`), avec une croix pour l'enlever : aucun
+filtre ne peut agir sans être visible. Les ancres ne changent pas ; le groupe déplié n'est
+pas mémorisé dans l'URL.
+
 **Pastille « nouveau »** : le navigateur mémorise (`localStorage`, clé
 `memoire-vive:derniere-visite`) la date de l'export affiché ; à la visite suivante, les
 entrées créées après elle portent la pastille, et les projets qui en ont un point

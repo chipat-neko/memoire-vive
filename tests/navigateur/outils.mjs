@@ -85,6 +85,16 @@ export async function terminer(page) {
   assert.deepEqual(erreurs, [], 'erreurs de console, JavaScript ou CSP');
 }
 
+/* Les trois rangées de pastilles sont rangées par défaut : déplie celle d'un
+   groupe (« type », « famille » ou « projet ») pour pouvoir cliquer dedans.
+   Sans effet si elle est déjà ouverte. Renvoie le bouton du groupe. */
+export async function deplier(page, groupe) {
+  const bouton = page.locator('[data-focus-key="onglet:' + groupe + '"]');
+  if (await bouton.getAttribute('aria-expanded') !== 'true') await bouton.click();
+  await page.locator('#' + (groupe === 'famille' ? 'family' : groupe === 'projet' ? 'project' : 'type') + '-chips:not([hidden])').waitFor();
+  return bouton;
+}
+
 /* Attend que l'ancre de la page contienne un texte (navigation dans la page). */
 export async function attendreAncre(page, morceau) {
   await page.waitForFunction((m) => location.hash.includes(m), morceau);

@@ -1,6 +1,12 @@
 /* Toutes les entrées : filtres (type, famille, projet, tag), tri, vue
    « Grille » (cartes) ou « Liste » (une ligne par entrée), « Afficher plus ».
-   La recherche a sa propre page (vues/resultats.js). */
+   La recherche a sa propre page (vues/resultats.js).
+
+   Les trois rangées de pastilles sont rangées par défaut : la barre d'outils
+   porte un bouton par groupe (Type, Famille, Projet) et un seul groupe se
+   déplie à la fois, en place, au-dessus des cartes — rien ne flotte par-dessus
+   la page. Un filtre posé reste lisible sur son bouton même groupe rangé,
+   avec une croix pour l'enlever : aucun filtre ne peut agir en cachette. */
 import { normalize } from '../recherche.js';
 import { el, plural, typeLabel, card, entryLine, chip } from '../composants.js';
 import { NO_PROJECT, NO_FAMILY } from '../donnees.js';
@@ -71,6 +77,7 @@ export function createListView(ctx) {
     renderTypeChips();
     renderFamilyChips();
     renderProjectChips();
+    renderFilterTabs();
     renderActiveFilters();
 
     const total = state.entries.length;
@@ -134,8 +141,7 @@ export function createListView(ctx) {
      comme un projet inconnu. */
   function renderFamilyChips() {
     const current = state.filters.famille;
-    if (!state.families.size && !current) {
-      dom.familyChips.hidden = true;
+    if (!hasFamilies()) {
       dom.familyChips.replaceChildren();
       return;
     }
@@ -155,7 +161,6 @@ export function createListView(ctx) {
       button.prepend(el('span', { class: 'family-dot', 'aria-hidden': 'true' }));
       chips.push(button);
     }
-    dom.familyChips.hidden = false;
     dom.familyChips.replaceChildren(...chips);
   }
 
@@ -201,6 +206,92 @@ export function createListView(ctx) {
       }, 'projets:moins', 'more-chip'));
     }
     dom.projectChips.replaceChildren(...chips);
+  }
+
+  /* --------------------------------------------------- groupes à déplier */
+
+  const GROUPS = [
+    { key: 'type', bouton: 'Type', zone: 'typeChips', nature: 'de type' },
+    { key: 'famille', bouton: 'Famille', zone: 'familyChips', nature: 'de famille' },
+    { key: 'projet', bouton: 'Projet', zone: 'projectChips', nature: 'de projet' },
+  ];
+
+  // Sans famille configurée, le bouton Famille n'a rien à montrer ; il reste
+  // si l'ancre en filtre une (lien ancien, famille renommée), pour que le
+  // filtre soit visible et retirable.
+  function hasFamilies() {
+    return state.families.size > 0 || !!state.filters.famille;
+  }
+
+  function groupAvailable(key) {
+    return key !== 'famille' || hasFamilies();
+  }
+
+  function openGroup() {
+    const open = state.openFilter;
+    return open && groupAvailable(open) ? open : '';
+  }
+
+  function valueLabel(key) {
+    const value = state.filters[key];
+    if (!value) return '';
+    if (key === 'type') return typeLabel(value);
+    if (key === 'famille') {
+      const family = state.families.get(value);
+      return family ? family.nom : (value === NO_FAMILY ? 'Sans famille' : value);
+    }
+    const project = state.projects.get(value);
+    return project ? project.nom : (value === NO_PROJECT ? 'Sans projet' : value);
+  }
+
+  function applyGroupVisibility() {
+    const open = openGroup();
+    for (const group of GROUPS) dom[group.zone].hidden = open !== group.key;
+  }
+
+  function focusTab(key) {
+    const tab = dom.filterTabs.querySelector('[data-focus-key="onglet:' + key + '"]');
+    if (tab) tab.focus();
+  }
+
+  function toggleGroup(key) {
+    state.openFilter = state.openFilter === key ? '' : key;
+    renderFilterTabs();
+    focusTab(key);
+  }
+
+  function renderFilterTabs() {
+    const open = openGroup();
+    const items = [];
+    for (const group of GROUPS) {
+      if (!groupAvailable(group.key)) continue;
+      const value = valueLabel(group.key);
+      const button = el('button', {
+        type: 'button',
+        class: 'filter-tab' + (value ? ' is-set' : ''),
+        'aria-expanded': String(open === group.key),
+        'aria-controls': dom[group.zone].id,
+        'data-focus-key': 'onglet:' + group.key,
+      }, value ? group.bouton + ' : ' + value : group.bouton);
+      button.addEventListener('click', () => toggleGroup(group.key));
+      if (!value) {
+        items.push(button);
+        continue;
+      }
+      const clear = el('button', {
+        type: 'button',
+        class: 'filter-tab-clear',
+        'aria-label': 'Retirer le filtre ' + group.nature + ' ' + value,
+        'data-focus-key': 'onglet-croix:' + group.key,
+      }, '×');
+      clear.addEventListener('click', () => {
+        ctx.setFilters({ [group.key]: '' });
+        focusTab(group.key);
+      });
+      items.push(el('div', { class: 'filter-tab-group' }, button, clear));
+    }
+    dom.filterTabs.replaceChildren(...items);
+    applyGroupVisibility();
   }
 
   function renderActiveFilters() {

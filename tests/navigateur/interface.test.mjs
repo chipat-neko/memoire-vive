@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { ouvrirSite, terminer, attendreAncre, debordement, contraste } from './outils.mjs';
+import { ouvrirSite, terminer, attendreAncre, debordement, contraste, deplier } from './outils.mjs';
 import { jeuDeTest, entreeTitree } from './donnees-test.mjs';
 
 let site;
@@ -47,6 +47,7 @@ test('lien d’évitement : filtres conservés', async () => {
 
 test('focus conservé sur la pastille après un filtre ; clic sur un tag : focus sur le compteur', async () => {
   const page = await ouvrir('#/entrees');
+  await deplier(page, 'type');
   await page.locator('#type-chips .chip').nth(1).focus();
   await page.keyboard.press('Enter');
   await attendreAncre(page, 'type=');
@@ -59,15 +60,23 @@ test('focus conservé sur la pastille après un filtre ; clic sur un tag : focus
 
 test('contraste de la pastille active ≥ 4,5 (thèmes clair et sombre)', async () => {
   const page = await ouvrir();
+  await deplier(page, 'type');
   await page.getByRole('button', { name: /^Jalon/ }).first().click();
-  const mesure = () => page.evaluate(() => {
-    const s = getComputedStyle(document.querySelector('.chip[aria-pressed="true"]'));
+  // Déplier Famille range Type : son onglet porte alors le filtre posé.
+  await deplier(page, 'famille');
+  const mesure = (selecteur) => page.evaluate((sel) => {
+    const s = getComputedStyle(document.querySelector(sel));
     return [s.color, s.backgroundColor];
-  });
+  }, selecteur);
+  // Pastille active, onglet déplié, puis onglet rangé portant le filtre : les
+  // trois états colorés de la barre de filtres.
+  const etats = ['.chip[aria-pressed="true"]', '.filter-tab[aria-expanded="true"]', '.filter-tab.is-set'];
   for (const theme of ['light', 'dark']) {
     await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
-    const [texte, fond] = await mesure();
-    assert.ok(contraste(texte, fond) >= 4.5, `${theme} : ${contraste(texte, fond).toFixed(2)}`);
+    for (const selecteur of etats) {
+      const [texte, fond] = await mesure(selecteur);
+      assert.ok(contraste(texte, fond) >= 4.5, `${theme} ${selecteur} : ${contraste(texte, fond).toFixed(2)}`);
+    }
   }
   await terminer(page);
 });

@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { ouvrirSite, terminer, attendreAncre } from './outils.mjs';
+import { ouvrirSite, terminer, attendreAncre, deplier } from './outils.mjs';
 import { jeuDeTest } from './donnees-test.mjs';
 
 let site;
@@ -44,6 +44,7 @@ test('frappe lente : l’espace est conservé ; Échap vide la recherche', async
 
 test('filtre Jalon : que des jalons', async () => {
   const page = await liste();
+  await deplier(page, 'type');
   await page.getByRole('button', { name: /^Jalon/ }).first().click();
   await attendreAncre(page, 'type=milestone');
   const badges = await page.locator('#grid .type-badge').allTextContents();
@@ -54,6 +55,7 @@ test('filtre Jalon : que des jalons', async () => {
 
 test('pastille de projet : filtre ce projet', async () => {
   const page = await liste();
+  await deplier(page, 'projet');
   await page.locator('#project-chips .chip', { hasText: 'Depths' }).click();
   await attendreAncre(page, 'projet=depths');
   const projets = await page.locator('#grid .project-tag').allTextContents();
@@ -84,6 +86,7 @@ test('vue Liste : une ligne par entrée (type, titre, projet, date, icône du li
 
 test('filtre famille : ordre configuré, « Sans famille », filtre et URL', async () => {
   const page = await liste();
+  await deplier(page, 'famille');
   const noms = (await page.locator('#family-chips .chip').allTextContents()).map((t) => t.replace(/\s*\d+$/, ''));
   assert.deepEqual(noms, ['Toutes les familles', 'Jeux & univers de jeu', 'IA & simulations', 'Outils Claude', 'Sans famille']);
   await page.locator('#family-chips .chip', { hasText: 'IA & simulations' }).click();
@@ -96,6 +99,47 @@ test('filtre famille : ordre configuré, « Sans famille », filtre et URL', asy
   await page.locator('#family-chips .chip', { hasText: 'Sans famille' }).click();
   await attendreAncre(page, 'famille=_aucune');
   assert.equal(await page.locator('#grid .card').count(), 2);
+  await terminer(page);
+});
+
+test('filtres rangés : un bouton par groupe, un seul déplié à la fois', async () => {
+  const page = await liste();
+  // Au chargement, aucune rangée de pastilles ne pousse les cartes vers le bas.
+  for (const zone of ['#type-chips', '#family-chips', '#project-chips']) {
+    assert.equal(await page.locator(zone).isHidden(), true, zone);
+  }
+  assert.deepEqual(await page.locator('.filter-tab').allTextContents(), ['Type', 'Famille', 'Projet']);
+
+  await deplier(page, 'famille');
+  assert.equal(await page.locator('#type-chips').isHidden(), true);
+
+  // Déplier un autre groupe range le premier.
+  await deplier(page, 'projet');
+  assert.equal(await page.locator('#family-chips').isHidden(), true);
+
+  // Recliquer sur le même bouton le range, et le focus reste dessus.
+  await page.locator('[data-focus-key="onglet:projet"]').click();
+  await page.locator('#project-chips').waitFor({ state: 'hidden' });
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-focus-key')), 'onglet:projet');
+  await terminer(page);
+});
+
+test('filtre posé puis groupe rangé : l’onglet l’affiche, sa croix l’enlève', async () => {
+  const page = await liste();
+  await deplier(page, 'projet');
+  await page.locator('#project-chips .chip', { hasText: 'Depths' }).click();
+  await attendreAncre(page, 'projet=depths');
+  await page.locator('[data-focus-key="onglet:projet"]').click();
+  await page.locator('#project-chips').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator('.filter-tab.is-set').textContent(), 'Projet : Depths');
+
+  const croix = page.locator('[data-focus-key="onglet-croix:projet"]');
+  assert.equal(await croix.getAttribute('aria-label'), 'Retirer le filtre de projet Depths');
+  await croix.click();
+  await page.waitForFunction(() => !location.hash.includes('projet='));
+  assert.equal(await page.locator('.filter-tab.is-set').count(), 0);
+  assert.equal(await page.locator('#project-chips').isHidden(), true, 'la croix ne déplie pas le groupe');
+  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('data-focus-key')), 'onglet:projet');
   await terminer(page);
 });
 
@@ -112,11 +156,15 @@ test('famille ou type inconnu dans l’ancre (lien ancien) : une pastille active
   await page.goto(site.url('#/entrees?famille=jeux-video&type=idee'));
   await page.locator('#empty:not([hidden])').waitFor();
   const actives = async (zone) => (await page.locator(zone + ' .chip[aria-pressed="true"]').allTextContents()).map((t) => t.replace(/\s/g, ' '));
+  // Rangés, les deux filtres restent écrits sur leurs onglets : rien n'agit en cachette.
+  assert.deepEqual(await page.locator('.filter-tab.is-set').allTextContents(), ['Type : Idee', 'Famille : jeux-video']);
   assert.deepEqual(await actives('#family-chips'), ['jeux-video0']);
   assert.deepEqual(await actives('#type-chips'), ['Idee0']);
+  await deplier(page, 'famille');
   await page.locator('#family-chips .chip[aria-pressed="true"]').click();
   await attendreAncre(page, '#/entrees?type=idee');
   assert.deepEqual(await actives('#family-chips'), ['Toutes les familles0']);
+  await deplier(page, 'type');
   await page.locator('#type-chips .chip[aria-pressed="true"]').click();
   await page.waitForFunction(() => location.hash === '#/entrees');
   await page.locator('#grid .card').first().waitFor();

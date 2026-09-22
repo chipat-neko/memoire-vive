@@ -275,6 +275,42 @@ select {
 .segmented button:focus-visible { outline-offset: -4px; border-radius: 9px; }
 .segmented button[aria-pressed="true"]:focus-visible { outline-color: var(--on-accent); }
 
+/* ------------------------------------------------- onglets de filtre */
+
+/* Un bouton par groupe de pastilles, sur la ligne du tri. Un seul groupe
+   déplié à la fois, en place au-dessus des cartes : rien ne flotte par-dessus
+   la page. Un filtre posé reste écrit sur son bouton, groupe rangé compris. */
+.filter-tabs { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.filter-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); color: var(--text-muted);
+  padding: 11px 14px; font: 500 14px var(--sans); cursor: pointer;
+}
+.filter-tab::after { content: "\25BE"; font-size: 10px; line-height: 1; transition: transform 0.15s; }
+.filter-tab[aria-expanded="true"]::after { transform: rotate(180deg); }
+.filter-tab:hover { color: var(--text); border-color: var(--border-strong); }
+.filter-tab.is-set {
+  background: var(--accent-soft); border-color: var(--accent-soft);
+  color: var(--accent-on-soft); font-weight: 600;
+}
+.filter-tab[aria-expanded="true"] {
+  background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent);
+}
+.filter-tab[aria-expanded="true"]:focus-visible { outline-color: var(--on-accent); }
+
+/* La croix retire le filtre sans déplier son groupe. */
+.filter-tab-group { display: inline-flex; }
+.filter-tab-group .filter-tab { border-radius: 12px 0 0 12px; border-right: 0; }
+.filter-tab-clear {
+  border: 1px solid var(--accent-soft); border-radius: 0 12px 12px 0;
+  background: var(--accent-soft); color: var(--accent-on-soft);
+  padding: 11px 13px; font: 600 15px/1 var(--sans); cursor: pointer;
+}
+.filter-tab-clear:hover {
+  background: var(--accent-fill); border-color: var(--accent-fill); color: var(--on-accent);
+}
+
 /* --------------------------------------------------------------- pastilles */
 
 .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -689,6 +725,7 @@ a.project-tag { display: inline-block; }
 
 @media (prefers-reduced-motion: reduce) {
   .toast { transition: none; }
+  .filter-tab::after { transition: none; }
 }
 
 /* ------------------------------------------------------------- mobile */

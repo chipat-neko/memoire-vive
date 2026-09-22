@@ -2,68 +2,238 @@
   "_aide": "Réglages des projets (version 2). Modifiables depuis la page d'admin locale (admin.cmd) ou à la main. familles : ordre d'affichage et couleur (1 à 6). projets : nom, famille, alias (tags fusionnés dans ce projet), description, lien_principal ; toutes les clés sont facultatives. tags_generiques : tags qui ne désignent jamais un projet. tags_exclus : entrées jamais publiées.",
   "version": 2,
   "familles": [
-    { "id": "jeux", "nom": "Jeux & univers de jeu", "couleur": 1 },
-    { "id": "cours", "nom": "Cours & savoir", "couleur": 2 },
-    { "id": "ia", "nom": "IA & simulations", "couleur": 3 },
-    { "id": "outils-claude", "nom": "Outils Claude", "couleur": 4 },
-    { "id": "sites", "nom": "Sites & applis", "couleur": 5 }
+    {
+      "id": "jeux",
+      "nom": "Jeux & univers de jeu",
+      "couleur": 1
+    },
+    {
+      "id": "cours",
+      "nom": "Cours & savoir",
+      "couleur": 2
+    },
+    {
+      "id": "ia",
+      "nom": "IA & simulations",
+      "couleur": 3
+    },
+    {
+      "id": "outils-claude",
+      "nom": "Outils Claude",
+      "couleur": 4
+    },
+    {
+      "id": "sites",
+      "nom": "Sites & applis",
+      "couleur": 5
+    }
   ],
   "projets": {
-    "depths": { "nom": "Depths", "famille": "jeux", "alias": ["rogue-lite"] },
-    "void-atlas": { "famille": "jeux" },
-    "tactical-ops": { "famille": "jeux" },
-    "voxelcraft": { "famille": "jeux" },
-    "nova": { "famille": "jeux", "alias": ["jeu-nova"] },
-    "yuei-heroes-battle": { "famille": "jeux" },
-    "jeu-claude": { "nom": "Workspace jeu_claude", "famille": "jeux" },
-    "plan-min": { "famille": "jeux" },
-    "wiki-star-citizen": { "famille": "jeux" },
-    "speedrush-dofus": { "famille": "jeux", "alias": ["optimiseur-duo"] },
-    "dosoft": { "famille": "jeux", "alias": ["orga-dof"] },
-
-    "syntaxe": { "famille": "cours" },
-    "devpath": { "famille": "cours" },
-    "codelyngo": { "famille": "cours" },
-    "cours-graph": { "famille": "cours" },
-    "orbis": { "famille": "cours", "alias": ["courss"] },
-    "claude-learning-apps": { "nom": "Applis d'apprentissage Claude", "famille": "cours" },
-    "check-code": { "famille": "cours" },
-    "un-monde-sans": { "famille": "cours" },
-    "religions": { "famille": "cours" },
-
-    "jarvis": { "famille": "ia" },
-    "ai-creator": { "famille": "ia" },
-    "code-ai": { "famille": "ia" },
-    "help-code-ai": { "famille": "ia" },
-    "roberta": { "famille": "ia" },
-    "amalia": { "famille": "ia" },
-    "mcai": { "famille": "ia" },
-    "clipcoach": { "famille": "ia" },
-    "pipeline-securite-n8n-ollama": { "nom": "Pipeline sécurité n8n + Ollama", "famille": "ia" },
-    "le-bocal": { "famille": "ia" },
-
-    "tour-de-controle": { "nom": "Tour de contrôle", "famille": "outils-claude" },
-    "antigravity-skills": { "nom": "Antigravity Skills", "famille": "outils-claude" },
-    "design-studio": { "famille": "outils-claude" },
-    "uiverse-components": { "famille": "outils-claude" },
-    "deadline-command": { "famille": "outils-claude" },
-    "multi-claude-orchestrator": { "nom": "Multi-Claude Orchestrator", "famille": "outils-claude" },
-    "pont-memoire": { "nom": "Pont mémoire", "famille": "outils-claude" },
-    "memoire-vive": { "nom": "Mémoire Vive", "famille": "outils-claude" },
-    "bibliotheque-claude": { "famille": "outils-claude" },
-
-    "my-watch": { "famille": "sites" },
-    "jsl-metal": { "famille": "sites" },
-    "ce-ventre": { "famille": "sites" },
-    "opti-route": { "famille": "sites" },
-    "trading-alert-bot": { "nom": "Bot d'alertes trading", "famille": "sites" },
-    "decoupe-videos": { "famille": "sites" },
-    "presentation": { "nom": "Présentations PowerPoint", "famille": "sites" }
+    "depths": {
+      "nom": "Depths",
+      "famille": "jeux",
+      "alias": [
+        "rogue-lite"
+      ]
+    },
+    "void-atlas": {
+      "famille": "jeux"
+    },
+    "tactical-ops": {
+      "famille": "jeux"
+    },
+    "voxelcraft": {
+      "famille": "jeux"
+    },
+    "nova": {
+      "famille": "jeux",
+      "alias": [
+        "jeu-nova"
+      ]
+    },
+    "yuei-heroes-battle": {
+      "famille": "jeux"
+    },
+    "jeu-claude": {
+      "nom": "Workspace jeu_claude",
+      "famille": "jeux"
+    },
+    "plan-min": {
+      "famille": "jeux"
+    },
+    "wiki-star-citizen": {
+      "famille": "jeux"
+    },
+    "speedrush-dofus": {
+      "famille": "jeux",
+      "alias": [
+        "optimiseur-duo"
+      ]
+    },
+    "dosoft": {
+      "famille": "jeux",
+      "alias": [
+        "orga-dof"
+      ]
+    },
+    "syntaxe": {
+      "famille": "cours"
+    },
+    "devpath": {
+      "famille": "cours"
+    },
+    "codelyngo": {
+      "famille": "cours"
+    },
+    "cours-graph": {
+      "famille": "cours"
+    },
+    "orbis": {
+      "famille": "cours",
+      "alias": [
+        "courss"
+      ]
+    },
+    "claude-learning-apps": {
+      "nom": "Applis d'apprentissage Claude",
+      "famille": "cours"
+    },
+    "check-code": {
+      "famille": "cours"
+    },
+    "un-monde-sans": {
+      "famille": "cours"
+    },
+    "religions": {
+      "famille": "cours"
+    },
+    "jarvis": {
+      "famille": "ia"
+    },
+    "ai-creator": {
+      "famille": "ia"
+    },
+    "code-ai": {
+      "famille": "ia"
+    },
+    "help-code-ai": {
+      "famille": "ia"
+    },
+    "roberta": {
+      "famille": "ia"
+    },
+    "amalia": {
+      "famille": "ia"
+    },
+    "mcai": {
+      "famille": "ia"
+    },
+    "clipcoach": {
+      "famille": "ia"
+    },
+    "pipeline-securite-n8n-ollama": {
+      "nom": "Pipeline sécurité n8n + Ollama",
+      "famille": "ia"
+    },
+    "le-bocal": {
+      "famille": "ia"
+    },
+    "tour-de-controle": {
+      "nom": "Tour de contrôle",
+      "famille": "outils-claude"
+    },
+    "antigravity-skills": {
+      "nom": "Antigravity Skills",
+      "famille": "outils-claude"
+    },
+    "design-studio": {
+      "famille": "outils-claude"
+    },
+    "uiverse-components": {
+      "famille": "outils-claude"
+    },
+    "deadline-command": {
+      "famille": "outils-claude"
+    },
+    "multi-claude-orchestrator": {
+      "nom": "Multi-Claude Orchestrator",
+      "famille": "outils-claude"
+    },
+    "pont-memoire": {
+      "nom": "Pont mémoire",
+      "famille": "outils-claude"
+    },
+    "memoire-vive": {
+      "nom": "Mémoire Vive",
+      "famille": "outils-claude"
+    },
+    "bibliotheque-claude": {
+      "famille": "outils-claude"
+    },
+    "my-watch": {
+      "famille": "sites"
+    },
+    "jsl-metal": {
+      "famille": "sites"
+    },
+    "ce-ventre": {
+      "famille": "sites"
+    },
+    "opti-route": {
+      "famille": "sites"
+    },
+    "trading-alert-bot": {
+      "nom": "Bot d'alertes trading",
+      "famille": "sites"
+    },
+    "decoupe-videos": {
+      "famille": "sites"
+    },
+    "presentation": {
+      "nom": "Présentations PowerPoint",
+      "famille": "sites"
+    },
+    "trade-sandbox": {
+      "nom": "Trade Sandbox",
+      "famille": "sites",
+      "alias": [
+        "trading"
+      ]
+    },
+    "pc-modes": {
+      "nom": "PC Modes",
+      "famille": "sites"
+    },
+    "a-check": {
+      "nom": "A_check",
+      "famille": "outils-claude",
+      "alias": [
+        "verification-outils"
+      ]
+    }
   },
   "tags_generiques": [
-    "dashboard", "claude-code", "hooks", "monitoring", "python", "threejs", "3d",
-    "windows", "powershell", "unity", "jeu-video", "pptx", "demo", "design",
-    "dataviz", "canvas", "visualisation", "workspace", "claude-md", "mcp-memory-service", "lien"
+    "dashboard",
+    "claude-code",
+    "hooks",
+    "monitoring",
+    "python",
+    "threejs",
+    "3d",
+    "windows",
+    "powershell",
+    "unity",
+    "jeu-video",
+    "pptx",
+    "demo",
+    "design",
+    "dataviz",
+    "canvas",
+    "visualisation",
+    "workspace",
+    "claude-md",
+    "mcp-memory-service",
+    "lien"
   ],
   "tags_exclus": []
 }

@@ -881,13 +881,19 @@ class Gestionnaire(BaseHTTPRequestHandler):
             return
         ancien = self.connection.gettimeout()
         fin = time.monotonic() + VIDANGE_DELAI
+        # read1() : un seul appel à la socket, qui rend la main dès qu'un
+        # morceau arrive. read() attendrait les 64 Ko entiers, et le délai posé
+        # sur la socket repart à zéro à chaque octet reçu — un client qui envoie
+        # un octet toutes les 0,2 s retiendrait alors le fil des jours durant
+        # sans jamais sortir de cette unique lecture, donc sans que la borne en
+        # temps réel ci-dessous s'applique.
         try:
             while reste > 0:
                 restant = fin - time.monotonic()
                 if restant <= 0:
                     break
                 self.connection.settimeout(restant)
-                morceau = self.rfile.read(min(reste, 65536))
+                morceau = self.rfile.read1(min(reste, 65536))
                 if not morceau:
                     break
                 reste -= len(morceau)

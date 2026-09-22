@@ -758,6 +758,58 @@ class ServeurTest(unittest.TestCase):
         self.assertIn(b"413", recu.split(b"\r\n")[0], recu)
         self.assertLess(duree, 15, "le refus n'attend pas le corps annoncé")
 
+    def premiere_ligne_au_compte_gouttes(self, jeton, intervalle):
+        """Annonce un corps de 3 Mo puis l'envoie un octet à la fois, toutes les
+        `intervalle` secondes. Renvoie (première ligne de la réponse, secondes)."""
+        port = self.serveur.server_address[1]
+        entetes = [f"PUT /api/config/recherche HTTP/1.1", f"Host: 127.0.0.1:{port}"]
+        if jeton is not None:
+            entetes.append(f"X-Admin-Jeton: {jeton}")
+        entetes += ["Content-Type: application/json", "Content-Length: 3000000", "", ""]
+        arret = threading.Event()
+        with socket.create_connection(("127.0.0.1", port), timeout=30) as brut:
+            brut.sendall("\r\n".join(entetes).encode())
+
+            def goutte():
+                while not arret.is_set():
+                    try:
+                        brut.sendall(b"x")
+                    except OSError:
+                        return
+                    arret.wait(intervalle)
+
+            fil = threading.Thread(target=goutte, daemon=True)
+            fil.start()
+            debut = time.monotonic()
+            recu = b""
+            try:
+                while b"\r\n" not in recu and time.monotonic() - debut < 25:
+                    try:
+                        morceau = brut.recv(200)
+                    except OSError:
+                        break
+                    if not morceau:
+                        break
+                    recu += morceau
+            finally:
+                duree = time.monotonic() - debut
+                arret.set()
+                fil.join(5)
+        return recu.split(b"\r\n")[0], duree
+
+    def test_corps_au_compte_gouttes_ne_retient_pas_un_fil(self):
+        # Un client qui envoie son corps plus vite que le délai de vidange
+        # (ici un octet toutes les 50 ms) ne doit pas non plus retenir un fil :
+        # chaque octet reçu relançait le délai de lecture de la socket, et une
+        # lecture de 64 Ko ne rendait la main qu'une fois les 64 Ko arrivés —
+        # à ce rythme, des jours. Le refus part au bout de VIDANGE_DELAI, avec
+        # ou sans jeton (le chemin 403 n'est pas authentifié).
+        for jeton, attendu in ((JETON, b"413"), (None, b"403")):
+            with self.subTest(jeton=bool(jeton)):
+                ligne, duree = self.premiere_ligne_au_compte_gouttes(jeton, 0.05)
+                self.assertIn(attendu, ligne, ligne)
+                self.assertLess(duree, 15, "le refus n'attend pas la fin du corps")
+
     def test_occupe_pendant_un_export(self):
         self.assertTrue(self.serveur.admin.verrou.acquire(blocking=False))
         try:

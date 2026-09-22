@@ -8,6 +8,8 @@ Site statique qui affiche, regroupe et permet de chercher dans la mémoire parta
 - **Données** : `docs/data.json`, généré à l'avance. Le site ne fait aucun appel réseau
   en dehors de ce fichier.
 - **Export** : `scripts/export.py` (Python 3.9+, bibliothèque standard uniquement).
+- **Réglages** : page d'admin locale, jamais publiée (`admin.cmd`, voir « La page d'admin
+  locale »).
 
 ## Mettre à jour le site
 
@@ -33,6 +35,7 @@ précédent en `--no-git`, push refusé) est rattrapé.
 | `--no-push` | commit sans push |
 | `--force` | publie même si le nombre d'entrées a chuté de plus de moitié |
 | `--recalculer-voisins` | recherche les voisins de toutes les entrées, pas seulement des nouvelles (une recherche par entrée) |
+| `--sans-recherche` | écrit `data.json` sans **aucune** recherche de voisins (aperçu de la page d'admin) : les entrées nouvelles attendent le prochain export (`voisins_en_attente`) |
 
 Tester le site en local : `node tests/navigateur/serveur.mjs` puis
 <http://127.0.0.1:8080/memoire-vive/> (même sous-chemin que GitHub Pages ; Node seul, sans
@@ -210,10 +213,67 @@ servir à un visiteur revenu entre-temps un mélange d'anciens et de nouveaux mo
 l'éviter, publier les modules modifiés dans un nouveau dossier (`js/v2/…`, chemin de
 `index.html` compris).
 
+## La page d'admin locale
+
+Double-cliquer sur `admin.cmd` (raccourci « Gérer Mémoire Vive » sur le Bureau) : une
+fenêtre de commande démarre un petit serveur local et ouvre la page dans le navigateur.
+Laisser la fenêtre ouverte pendant les réglages ; Ctrl+C l'arrête. Rien de cette page
+n'est publié (le dossier `admin/` est hors de `docs/`).
+
+| Onglet | Réglages |
+| --- | --- |
+| Projets | nom affiché, famille, description, lien principal (un des liens du projet ou une autre adresse), alias ; « Fusionner dans… » : le projet devient un alias d'un autre, ses entrées y passent |
+| Familles | ajouter, renommer, réordonner, couleur (1 à 6), supprimer (ses projets passent « Sans famille ») |
+| Entrées | titre et résumé corrigés (l'original reste affiché, « Rétablir » y revient), « Masquer du site » (retire aussi la correction du titre et du résumé) |
+| Recherche | groupes de synonymes |
+
+- **Enregistrer** écrit les réglages dans `config/`, sur cet ordinateur seulement. Le
+  navigateur prévient si l'on quitte la page avec des modifications non enregistrées.
+  Un fichier modifié ailleurs depuis l'ouverture de la page (à la main, dans un autre
+  onglet) n'est jamais écrasé : l'enregistrement est refusé, recharger la page. Un
+  `exporter.cmd` lancé ensuite applique déjà les réglages au site (il lit `config/`) sans
+  les commiter : « Publier » le fait.
+- **Aperçu** enregistre, lance `export.py --no-git --sans-recherche` et ouvre le site local
+  (`http://127.0.0.1:8790/`). Il lit la mémoire (le dashboard doit tourner) mais **n'y écrit
+  rien** : aucune recherche de voisins ; les entrées nouvelles reçoivent leurs voisins à la
+  publication. `docs/data.json` est réécrit, rien n'est commité.
+- **Publier** enregistre, commite les réglages modifiés (« Réglages : … »), puis lance
+  l'export complet (commit de `data.json`, push, jamais forcé). Refusé, avec l'explication,
+  si la copie de travail n'est pas sur `main`, si d'autres fichiers suivis ont des
+  modifications non commitées, si des commits locaux pas encore publiés touchent autre
+  chose que les réglages et `data.json`, ou si un réglage enregistré ne passe pas la
+  vérification. Ne pas lancer `exporter.cmd` pendant une publication.
+- Tout ce qui sera publié est vérifié avant d'être écrit, puis de nouveau avant chaque
+  aperçu et chaque publication (un réglage modifié à la main aussi) : couleur entière de 1
+  à 6, « masquer » vrai ou faux (sans guillemets), listes de tags, lien principal (adresse
+  web publique, sans identifiants), aucun secret (mêmes motifs que l'export, plus la vraie
+  clé du dashboard) dans les noms, descriptions, titres, résumés, synonymes, alias, tags et
+  commentaires. Un refus nomme le champ et la raison ; rien n'est écrit.
+- Un réglage écrit à la main sous une forme que l'export accepte aussi (un alias ou une
+  liste de tags écrits comme un texte seul, une couleur entre guillemets, « masquer » qui
+  ne vaut ni `true` ni `false`) est lu avec le sens que l'export lui donne, signalé à
+  l'ouverture de la page, et réécrit sous la forme de la page par « Enregistrer ».
+- Une entrée masquée n'est plus dans `data.json` : elle reste listée sous le titre que le
+  navigateur a mémorisé (à défaut, son identifiant), pour pouvoir la réafficher. Ce titre
+  n'est jamais écrit dans `config/`, qui est publié avec le dépôt.
+
+**Sécurité.** Le serveur n'écoute que `127.0.0.1` (port 8790, ou le suivant s'il est pris)
+et ne sert que `docs/` et `admin/` (ni `.env`, ni `scripts/`, ni `config/`). Chaque appel
+exige le jeton tiré au lancement (il est dans l'adresse qu'ouvre `admin.cmd`), l'adresse
+`127.0.0.1:<port>` ou `localhost:<port>`, et du JSON pour les écritures ; seuls les trois
+fichiers de `config/` sont modifiables, et un seul aperçu ou une seule publication tourne à
+la fois. Une seule page d'admin par dépôt : un second `admin.cmd` le dit et s'arrête.
+Fermer la fenêtre puis relancer `admin.cmd` change le jeton : fermer alors l'ancien onglet.
+L'adresse avec le jeton reste dans l'historique du navigateur ; elle ne sert plus à rien
+une fois la fenêtre fermée, et ne marche que depuis cet ordinateur.
+
+Options : `python scripts/admin.py --port 8800` (premier port essayé), `--sans-navigateur`
+(affiche l'adresse sans ouvrir le navigateur).
+
 ## Régler les projets, les entrées et la recherche
 
-Trois fichiers facultatifs, dans `config/`, modifiables à la main. La clé `_aide` de
-chacun rappelle son mode d'emploi ; l'export l'ignore.
+Trois fichiers facultatifs, dans `config/`, modifiables depuis la page d'admin (ci-dessus)
+ou à la main. La clé `_aide` de chacun rappelle son mode d'emploi ; l'export l'ignore.
 
 ### `config/projets.json` (version 2)
 
@@ -294,7 +354,8 @@ node --test "tests/js/*.test.mjs"         # logique du site (Node 22+, sans inst
 
 Ni la mémoire réelle ni le réseau extérieur ne sont touchés : `tests/test_publication.py`
 lance l'export contre un faux dashboard local, dans un dépôt git temporaire relié à un
-dépôt distant local.
+dépôt distant local ; `tests/test_admin.py` fait de même avec le serveur de la page
+d'admin, lancé sur un port libre.
 
 Tests navigateur : le Chrome installé, piloté par `playwright-core`, seule dépendance de
 développement, isolée dans `tests/navigateur/` (le site n'en a aucune) :
@@ -308,11 +369,15 @@ npm test
 Chaque fichier de test démarre son propre serveur statique sur un port libre (`docs/` servi
 sous `/memoire-vive/`, comme GitHub Pages) et l'arrête à la fin. Les données viennent de
 jeux synthétiques (`donnees-test.mjs`), sauf `reel.test.mjs` qui lit le vrai `data.json`.
+La page d'admin (`admin.test.mjs`) est testée contre `scripts/admin.py`, que
+`banc-admin.mjs` lance dans un dépôt git temporaire (copie du site, faux dashboard, dépôt
+distant local).
 
 | Variable | Effet |
 | --- | --- |
 | `MEMOIRE_CHROME` | chemin de Chrome (défaut : `C:/Program Files/Google/Chrome/Application/chrome.exe`) |
-| `MEMOIRE_SITE_URL` | rejoue la suite sur un site publié au lieu du serveur local |
+| `MEMOIRE_SITE_URL` | rejoue la suite sur un site publié au lieu du serveur local (les tests de la page d'admin restent locaux) |
+| `MEMOIRE_PYTHON` | commande Python des tests de la page d'admin (défaut : `python`) |
 
 Rejouer la suite sur le site publié : `$env:MEMOIRE_SITE_URL = 'https://chipat-neko.github.io/memoire-vive/'; npm test`.
 
@@ -331,10 +396,17 @@ docs/               site publié par GitHub Pages (branche main, dossier /docs)
   style.css         palette et proportions de l'artifact « Bibliothèque Claude »
   theme.js          thème clair/sombre mémorisé, appliqué avant le rendu
   data.json         généré par l'export, ne pas modifier à la main
+admin/              page d'admin locale, jamais publiée (servie par scripts/admin.py)
+  index.html        onglets Projets, Familles, Entrées, Recherche ; barre Enregistrer, Aperçu, Publier
+  admin.js          interface (réutilise docs/js/composants.js et recherche.js)
+  modele.js         brouillon des réglages et opérations (module pur, testé sous Node)
+  admin.css         mises en page propres à l'admin (couleurs et boutons de docs/style.css)
 scripts/export.py   export + commit + push
 exporter.cmd        la même chose en double-clic (Windows)
+scripts/admin.py    serveur local de la page d'admin (127.0.0.1, jeton)
+admin.cmd           page d'admin en double-clic (Windows)
 config/             réglages facultatifs : projets.json, entrees.json, recherche.json
-tests/              tests unitaires et d'intégration de l'export (Python)
+tests/              tests unitaires et d'intégration de l'export et de la page d'admin (Python)
   js/               tests unitaires du site (node --test)
   navigateur/       tests navigateur (playwright-core, Chrome installé)
 phase2/             modèle de workflow GitHub Actions, inactif
@@ -396,3 +468,13 @@ reste dans l'historique public et dans les éventuelles copies.
 | `Lien principal configuré refusé` | `lien_principal` d'un projet local, invalide ou contenant un secret : le corriger dans `config/projets.json` |
 | `entrée(s) encore sans recherche de voisins` | budget de temps épuisé ou recherches en échec : elles seront cherchées au prochain export |
 | `la correction « … » doit être un objet JSON` | valeur mal écrite dans `config/entrees.json` |
+| `Jeton absent`, `Accès refusé` (page d'admin) | page d'admin relancée, ou ouverte sans son adresse : fermer l'onglet et relancer `admin.cmd` |
+| `Réglages refusés : rien n'a été enregistré.` | un champ ne passe pas la vérification : la liste dit lequel et pourquoi |
+| `Publication refusée : …` | copie de travail hors de `main`, autres fichiers modifiés ou commits locaux sans rapport : le message dit quoi faire |
+| `Occupé : un aperçu ou une publication est en cours` | attendre la fin de l'opération en cours |
+| `… a changé depuis l'ouverture de la page` | le fichier a été modifié ailleurs (à la main, autre onglet) : recharger la page, refaire la modification |
+| `Réglages à corriger` (à l'ouverture de la page) | un réglage modifié à la main ne passe pas la vérification : le corriger (la liste dit lequel), sinon « Aperçu » et « Publier » sont refusés |
+| `Le dépôt GitHub a des commits que cet ordinateur n'a pas encore` | dans `D:\memoire_vive`, lancer `git pull --rebase`, puis « Publier » |
+| `la page d'admin de ce dépôt tourne déjà` | utiliser la fenêtre « Mémoire Vive - page d'admin » déjà ouverte, ou la fermer d'abord |
+| `aucun port libre entre 8790 et 8809` | ces ports sont pris par d'autres programmes : `admin.cmd --port 8900` |
+| `Aperçu impossible` avec `injoignable (…)` | lancer `start-memory-rest.ps1` : l'aperçu lit la mémoire |

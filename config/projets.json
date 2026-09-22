@@ -1,5 +1,5 @@
 {
-  "_aide": "Réglages des projets (version 2). Modifiables à la main ou, plus tard, depuis la page d'admin locale. familles : ordre d'affichage et couleur (1 à 6). projets : nom, famille, alias (tags fusionnés dans ce projet), description, lien_principal ; toutes les clés sont facultatives. tags_generiques : tags qui ne désignent jamais un projet. tags_exclus : entrées jamais publiées.",
+  "_aide": "Réglages des projets (version 2). Modifiables depuis la page d'admin locale (admin.cmd) ou à la main. familles : ordre d'affichage et couleur (1 à 6). projets : nom, famille, alias (tags fusionnés dans ce projet), description, lien_principal ; toutes les clés sont facultatives. tags_generiques : tags qui ne désignent jamais un projet. tags_exclus : entrées jamais publiées.",
   "version": 2,
   "familles": [
     { "id": "jeux", "nom": "Jeux & univers de jeu", "couleur": 1 },

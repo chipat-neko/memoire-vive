@@ -1,0 +1,62 @@
+# Vérification automatique du dépôt : les mêmes commandes que « Tests » dans le
+# README, jouées par GitHub à chaque envoi sur main et à chaque pull request.
+# Résultats dans l'onglet « Actions » du dépôt (une croix rouge = quelque chose
+# est cassé, le journal du travail dit quoi).
+#
+# La suite navigateur (tests/navigateur) n'est pas jouée ici : elle demande un
+# Chrome installé sur la machine de GitHub, ce qui n'a pas pu être vérifié.
+# Elle reste à lancer en local (voir « Tests » dans le README).
+
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Lecture seule : ce travail ne publie rien, il vérifie.
+permissions:
+  contents: read
+
+# Un seul passage à la fois par branche ; un nouvel envoi remplace le précédent.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Export et page d'admin (Python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Les tests d'intégration créent leurs propres dépôts git temporaires et y
+      # posent leur identité ; celle-ci ne sert qu'à éviter un git bavard.
+      - name: Identité git
+        run: |
+          git config --global user.name "tests"
+          git config --global user.email "tests@example.invalid"
+
+      - name: Suite Python
+        run: python -m unittest discover -s tests
+
+  node:
+    name: Site (Node)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Suite Node
+        run: node --test "tests/js/*.test.mjs"

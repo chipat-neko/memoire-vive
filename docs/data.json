@@ -1,13 +1,13 @@
 {
  "schema": 2,
- "genere_le": "2026-09-19T06:16:00Z",
+ "genere_le": "2026-09-22T08:24:56Z",
  "source": "mcp-memory-service",
- "nb_entrees": 77,
+ "nb_entrees": 87,
  "types": {
-  "note": 41,
-  "milestone": 21,
+  "note": 45,
+  "milestone": 26,
   "reference": 9,
-  "decision": 5,
+  "decision": 6,
   "error": 1
  },
  "ordre_types": [
@@ -116,12 +116,80 @@
     "url": "https://chipat-neko.github.io/memoire-vive/",
     "genre": "site"
    },
-   "nb": 4,
+   "nb": 6,
    "types": {
-    "milestone": 4
+    "milestone": 6
    },
    "premiere": "2026-09-18T06:46:26.560365Z",
-   "derniere": "2026-09-19T06:15:58.669374Z"
+   "derniere": "2026-09-22T08:24:54.639328Z"
+  },
+  {
+   "id": "jarvis",
+   "nom": "Jarvis",
+   "famille": "ia",
+   "description": "Assistant personnel 100 % local, gratuit et open source, sous Windows 11 avec une RTX 5070 Ti. Modèle servi par Ollama ; OpenCode sert de moteur d'agents, avec trois agents cloisonnés par leurs permissions (journee, memoire, atelier) et des skills par tâche…",
+   "lien_principal": null,
+   "nb": 5,
+   "types": {
+    "decision": 2,
+    "milestone": 2,
+    "reference": 1
+   },
+   "premiere": "2026-09-17T17:18:00.013209Z",
+   "derniere": "2026-09-22T07:07:34.489131Z"
+  },
+  {
+   "id": "trading",
+   "nom": "trading",
+   "famille": null,
+   "description": "Les 10 étapes de SPEC.md sont construites par Claude Code (un commit git par étape, 119 tests pytest dont le test garde-fou).",
+   "lien_principal": null,
+   "nb": 4,
+   "types": {
+    "milestone": 2,
+    "note": 2
+   },
+   "premiere": "2026-09-22T04:30:44.449758Z",
+   "derniere": "2026-09-22T06:20:56.949684Z"
+  },
+  {
+   "id": "pc-modes",
+   "nom": "PC Modes",
+   "famille": null,
+   "description": null,
+   "lien_principal": null,
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-22T04:58:53.865020Z",
+   "derniere": "2026-09-22T04:58:53.865020Z"
+  },
+  {
+   "id": "a-check",
+   "nom": "A_check",
+   "famille": null,
+   "description": null,
+   "lien_principal": null,
+   "nb": 1,
+   "types": {
+    "note": 1
+   },
+   "premiere": "2026-09-22T04:13:03.542857Z",
+   "derniere": "2026-09-22T04:13:03.542857Z"
+  },
+  {
+   "id": "verification-outils",
+   "nom": "A_check",
+   "famille": null,
+   "description": null,
+   "lien_principal": null,
+   "nb": 1,
+   "types": {
+    "milestone": 1
+   },
+   "premiere": "2026-09-22T04:00:07.933027Z",
+   "derniere": "2026-09-22T04:00:07.933027Z"
   },
   {
    "id": "depths",
@@ -267,21 +335,6 @@
    },
    "premiere": "2026-09-17T20:35:40.346018Z",
    "derniere": "2026-09-18T04:46:13.046116Z"
-  },
-  {
-   "id": "jarvis",
-   "nom": "Jarvis",
-   "famille": "ia",
-   "description": "Assistant personnel 100 % local, gratuit et open source, sous Windows 11 avec une RTX 5070 Ti. Modèle servi par Ollama ; OpenCode sert de moteur d'agents, avec trois agents cloisonnés par leurs permissions (journee, memoire, atelier) et des skills par tâche…",
-   "lien_principal": null,
-   "nb": 4,
-   "types": {
-    "milestone": 2,
-    "reference": 1,
-    "decision": 1
-   },
-   "premiere": "2026-09-17T17:18:00.013209Z",
-   "derniere": "2026-09-17T20:50:10.170233Z"
   },
   {
    "id": "presentation",
@@ -758,6 +811,355 @@
  ],
  "entrees": [
   {
+   "id": "3205081d7249cc22599dd23ad31de422627b8efd059dc8abfed9ef8eb543e113",
+   "titre": "Mémoire Vive — jalon livré le 22/09/2026",
+   "resume": "Page d'admin locale (chantier C) fusionnée dans main et publiée. scripts/admin.py sert une page « Réglages de Mémoire Vive » sur 127.0.0.1 uniquement, jamais mise en ligne (dossier admin/, hors docs/) ; lancement par admin.cmd et le raccourci « Gérer Mémoire…",
+   "contenu": "Mémoire Vive — jalon livré le 22/09/2026 : page d'admin locale (chantier C) fusionnée dans main et publiée. scripts/admin.py sert une page « Réglages de Mémoire Vive » sur 127.0.0.1 uniquement, jamais mise en ligne (dossier admin/, hors docs/) ; lancement par admin.cmd et le raccourci « Gérer Mémoire Vive » du Bureau. Quatre onglets : Projets (nom, famille, description, lien principal, alias, fusion), Familles (ajout, renommage, ordre, couleur, suppression), Entrées (corriger titre et résumé, masquer du site) et Recherche (groupes de synonymes) ; trois boutons : Enregistrer, Aperçu et Publier. Décisions durables : l'aperçu utilise export.py --no-git --sans-recherche, donc il n'écrit jamais dans la mémoire partagée ; la publication est refusée avec une explication en français si le dépôt n'est pas sain (hors main, arbre sale, rebasage ou fusion en cours, distant en avance) et ne force jamais un push ; aucun secret n'est accepté dans un champ publié (les trois config/*.json partent dans le dépôt public) ; masquer une entrée efface ses corrections de titre et de résumé ; un config/projets.json sans « \"version\": 2 » est refusé plutôt que relu en v1. Sécurité vérifiée par une revue offensive : jeton par lancement, contrôles Host et Origin, écritures JSON seulement, liste fermée de fichiers, verrou d'instance. Tests : 178 Python, 72 Node, 138 navigateur.",
+   "type": "milestone",
+   "tags": [
+    "memoire-vive",
+    "projet",
+    "jalon",
+    "decision"
+   ],
+   "cree_le": "2026-09-22T08:24:54.639328Z",
+   "modifie_le": "2026-09-22T08:24:54.639328Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "127.0.0.1"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "memoire-vive",
+   "voisins": [
+    {
+     "id": "23ce02674541a7069cb4e0f085c91d7e5e3c57631a2559c6f97316aac1b47121",
+     "score": 0.823
+    },
+    {
+     "id": "465ac3ddd4f0dd3a4285d095f0368d7eee2b3c6648bd147ed4f802524db2cc74",
+     "score": 0.823
+    },
+    {
+     "id": "405b50d3efc0c8668968690c9885d25d071c8adbe30b05f9deafe5dfb19e9d3d",
+     "score": 0.803
+    },
+    {
+     "id": "ab8be2a4a2a0dc8c0f935eed568d9e9505aea578c08ad95ddffc35f8fb4f52e4",
+     "score": 0.801
+    }
+   ]
+  },
+  {
+   "id": "f73d4495f2d266e67a8fff54a36431a72ec937d2368439c8c49364bb01eb2032",
+   "titre": "Décision durable : sur son PC, Ollama est volontairement coupé d'internet par deux règles du pare-feu Windows…",
+   "resume": "On ne touche pas à ces règles : les modèles se téléchargent avec Python depuis registry.ollama.ai (manifeste + fichiers vérifiés en SHA-256) et se rangent dans OLLAMA_MODELS = D:\\ollama\\models.",
+   "contenu": "Décision durable (22/09/2026, validée par Noah) : sur son PC, Ollama est volontairement coupé d'internet par deux règles du pare-feu Windows créées pour Jarvis (« Jarvis - bloquer Ollama sortant » et « Jarvis - bloquer Ollama app sortant »), donc « ollama pull » échoue avec « access a socket in a way forbidden by its access permissions ». On ne touche pas à ces règles : les modèles se téléchargent avec Python depuis registry.ollama.ai (manifeste + fichiers vérifiés en SHA-256) et se rangent dans OLLAMA_MODELS = D:\\ollama\\models. Script prêt à l'emploi : D:\\trade-sandbox\\scripts\\telecharger_modele.py (ex. « .venv\\Scripts\\python scripts\\telecharger_modele.py qwen3-vl:8b »). qwen3-vl:8b est installé ainsi. Particularité technique : avec Ollama 0.33 et qwen3-vl, format JSON + think=false met la réponse dans message.thinking au lieu de message.content.",
+   "type": "decision",
+   "tags": [
+    "ollama",
+    "jarvis",
+    "pare-feu",
+    "decision",
+    "trade-sandbox",
+    "machine"
+   ],
+   "cree_le": "2026-09-22T07:07:34.489131Z",
+   "modifie_le": "2026-09-22T07:07:34.489131Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\ollama\\models"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox\\scripts\\telecharger_modele.py"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "jarvis",
+   "voisins": []
+  },
+  {
+   "id": "23ce02674541a7069cb4e0f085c91d7e5e3c57631a2559c6f97316aac1b47121",
+   "titre": "Mémoire Vive — chantier C",
+   "resume": "Lot de corrections final livré le 2026-09-22 sur la branche chantier-c (worktree D:\\memoire_vive-chantier-c), base dd64b54 → tête 9816eff, 3 commits, non poussé et non fusionné dans main.",
+   "contenu": "Mémoire Vive — chantier C (page d'admin locale) : lot de corrections final livré le 2026-09-22 sur la branche chantier-c (worktree D:\\memoire_vive-chantier-c), base dd64b54 → tête 9816eff, 3 commits, non poussé et non fusionné dans main.\n\nLes 17 constats du brief .superpowers/sdd/2026-09-19-chantier-c-admin/final-fix-brief.md sont corrigés, chacun avec un test qui échouait avant. Rapport détaillé : .superpowers/sdd/2026-09-19-chantier-c-admin/final-fix-report.md.\n\nDécisions durables prises dans ce lot :\n- scripts/admin.py refuse la publication quand git a laissé une opération en plan (rebasage, cherry-pick, revert) et donne la commande qui l'annule ; le test de branche ne passe plus en premier.\n- Le README documente la sortie d'un rebasage conflictuel sur docs/data.json : « git rebase --abort » d'abord, et --theirs (jamais --ours) si on va au bout.\n- L'admin ne passe jamais --force à l'export ; elle explique seulement pourquoi l'export a refusé.\n- Une entrée masquée n'a plus de champ Titre ni Résumé, et modele.js refuse de la corriger : rien de privé ne peut partir dans config/entrees.json, publié avec le dépôt.\n- Un config/projets.json sans « \"version\": 2 » mais avec un bloc « projets » est refusé au lieu d'être lu en v1 (la page mentirait sur l'état du site).\n- Filet général dans le serveur : toute erreur imprévue donne 500 avec une ligne en français, jamais une trace Python ni une connexion coupée.\n\nSuites vertes : 177 tests Python (unittest), 72 tests Node (modèle), 138 tests navigateur (Chrome via playwright-core).",
+   "type": "milestone",
+   "tags": [
+    "memoire-vive",
+    "chantier-c",
+    "admin",
+    "jalon",
+    "git",
+    "securite"
+   ],
+   "cree_le": "2026-09-22T06:58:23.863514Z",
+   "modifie_le": "2026-09-22T06:58:23.863514Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\memoire_vive-chantier-c"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "memoire-vive",
+   "voisins": [
+    {
+     "id": "ab8be2a4a2a0dc8c0f935eed568d9e9505aea578c08ad95ddffc35f8fb4f52e4",
+     "score": 0.846
+    },
+    {
+     "id": "3205081d7249cc22599dd23ad31de422627b8efd059dc8abfed9ef8eb543e113",
+     "score": 0.823
+    },
+    {
+     "id": "23d37afa7ffc0148c1ed57e73149eea60fec02d76ac6958082b492385ea90b71",
+     "score": 0.801
+    }
+   ]
+  },
+  {
+   "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+   "titre": "Projet Trade Sandbox — jalon livré le 22/09/2026",
+   "resume": "Étape 11 faite à la demande de Noah. Actions via yfinance (symboles sans « / » = actions Yahoo : AAPL, MC.PA… ; yfinance importé uniquement dans market_data.py ; avertissement « non officiel » à l'écran ; prix comptés sans conversion de devise) et actualités…",
+   "contenu": "Projet Trade Sandbox (D:\\trade-sandbox) — jalon livré le 22/09/2026 : étape 11 faite à la demande de Noah. Actions via yfinance (symboles sans « / » = actions Yahoo : AAPL, MC.PA… ; yfinance importé uniquement dans market_data.py ; avertissement « non officiel » à l'écran ; prix comptés sans conversion de devise) et actualités RSS pour le Coach (news.py, flux configurables dans config.json rubrique news, titres transmis comme non vérifiés). Décision durable : le port local est choisi automatiquement partout (lancement, python -m app, serveur Vite) si le port voulu est pris, port réel noté dans data/runtime.json ; CORS limité à 127.0.0.1/localhost tous ports. 144 tests pytest.",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "trading",
+    "trade-sandbox",
+    "milestone",
+    "architecture",
+    "claude-code"
+   ],
+   "cree_le": "2026-09-22T06:20:56.949684Z",
+   "modifie_le": "2026-09-22T06:20:56.949684Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1/localhost"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trading",
+   "voisins": [
+    {
+     "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
+     "score": 0.848
+    },
+    {
+     "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
+     "score": 0.841
+    },
+    {
+     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
+     "score": 0.837
+    }
+   ]
+  },
+  {
+   "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
+   "titre": "Projet Trade Sandbox — jalon livré le 22/09/2026",
+   "resume": "Les 10 étapes de SPEC.md sont construites par Claude Code (un commit git par étape, 119 tests pytest dont le test garde-fou).",
+   "contenu": "Projet Trade Sandbox (D:\\trade-sandbox) — jalon livré le 22/09/2026 : les 10 étapes de SPEC.md sont construites par Claude Code (un commit git par étape, 119 tests pytest dont le test garde-fou). Architecture : backend FastAPI + SQLite (Python 3.12, venv .venv), market_data.py seul module ccxt (load_markets/fetch_ohlcv/fetch_ticker, binance puis repli kraken), moteur d'exécution commun direct/replay/backtest (portfolio.py + execution.py), frontend React 19 + Vite 8 + TypeScript 7 + lightweight-charts 5 servi par le backend. Modules : portefeuille fictif, journal + export CSV, Replay (futur gardé côté serveur), backtest (3 stratégies), Analyzer mode A (niveaux calculés par le code, IA choisit parmi eux) et mode B (capture), suivi des plans et vrai taux de réussite (≥ 30 plans), Coach (Ollama local, aucun accès au portefeuille), page « Prêt pour le réel ? ». Décision durable : le port 8000 étant occupé par MCP Memory Service sur le PC de Noah, start.ps1 bascule automatiquement sur le premier port libre (8001 en pratique). Étape 11 (yfinance, RSS) non faite, sur demande seulement.",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "trading",
+    "trade-sandbox",
+    "milestone",
+    "architecture",
+    "claude-code"
+   ],
+   "cree_le": "2026-09-22T05:45:45.088776Z",
+   "modifie_le": "2026-09-22T05:45:45.088776Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox"
+    },
+    {
+     "type": "local",
+     "valeur": "port 8000"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trading",
+   "voisins": [
+    {
+     "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
+     "score": 0.856
+    },
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.841
+    },
+    {
+     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
+     "score": 0.816
+    }
+   ]
+  },
+  {
+   "id": "4aa6438cb7dc6dbefbeea10f8617d068d403546906412910836a29c7ee90dc47",
+   "titre": "Projet « PC Modes » : version perso de PC Rituals à faire construire par Claude Code",
+   "resume": "Livré : SPEC_PC_Modes.md — Electron + TypeScript + React/Vite, modes (jeux Steam/Epic/lanceurs, applis, sites, Spotify, plan d'alim, audio, Wallpaper Engine, OpenRGB), pilotage depuis le PC, le téléphone (page web, appairage QR + jeton, réseau local Privé…",
+   "contenu": "Projet « PC Modes » (22/09/2026) : version perso de PC Rituals à faire construire par Claude Code. Livré : SPEC_PC_Modes.md — Electron + TypeScript + React/Vite, modes (jeux Steam/Epic/lanceurs, applis, sites, Spotify, plan d'alim, audio, Wallpaper Engine, OpenRGB), pilotage depuis le PC, le téléphone (page web, appairage QR + jeton, réseau local Privé uniquement, option Tailscale « Partout ») et l'écran tactile du HYTE Y70 Touch (fenêtre non activable qui ne vole pas le focus aux jeux). Édition des modes réservée au PC, pas de micro.",
+   "type": "note",
+   "tags": [
+    "projet",
+    "pc-modes",
+    "pc-rituals",
+    "hyte",
+    "spec",
+    "claude-code",
+    "cowork"
+   ],
+   "cree_le": "2026-09-22T04:58:53.865020Z",
+   "modifie_le": "2026-09-22T04:58:53.865020Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "pc-modes",
+   "voisins": []
+  },
+  {
+   "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
+   "titre": "Projet « Trade Sandbox »",
+   "resume": "Noah veut que Claude Code lui construise un outil local type Trade AI, testable sans argent réel. Livré : SPEC.md (cahier des charges pour Claude Code) — Python/FastAPI + React/Vite + lightweight-charts, données publiques ccxt, IA locale Ollama (qwen3-vl:8b)…",
+   "contenu": "Projet « Trade Sandbox » (22/09/2026) : Noah veut que Claude Code lui construise un outil local type Trade AI, testable sans argent réel. Livré : SPEC.md (cahier des charges pour Claude Code) — Python/FastAPI + React/Vite + lightweight-charts, données publiques ccxt, IA locale Ollama (qwen3-vl:8b), modules portefeuille fictif, journal, mode Replay, backtest, Analyzer (données + capture), Coach, page « Prêt pour le réel ? ». Garde-fous : aucun ordre réel, aucune clé API, test automatique anti-argent réel. À déposer dans un dossier projet puis faire lire à Claude Code.",
+   "type": "note",
+   "tags": [
+    "projet",
+    "trading",
+    "trade-sandbox",
+    "spec",
+    "claude-code",
+    "cowork"
+   ],
+   "cree_le": "2026-09-22T04:40:45.549231Z",
+   "modifie_le": "2026-09-22T04:40:45.549231Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trading",
+   "voisins": [
+    {
+     "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
+     "score": 0.856
+    },
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.848
+    },
+    {
+     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
+     "score": 0.848
+    }
+   ]
+  },
+  {
+   "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
+   "titre": "Projet trading : Noah veut explorer le trading 100 % en sandbox, avec 4 volets : avis sur Trade AI, apprendre…",
+   "resume": "Pistes proposées par Claude : TradingView Paper Trading, Freqtrade (backtest + dry-run), Alpaca paper API, Binance Spot Testnet.",
+   "contenu": "Projet trading (22/09/2026) : Noah veut explorer le trading 100 % en sandbox (fonds virtuels, aucun argent réel tant qu'il n'y a pas de résultats), avec 4 volets : avis sur Trade AI (gettrade.ai, jugé non nécessaire), apprendre les bases, coder son propre outil en local, utiliser l'IA. Pistes proposées par Claude : TradingView Paper Trading, Freqtrade (backtest + dry-run), Alpaca paper API, Binance Spot Testnet. Rien de produit pour l'instant.",
+   "type": "note",
+   "tags": [
+    "projet",
+    "trading",
+    "sandbox",
+    "paper-trading",
+    "cowork"
+   ],
+   "cree_le": "2026-09-22T04:30:44.449758Z",
+   "modifie_le": "2026-09-22T04:30:44.449758Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trading",
+   "voisins": [
+    {
+     "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
+     "score": 0.848
+    },
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.837
+    },
+    {
+     "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
+     "score": 0.816
+    }
+   ]
+  },
+  {
+   "id": "77d70a96cac8e6e6803a7344dfb6a55975283c6c02adf6695dcb22a7740460b8",
+   "titre": "Dossier « A_check » : 10 rapports .md d'audit de confiance de 9 onglets Chrome — BuildYourSaaS, Jevable/Jev…",
+   "resume": "Dans C:\\Users\\chipat\\Downloads\\Dossier_A_check. Revus par Claude (Cowork) : jugés fiables (4 points recontrôlés, tous confirmés), défaut = échelle de notes qui se chevauche.",
+   "contenu": "Dossier « A_check » (22/09/2026) : 10 rapports .md (synthèse + 1 par outil) d'audit de confiance de 9 onglets Chrome — BuildYourSaaS, Jevable/Jev, Trade AI, UNIKEY, PC Rituals, Zoey OS, Bloxks, ECC (affaan-m), Dyad. Dans C:\\Users\\chipat\\Downloads\\Dossier_A_check. Revus par Claude (Cowork) : jugés fiables (4 points recontrôlés, tous confirmés), défaut = échelle de notes qui se chevauche. Pistes retenues : copier 3-5 skills ECC à la main (pas le plugin), Jev à tester pour IA de PNJ, UNIKEY à fuir. Rien d'installé ni livré.",
+   "type": "note",
+   "tags": [
+    "projet",
+    "a_check",
+    "audit-outils",
+    "ecc",
+    "cowork"
+   ],
+   "cree_le": "2026-09-22T04:13:03.542857Z",
+   "modifie_le": "2026-09-22T04:13:03.542857Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "C:\\Users\\chipat\\Downloads\\Dossier_A_check"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "a-check",
+   "voisins": [
+    {
+     "id": "a5f94401b2845f8fc4eb942bbc79d465a66607cee58a00b45277646d304be58c",
+     "score": 0.899
+    }
+   ]
+  },
+  {
+   "id": "a5f94401b2845f8fc4eb942bbc79d465a66607cee58a00b45277646d304be58c",
+   "titre": "Vérification de fiabilité « A_check »",
+   "resume": "Noah a demandé d'enquêter sur 9 onglets Chrome avant usage. Livré : dossier Dossier_A_check (.zip + 1 fichier .md par onglet + synthèse).",
+   "contenu": "Vérification de fiabilité « A_check » (22/09/2026) : Noah a demandé d'enquêter sur 9 onglets Chrome avant usage. Livré : dossier Dossier_A_check (.zip + 1 fichier .md par onglet + synthèse). Verdicts : BuildYourSaaS Prudence 4/10 ; Jevable Fiable avec réserves 6,5/10 ; Trade AI Prudence 4/10 ; UNIKEY À éviter 2/10 ; PC Rituals Prudence 4/10 ; Zoey OS Prudence 4/10 ; Bloxks Fiable avec réserves 5,5/10 ; ECC (affaan-m) Prudence 6/10 (copier quelques skills plutôt qu'installer) ; Dyad Fiable avec réserves 7/10. Déplacement des onglets vers le groupe « Check » laissé à Noah (impossible via les outils).",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "verification-outils",
+    "a_check",
+    "dossier-livre"
+   ],
+   "cree_le": "2026-09-22T04:00:07.933027Z",
+   "modifie_le": "2026-09-22T04:00:07.933027Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "verification-outils",
+   "voisins": [
+    {
+     "id": "77d70a96cac8e6e6803a7344dfb6a55975283c6c02adf6695dcb22a7740460b8",
+     "score": 0.899
+    }
+   ]
+  },
+  {
    "id": "465ac3ddd4f0dd3a4285d095f0368d7eee2b3c6648bd147ed4f802524db2cc74",
    "titre": "Mémoire Vive — jalon livré le 19/09/2026",
    "resume": "Chantier B (nouveau site public) fusionné dans main et publié sur https://chipat-neko.github.io/memoire-vive/. Le site est découpé en modules ES (docs/js : donnees, recherche, routes, composants, vues/*, app) sous CSP stricte, sans dépendance.",
@@ -795,6 +1197,10 @@
     {
      "id": "ab8be2a4a2a0dc8c0f935eed568d9e9505aea578c08ad95ddffc35f8fb4f52e4",
      "score": 0.863
+    },
+    {
+     "id": "3205081d7249cc22599dd23ad31de422627b8efd059dc8abfed9ef8eb543e113",
+     "score": 0.823
     },
     {
      "id": "53b605648976f61e3c8c45e5685e7ffb730eb12941a3175c5d4c25dba024b000",
@@ -840,8 +1246,16 @@
      "score": 0.863
     },
     {
+     "id": "23ce02674541a7069cb4e0f085c91d7e5e3c57631a2559c6f97316aac1b47121",
+     "score": 0.846
+    },
+    {
      "id": "23d37afa7ffc0148c1ed57e73149eea60fec02d76ac6958082b492385ea90b71",
      "score": 0.838
+    },
+    {
+     "id": "3205081d7249cc22599dd23ad31de422627b8efd059dc8abfed9ef8eb543e113",
+     "score": 0.801
     }
    ]
   },
@@ -1012,6 +1426,10 @@
     {
      "id": "ab8be2a4a2a0dc8c0f935eed568d9e9505aea578c08ad95ddffc35f8fb4f52e4",
      "score": 0.838
+    },
+    {
+     "id": "23ce02674541a7069cb4e0f085c91d7e5e3c57631a2559c6f97316aac1b47121",
+     "score": 0.801
     }
    ]
   },
@@ -1151,6 +1569,10 @@
     {
      "id": "465ac3ddd4f0dd3a4285d095f0368d7eee2b3c6648bd147ed4f802524db2cc74",
      "score": 0.865
+    },
+    {
+     "id": "3205081d7249cc22599dd23ad31de422627b8efd059dc8abfed9ef8eb543e113",
+     "score": 0.803
     }
    ]
   },
@@ -3082,5 +3504,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "43ca70ab4ec7fc7758c306e97662665f662c9d7e9700079f085bde1e5b777b5e"
+ "empreinte": "27b2e457d1dfe018464e10a742ab865cb35bffddc0187bce936739e3d5cea7a6"
 }

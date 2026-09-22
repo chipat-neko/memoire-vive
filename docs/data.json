@@ -1,6 +1,6 @@
 {
  "schema": 2,
- "genere_le": "2026-09-22T11:14:00Z",
+ "genere_le": "2026-09-22T11:15:50Z",
  "source": "mcp-memory-service",
  "nb_entrees": 89,
  "types": {
@@ -125,50 +125,23 @@
   },
   {
    "id": "trade-sandbox",
-   "nom": "Trade sandbox",
-   "famille": null,
-   "description": null,
-   "lien_principal": null,
-   "nb": 1,
-   "types": {
-    "decision": 1
-   },
-   "premiere": "2026-09-22T10:25:47.728973Z",
-   "derniere": "2026-09-22T10:25:47.728973Z"
-  },
-  {
-   "id": "jarvis",
-   "nom": "Jarvis",
-   "famille": "ia",
-   "description": "Assistant personnel 100 % local, gratuit et open source, sous Windows 11 avec une RTX 5070 Ti. Modèle servi par Ollama ; OpenCode sert de moteur d'agents, avec trois agents cloisonnés par leurs permissions (journee, memoire, atelier) et des skills par tâche…",
-   "lien_principal": null,
-   "nb": 5,
-   "types": {
-    "decision": 2,
-    "milestone": 2,
-    "reference": 1
-   },
-   "premiere": "2026-09-17T17:18:00.013209Z",
-   "derniere": "2026-09-22T07:07:34.489131Z"
-  },
-  {
-   "id": "trading",
-   "nom": "trading",
-   "famille": null,
+   "nom": "Trade Sandbox",
+   "famille": "sites",
    "description": "Les 10 étapes de SPEC.md sont construites par Claude Code (un commit git par étape, 119 tests pytest dont le test garde-fou).",
    "lien_principal": null,
-   "nb": 4,
+   "nb": 6,
    "types": {
+    "decision": 2,
     "milestone": 2,
     "note": 2
    },
    "premiere": "2026-09-22T04:30:44.449758Z",
-   "derniere": "2026-09-22T06:20:56.949684Z"
+   "derniere": "2026-09-22T10:25:47.728973Z"
   },
   {
    "id": "pc-modes",
    "nom": "PC Modes",
-   "famille": null,
+   "famille": "sites",
    "description": null,
    "lien_principal": null,
    "nb": 1,
@@ -181,28 +154,16 @@
   {
    "id": "a-check",
    "nom": "A_check",
-   "famille": null,
+   "famille": "outils-claude",
    "description": null,
    "lien_principal": null,
-   "nb": 1,
+   "nb": 2,
    "types": {
-    "note": 1
-   },
-   "premiere": "2026-09-22T04:13:03.542857Z",
-   "derniere": "2026-09-22T04:13:03.542857Z"
-  },
-  {
-   "id": "verification-outils",
-   "nom": "A_check",
-   "famille": null,
-   "description": null,
-   "lien_principal": null,
-   "nb": 1,
-   "types": {
+    "note": 1,
     "milestone": 1
    },
    "premiere": "2026-09-22T04:00:07.933027Z",
-   "derniere": "2026-09-22T04:00:07.933027Z"
+   "derniere": "2026-09-22T04:13:03.542857Z"
   },
   {
    "id": "depths",
@@ -348,6 +309,21 @@
    },
    "premiere": "2026-09-17T20:35:40.346018Z",
    "derniere": "2026-09-18T04:46:13.046116Z"
+  },
+  {
+   "id": "jarvis",
+   "nom": "Jarvis",
+   "famille": "ia",
+   "description": "Assistant personnel 100 % local, gratuit et open source, sous Windows 11 avec une RTX 5070 Ti. Modèle servi par Ollama ; OpenCode sert de moteur d'agents, avec trois agents cloisonnés par leurs permissions (journee, memoire, atelier) et des skills par tâche…",
+   "lien_principal": null,
+   "nb": 4,
+   "types": {
+    "milestone": 2,
+    "reference": 1,
+    "decision": 1
+   },
+   "premiere": "2026-09-17T17:18:00.013209Z",
+   "derniere": "2026-09-17T20:50:10.170233Z"
   },
   {
    "id": "presentation",
@@ -952,7 +928,7 @@
    ],
    "lien_principal": null,
    "corrige": false,
-   "projet": "jarvis",
+   "projet": "trade-sandbox",
    "voisins": []
   },
   {
@@ -1023,7 +999,7 @@
    ],
    "lien_principal": null,
    "corrige": false,
-   "projet": "trading",
+   "projet": "trade-sandbox",
    "voisins": [
     {
      "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
@@ -1071,7 +1047,7 @@
    ],
    "lien_principal": null,
    "corrige": false,
-   "projet": "trading",
+   "projet": "trade-sandbox",
    "voisins": [
     {
      "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
@@ -1129,7 +1105,7 @@
    "liens": [],
    "lien_principal": null,
    "corrige": false,
-   "projet": "trading",
+   "projet": "trade-sandbox",
    "voisins": [
     {
      "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
@@ -1167,7 +1143,7 @@
    "liens": [],
    "lien_principal": null,
    "corrige": false,
-   "projet": "trading",
+   "projet": "trade-sandbox",
    "voisins": [
     {
      "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
@@ -1235,7 +1211,7 @@
    "liens": [],
    "lien_principal": null,
    "corrige": false,
-   "projet": "verification-outils",
+   "projet": "a-check",
    "voisins": [
     {
      "id": "77d70a96cac8e6e6803a7344dfb6a55975283c6c02adf6695dcb22a7740460b8",
@@ -3588,5 +3564,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "6b5958dc5791d56f6137918e0ca1bdf0e1e2f44cc6dac52878635b75ca760f47"
+ "empreinte": "5e2cd391a2f0f740b3c43f330a50a0e233e8d44c3c910d544141fd56b59e5aae"
 }

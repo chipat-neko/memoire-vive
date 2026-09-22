@@ -54,6 +54,7 @@ import json
 import math
 import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -1250,6 +1251,64 @@ def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
     )
 
 
+GIT_RESEAU_DELAI = 60  # secondes : au-delà, GitHub est tenu pour injoignable
+# Un serveur qui répond au compte-gouttes est lui aussi tenu pour injoignable :
+# sans cela, un transfert à l'arrêt userait tout le délai ci-dessus.
+GIT_RESEAU_LENTEUR = ("-c", "http.lowSpeedLimit=1000", "-c", "http.lowSpeedTime=20")
+# git et ses aides (git-remote-https…) dans un groupe à part : au bout du
+# délai, tout le groupe est arrêté. Une aide laissée en vie garderait la sortie
+# ouverte, et l'attente ne finirait jamais malgré le délai.
+GROUPE_A_PART = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt"
+                 else {"start_new_session": True})
+
+
+def arreter_groupe(processus: subprocess.Popen) -> None:
+    """Arrête git et tous les processus qu'il a lancés."""
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(processus.pid)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        try:
+            os.killpg(processus.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+    if processus.poll() is None:
+        processus.kill()
+
+
+def git_reseau(*args: str) -> subprocess.CompletedProcess:
+    """
+    Comme git(), pour les commandes qui joignent GitHub : jamais de saisie au
+    clavier, et jamais d'attente sans fin.
+
+    Un serveur qui accepte la connexion sans jamais répondre (réseau filtré,
+    tunnel à moitié ouvert) bloquerait sinon l'export pour toujours : lancé
+    depuis le raccourci du Bureau, il resterait sur « Source : … » sans jamais
+    finir ; lancé par la page d'admin, il userait tout le délai de celle-ci
+    (EXPORT_DELAI, 15 minutes) avant d'être arrêté. Au-delà de
+    GIT_RESEAU_DELAI, git et ses aides sont arrêtés et le code de retour est
+    non nul : l'appelant dit alors que GitHub n'a pas pu être contacté.
+    """
+    commande = ["git", *GIT_RESEAU_LENTEUR, *args]
+    environ = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
+    try:
+        processus = subprocess.Popen(commande, cwd=ROOT, env=environ, stdin=subprocess.DEVNULL,
+                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                                     encoding="utf-8", errors="replace", **GROUPE_A_PART)
+    except OSError as err:
+        return subprocess.CompletedProcess(commande, 1, f"git n'a pas pu être lancé : {err}")
+    try:
+        sortie, _ = processus.communicate(timeout=GIT_RESEAU_DELAI)
+        return subprocess.CompletedProcess(commande, processus.returncode, sortie)
+    except subprocess.TimeoutExpired:
+        arreter_groupe(processus)
+        try:
+            processus.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            pass
+        return subprocess.CompletedProcess(commande, 1, f"git n'a pas répondu en {GIT_RESEAU_DELAI} s.")
+
+
 def upstream() -> str | None:
     """Branche distante suivie (« origin/main »), ou None quand la branche
     courante n'en suit aucune (premier export, copie sans origin)."""
@@ -1281,7 +1340,7 @@ def sync_with_remote() -> None:
     amont = upstream()
     if amont is None:
         return
-    if git("fetch", "--quiet", check=False).returncode != 0:
+    if git_reseau("fetch", "--quiet").returncode != 0:
         print("  ! git : GitHub n'a pas pu être contacté ; l'export continue avec ce que cet ordinateur a.")
         return
     retard = count_commits(f"HEAD..{amont}")
@@ -1300,8 +1359,10 @@ def sync_with_remote() -> None:
         if etat and not etat.startswith("??"):
             # data.json écrit sans être commité (aperçu de la page d'admin,
             # export interrompu) : il barre l'avance, et cet export le réécrit
-            # de toute façon juste après.
-            git("checkout", "--", relative, check=False)
+            # de toute façon juste après. « HEAD -- » et non « -- » : un export
+            # arrêté entre le « git add » et le « git commit » laisse data.json
+            # dans l'index, et repartir de l'index le laisserait tel quel.
+            git("checkout", "HEAD", "--", relative, check=False)
             result = git("merge", "--ff-only", amont, check=False)
     if result.returncode != 0:
         premiere = (result.stdout.strip().splitlines() or [""])[0]

@@ -1287,6 +1287,105 @@ class PublicationAdminTest(unittest.TestCase):
         self.assertIn("[masqué]", corps["sortie"])
 
 
+class SynchronisationAdminTest(unittest.TestCase):
+    """
+    admin.synchroniser : reprendre les commits que GitHub a en plus avant de
+    commiter les réglages — et le dire, quoi qu'il arrive.
+
+    Cet appel se fait dans le fil de la requête « Publier », verrou de
+    publication tenu : s'il n'avait pas de fin, « Publier » ne rendrait jamais
+    la main et tout « Publier » ou « Aperçu » suivant répondrait « Occupé »
+    jusqu'à la fermeture d'admin.cmd.
+
+    Dépôts git locaux temporaires (un « distant » nu et un clone) : jamais le
+    vrai dépôt distant, aucun accès au réseau extérieur.
+    """
+
+    def setUp(self):
+        self.dossier = tempfile.TemporaryDirectory(prefix="mv-sync-admin-")
+        self.addCleanup(self.dossier.cleanup)
+        self.base = Path(self.dossier.name)
+        self.depot, self.distant = self.base / "depot", self.base / "distant.git"
+        (self.depot / "docs").mkdir(parents=True)
+        self.donnees = self.depot / "docs" / "data.json"
+        self.donnees.write_text('{"nb_entrees": 1}\n', encoding="utf-8")
+        sh("git", "init", "-q", "--bare", "-b", "main", str(self.distant), cwd=self.base)
+        sh("git", "init", "-q", "-b", "main", cwd=self.depot)
+        sh("git", "config", "user.name", "test", cwd=self.depot)
+        sh("git", "config", "user.email", "test@example.invalid", cwd=self.depot)
+        sh("git", "add", ".", cwd=self.depot)
+        sh("git", "commit", "-q", "-m", "init", cwd=self.depot)
+        sh("git", "remote", "add", "origin", str(self.distant), cwd=self.depot)
+        sh("git", "push", "-q", "-u", "origin", "main", cwd=self.depot)
+
+    def ailleurs(self, autres=()):
+        """La nuit, le robot de GitHub réécrit docs/data.json et le publie."""
+        autre = self.base / "autre"
+        if not autre.exists():
+            sh("git", "clone", "-q", str(self.distant), str(autre), cwd=self.base)
+            sh("git", "config", "user.name", "robot", cwd=autre)
+            sh("git", "config", "user.email", "robot@example.invalid", cwd=autre)
+        (autre / "docs" / "data.json").write_text('{"nb_entrees": 2}\n', encoding="utf-8")
+        for nom in autres:
+            (autre / nom).write_text("écrit par le robot\n", encoding="utf-8")
+        sh("git", "add", "-A", cwd=autre)
+        sh("git", "commit", "-q", "-m", "Export mémoire : 2 entrées", cwd=autre)
+        sh("git", "push", "-q", cwd=autre)
+
+    def dernier(self):
+        return sh("git", "log", "-1", "--format=%s", cwd=self.depot)
+
+    def test_data_json_deja_indexe_ne_bloque_pas(self):
+        # Une publication arrêtée entre le « git add » et le « git commit »
+        # (Ctrl-C, délai de l'export, .git/index.lock) laisse docs/data.json
+        # dans l'index. Le rétablir depuis l'index le laisserait tel quel, et
+        # l'avance resterait barrée : c'est HEAD qui fait foi.
+        self.ailleurs()
+        self.donnees.write_text('{"nb_entrees": 99}\n', encoding="utf-8")
+        sh("git", "add", "docs/data.json", cwd=self.depot)
+        ligne = admin.synchroniser(self.depot)
+        self.assertEqual(ligne, "git : 1 commit(s) repris depuis GitHub avant la publication.")
+        self.assertEqual(self.dernier(), "Export mémoire : 2 entrées")
+        self.assertEqual(self.donnees.read_text(encoding="utf-8"), '{"nb_entrees": 2}\n')
+
+    def test_reprise_abandonnee_dit_pourquoi(self):
+        # L'avance reste barrée par autre chose que data.json : la page doit
+        # quand même montrer une ligne, sinon elle ne dit rien de la tentative.
+        self.ailleurs(autres=("docs/note.txt",))
+        (self.depot / "docs" / "note.txt").write_text("écrit ici\n", encoding="utf-8")
+        ligne = admin.synchroniser(self.depot)
+        self.assertIsNotNone(ligne, "la page ne dirait rien de cette tentative")
+        self.assertIn("n'ont pas pu être repris", ligne)
+        self.assertEqual(self.dernier(), "init", "rien n'est forcé")
+
+    def test_github_muet_narrete_pas_la_publication(self):
+        # Un serveur qui accepte la connexion sans jamais répondre (réseau
+        # filtré, tunnel à moitié ouvert). Le délai réel (60 s) est raccourci ici.
+        trou = socket.socket()
+        trou.bind(("127.0.0.1", 0))
+        trou.listen(1)  # connexion acceptée par le système, jamais lue : git attend
+        self.addCleanup(trou.close)
+        sh("git", "remote", "set-url", "origin", f"git://127.0.0.1:{trou.getsockname()[1]}/depot.git",
+           cwd=self.depot)
+        fini, resultat = threading.Event(), {}
+
+        def appeler():
+            debut = time.monotonic()
+            try:
+                resultat["ligne"] = admin.synchroniser(self.depot)
+                resultat["duree"] = time.monotonic() - debut
+            finally:
+                fini.set()
+
+        with mock.patch.object(admin, "RESEAU_DELAI", 3):
+            threading.Thread(target=appeler, daemon=True).start()
+            self.assertTrue(fini.wait(90), "synchroniser() n'a jamais rendu la main : « Publier » resterait pris")
+        self.assertEqual(resultat["ligne"],
+                         "git : GitHub n'a pas pu être contacté ; publication avec ce que cet ordinateur a.")
+        self.assertLess(resultat["duree"], 60, "la page a attendu bien au-delà du délai")
+        self.assertEqual(self.dernier(), "init")
+
+
 class LanceurTest(unittest.TestCase):
     def test_admin_cmd_lance_le_serveur_en_crlf(self):
         brut = (RACINE / "admin.cmd").read_bytes()

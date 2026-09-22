@@ -13,10 +13,12 @@ import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
 import threading
+import time
 import unittest
 from contextlib import contextmanager, redirect_stdout
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -326,6 +328,46 @@ class SynchronisationTest(unittest.TestCase):
         self.sh("git", "remote", "set-url", "origin", str(self.base / "nulle-part.git"))
         sortie = self.synchroniser()
         self.assertIn("GitHub n'a pas pu être contacté", sortie)
+        self.assertEqual(self.dernier(), "init")
+
+    def test_06_data_json_deja_indexe_ne_bloque_pas(self):
+        # Un export arrêté entre le « git add » et le « git commit » (Ctrl-C,
+        # délai de la page d'admin, .git/index.lock) laisse docs/data.json dans
+        # l'index. Le rétablir depuis l'index le laisserait tel quel, et
+        # l'avance resterait barrée : c'est HEAD qui fait foi.
+        self.ailleurs()
+        self.donnees.write_text('{"nb_entrees": 99}\n', encoding="utf-8")
+        self.sh("git", "add", "docs/data.json")
+        sortie = self.synchroniser()
+        self.assertIn("1 commit(s) repris depuis GitHub avant l'export.", sortie)
+        self.assertEqual(self.dernier(), "Export mémoire : 2 entrées")
+        self.assertEqual(self.donnees.read_text(encoding="utf-8"), '{"nb_entrees": 2}\n')
+
+    def test_07_github_muet_narrete_pas_lexport(self):
+        # Un serveur qui accepte la connexion sans jamais répondre (réseau
+        # filtré, tunnel à moitié ouvert) : sans délai, l'export resterait
+        # bloqué pour toujours sur « Source : … », et la fenêtre de l'exporteur
+        # avec lui. Le délai réel (60 s) est raccourci ici.
+        trou = socket.socket()
+        trou.bind(("127.0.0.1", 0))
+        trou.listen(1)  # connexion acceptée par le système, jamais lue : git attend
+        self.addCleanup(trou.close)
+        self.sh("git", "remote", "set-url", "origin", f"git://127.0.0.1:{trou.getsockname()[1]}/depot.git")
+        fini, resultat = threading.Event(), {}
+
+        def appeler():
+            debut = time.monotonic()
+            try:
+                resultat["sortie"] = self.synchroniser()
+                resultat["duree"] = time.monotonic() - debut
+            finally:
+                fini.set()
+
+        with mock.patch.object(export, "GIT_RESEAU_DELAI", 3):
+            threading.Thread(target=appeler, daemon=True).start()
+            self.assertTrue(fini.wait(90), "sync_with_remote() n'a jamais rendu la main")
+        self.assertIn("GitHub n'a pas pu être contacté", resultat["sortie"])
+        self.assertLess(resultat["duree"], 60, "l'export a attendu bien au-delà du délai")
         self.assertEqual(self.dernier(), "init")
 
 

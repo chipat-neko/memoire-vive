@@ -682,18 +682,49 @@ def refus_publication(racine: Path, connus: tuple = ()) -> str | None:
     return None
 
 
+RESEAU_DELAI = 60  # secondes : au-delà, GitHub est tenu pour injoignable
+# Un serveur qui répond au compte-gouttes est lui aussi tenu pour injoignable :
+# sans cela, un transfert à l'arrêt userait tout le délai ci-dessus.
+RESEAU_LENTEUR = ("-c", "http.lowSpeedLimit=1000", "-c", "http.lowSpeedTime=20")
+
+
 def git_reseau(racine: Path, *args: str) -> subprocess.CompletedProcess:
-    """Comme git(), mais sans jamais demander d'identifiant au clavier : une
-    commande qui attendrait une saisie bloquerait la page d'admin."""
-    return subprocess.run(["git", *args], cwd=racine, text=True, encoding="utf-8", errors="replace",
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                          env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
+    """
+    Comme git(), mais sans jamais demander d'identifiant au clavier ni attendre
+    sans fin : une commande qui attendrait une saisie — ou un serveur qui
+    accepte la connexion sans jamais répondre — bloquerait la page d'admin.
+
+    Cet appel-ci se fait dans le fil de la requête POST, verrou de publication
+    tenu : sans délai, « Publier » ne rendrait jamais la main, et toute
+    publication ou tout aperçu suivant répondrait « Occupé » jusqu'à ce qu'on
+    ferme admin.cmd. Au-delà de RESEAU_DELAI, git et tout ce qu'il a lancé sont
+    arrêtés (voir arreter_groupe) et le code de retour est non nul.
+    """
+    commande = ["git", *RESEAU_LENTEUR, *args]
+    environ = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
+    try:
+        processus = subprocess.Popen(commande, cwd=racine, env=environ, stdin=subprocess.DEVNULL,
+                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                     encoding="utf-8", errors="replace", **GROUPE_A_PART)
+    except OSError as err:
+        return subprocess.CompletedProcess(commande, 1, "", f"git n'a pas pu être lancé : {err}")
+    try:
+        sortie, erreurs = processus.communicate(timeout=RESEAU_DELAI)
+        return subprocess.CompletedProcess(commande, processus.returncode, sortie, erreurs)
+    except subprocess.TimeoutExpired:
+        arreter_groupe(processus)
+        try:
+            processus.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            pass
+        return subprocess.CompletedProcess(commande, 1, "", f"git n'a pas répondu en {RESEAU_DELAI} s.")
 
 
 def synchroniser(racine: Path) -> str | None:
     """
     Reprend les commits que le dépôt distant a en plus, avant de commiter les
-    réglages ; renvoie une ligne à montrer, ou None s'il n'y avait rien à faire.
+    réglages ; renvoie une ligne à montrer (reprise faite, GitHub injoignable,
+    ou reprise abandonnée), ou None s'il n'y avait rien à faire.
 
     Phase 2 : l'export quotidien de GitHub publie docs/data.json chaque nuit.
     Sans cette avance, le commit des réglages partirait d'un historique en
@@ -717,10 +748,19 @@ def synchroniser(racine: Path) -> str | None:
         if etat and not etat.startswith("??"):
             # data.json écrit par un aperçu sans être commité : il barre
             # l'avance, et la publication le réécrit de toute façon juste après.
-            git(racine, "checkout", "--", DONNEES)
+            # « HEAD -- » et non « -- » : une publication arrêtée entre le
+            # « git add » et le « git commit » (Ctrl-C, délai de l'export,
+            # index.lock) laisse data.json dans l'index, et repartir de l'index
+            # le laisserait tel quel — l'avance resterait barrée.
+            git(racine, "checkout", "HEAD", "--", DONNEES)
             resultat = git(racine, "merge", "--ff-only", amont)
     if resultat.returncode != 0:
-        return None  # l'export réessaiera, puis le push expliquera le refus
+        # L'export réessaiera, puis le push expliquera le refus : le dire
+        # quand même, sinon la page ne montre rien de cette tentative.
+        lignes = (resultat.stdout + resultat.stderr).strip().splitlines()
+        detail = f" ({lignes[0].strip()})" if lignes else ""
+        return (f"git : les {retard} commit(s) de GitHub n'ont pas pu être repris{detail} ; "
+                "la publication continue, le push dira ce qui coince.")
     return f"git : {retard} commit(s) repris depuis GitHub avant la publication."
 
 

@@ -595,13 +595,14 @@ OPERATIONS_EN_COURS = (
 def operation_git_en_cours(racine: Path) -> tuple[str, str] | None:
     """(ce que git a commencé, commande qui l'annule) si une opération git est
     restée en plan (rebasage arrêté par un conflit, picorage, annulation), ou
-    None. « git rev-parse --git-path » trouve le fichier témoin même dans une
-    copie de travail liée (git worktree)."""
+    None. « git rev-parse --git-dir » donne le bon dossier même dans une copie
+    de travail liée (git worktree), où .git est un fichier."""
+    resultat = git(racine, "rev-parse", "--git-dir")
+    if resultat.returncode != 0:
+        return None  # pas un dépôt git : le reste des garde-fous le dira
+    dossier = racine / resultat.stdout.strip()  # absolu (worktree) : racine est ignorée
     for fichier, libelle, annulation in OPERATIONS_EN_COURS:
-        resultat = git(racine, "rev-parse", "--git-path", fichier)
-        if resultat.returncode != 0:
-            return None  # pas un dépôt git : le reste des garde-fous le dira
-        if (racine / resultat.stdout.strip()).exists():
+        if (dossier / fichier).exists():
             return libelle, annulation
     return None
 

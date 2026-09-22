@@ -14,6 +14,12 @@
 # l'environnement avant de regarder .env, refuse une adresse distante en
 # http://, et n'écrit jamais l'adresse du tunnel dans le journal public.
 #
+# Chaque nuit, dans cet ordre : export (commit local seulement) → les deux
+# suites de tests relisent le docs/data.json qui vient d'être écrit → push.
+# Ce contrôle est ici parce qu'il ne peut pas être ailleurs : un envoi fait
+# avec GITHUB_TOKEN ne déclenche aucun workflow, donc .github/workflows/
+# tests.yml ne tournera jamais sur les commits de ce robot.
+#
 # Pour arrêter l'export automatique : Actions → « Export quotidien de la
 # mémoire » → Disable workflow (ou supprimer le fichier de .github/workflows/).
 # GitHub désactive de lui-même un déclenchement planifié après 60 jours sans
@@ -46,7 +52,7 @@ concurrency:
 jobs:
   export:
     runs-on: ubuntu-latest
-    timeout-minutes: 15    # lecture + voisins (budget 120 s côté script) + push
+    timeout-minutes: 20    # lecture + voisins (budget 120 s côté script) + les deux suites + push
     steps:
       # Profondeur 1 : il suffit d'avoir docs/data.json du dernier export, dont
       # l'export reprend les voisins déjà calculés. checkout garde le jeton du
@@ -57,23 +63,42 @@ jobs:
         with:
           python-version: "3.12"   # export.py : bibliothèque standard, 3.9+
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"       # suite du site, jouée avant la publication
+
       - name: Identité git du bot
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       # Sur une exécution planifiée, « inputs » est vide : aucune option n'est
-      # ajoutée, l'export se fait avec ses garde-fous.
-      - name: Export et publication
+      # ajoutée, l'export se fait avec ses garde-fous. --no-push : le commit
+      # reste ici tant que les deux suites n'ont pas relu ce qu'il contient.
+      - name: Export (commit local, sans publication)
         env:
           MEMOIRE_API_URL: ${{ secrets.MEMOIRE_API_URL }}
           MEMOIRE_API_KEY: ${{ secrets.MEMOIRE_API_KEY }}
           MEMOIRE_CF_ACCESS_CLIENT_ID: ${{ secrets.MEMOIRE_CF_ACCESS_CLIENT_ID }}
           MEMOIRE_CF_ACCESS_CLIENT_SECRET: ${{ secrets.MEMOIRE_CF_ACCESS_CLIENT_SECRET }}
         run: >-
-          python scripts/export.py
+          python scripts/export.py --no-push
           ${{ inputs.force && '--force' || '' }}
           ${{ inputs.recalculer_voisins && '--recalculer-voisins' || '' }}
+
+      # Le filet de la phase 1 : les envois du robot ne déclenchent pas
+      # tests.yml (GitHub ne lance aucun workflow sur un événement venu de
+      # GITHUB_TOKEN). Les deux suites sont donc jouées ici, entre l'export et
+      # le push : tests/js/schema.test.mjs et tests/test_admin.py relisent le
+      # docs/data.json qui vient d'être écrit. Si l'une casse, rien n'est
+      # publié, le site garde l'export de la veille et l'alerte s'ouvre.
+      - name: Contrôle du data.json produit
+        run: |
+          python -m unittest discover -s tests
+          node --test "tests/js/*.test.mjs"
+
+      - name: Publication
+        run: git push
 
       # Pour ne plus recevoir ces alertes : supprimer les deux étapes ci-dessous
       # (l'échec reste visible en rouge dans l'onglet Actions).

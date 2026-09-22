@@ -530,9 +530,16 @@ class WorkflowsTest(unittest.TestCase):
                         with self.subTest(action=etape["uses"]):
                             self.assertRegex(etape["uses"], r"^actions/[a-z-]+@v\d+$")
 
-    def test_05_phase2_reste_inactif(self):
-        self.assertFalse((RACINE / ".github" / "workflows" / "export-quotidien.yml").exists(),
-                         "le modèle de la phase 2 ne doit pas être copié dans .github/workflows")
+    def test_05_phase2_inactif_ou_copie_a_lidentique(self):
+        # Tant que la phase 2 n'est pas installée, le modèle reste dans phase2/
+        # (GitHub ne lit que .github/workflows/). Une fois installé, il y est
+        # copié : la copie doit alors rester identique au modèle — cette suite
+        # est justement jouée par le workflow quotidien avant chaque push.
+        copie = RACINE / ".github" / "workflows" / "export-quotidien.yml"
+        if not copie.exists():
+            return
+        self.assertEqual(copie.read_text(encoding="utf-8"), self.PHASE2.read_text(encoding="utf-8"),
+                         "la copie active et le modèle phase2/ ont divergé : recopier le modèle")
 
     def test_06_phase2_declencheurs_et_droits(self):
         modele = lire_yaml(self.PHASE2)
@@ -556,6 +563,22 @@ class WorkflowsTest(unittest.TestCase):
                 self.assertIn(f'pick("{variable}"', source, "variable que export.py ne lit pas")
                 self.assertIn(f"secrets.{variable}", texte, "variable jamais reliée à un secret")
         self.assertEqual(sorted(export_["env"]), citees, "toutes passées à l'export, et elles seules")
+
+    def test_07b_phase2_controle_le_data_json_avant_de_publier(self):
+        # GitHub ne lance aucun workflow pour un événement déclenché par
+        # GITHUB_TOKEN : tests.yml ne verra jamais les commits du robot. Le
+        # filet est donc dans ce workflow, entre l'export et le push.
+        etapes = self.etapes(lire_yaml(self.PHASE2)["jobs"]["export"])
+        commandes = [e.get("run") or "" for e in etapes]
+        rang_export = next(i for i, c in enumerate(commandes) if "scripts/export.py" in c)
+        rang_controle = next(i for i, c in enumerate(commandes) if "unittest discover -s tests" in c)
+        rang_push = next(i for i, c in enumerate(commandes) if c.strip() == "git push")
+        self.assertIn("--no-push", commandes[rang_export], "l'export ne publie pas lui-même")
+        self.assertLess(rang_export, rang_controle, "le contrôle relit le data.json qui vient d'être écrit")
+        self.assertLess(rang_controle, rang_push, "rien n'est publié avant le contrôle")
+        for attendue in ('python -m unittest discover -s tests', 'node --test "tests/js/*.test.mjs"'):
+            with self.subTest(commande=attendue):
+                self.assertIn(attendue, commandes[rang_controle], "les deux suites du README, telles quelles")
 
     def test_08_alerte_une_seule_issue(self):
         etapes = self.etapes(lire_yaml(self.PHASE2)["jobs"]["export"])

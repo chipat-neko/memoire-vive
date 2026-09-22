@@ -389,8 +389,17 @@ chaque envoi vers `main`, à chaque pull request et à la demande (onglet **Acti
 **Run workflow**) : un travail « Export et page d'admin (Python) », un travail « Site
 (Node) », tous deux en lecture seule sur le dépôt. Le résultat est dans l'onglet
 **Actions** : une coche verte, ou une croix rouge dont le journal montre le test qui casse.
-Les envois de l'export (`docs/data.json` seul) déclenchent aussi la vérification — c'est
-voulu : `tests/js/schema.test.mjs` et `tests/test_admin.py` lisent le vrai `data.json`.
+Les envois faits depuis cet ordinateur déclenchent aussi la vérification, même quand ils ne
+portent que `docs/data.json` : c'est voulu, `tests/js/schema.test.mjs` et
+`tests/test_admin.py` lisent le vrai `data.json` — d'où l'absence de `paths-ignore`.
+
+En revanche, **les envois du robot de la phase 2 ne la déclencheront pas** : l'export
+automatique pousse avec le jeton que `actions/checkout` laisse dans la copie de travail,
+c'est-à-dire `GITHUB_TOKEN`, et GitHub ne crée aucune exécution de workflow pour un
+événement déclenché par ce jeton (seuls `workflow_dispatch` et `repository_dispatch` font
+exception). Le filet ne disparaît pas pour autant : `phase2/export-quotidien.yml` rejoue
+lui-même les deux suites sur le `data.json` qu'il vient d'écrire, juste avant de le
+publier.
 
 La suite navigateur n'y est **pas** : elle demande un Chrome installé sur la machine de
 GitHub, ce qui n'a pas pu être vérifié d'ici. La lancer en local avant toute modification
@@ -536,23 +545,31 @@ git push
 ```
 
 Tant que le fichier reste dans `phase2/`, il ne se passe rien : GitHub ne lit que
-`.github/workflows/`.
+`.github/workflows/`. Une fois copié, les deux fichiers doivent rester identiques (un test
+le vérifie) : modifier le modèle de `phase2/`, puis le recopier.
 
 ### 6. Vérifier la première exécution
 
 Sans attendre minuit : onglet **Actions** → « Export quotidien de la mémoire » → **Run
 workflow** (laisser les deux cases décochées) → ouvrir l'exécution, puis l'étape « Export
-et publication ». On doit y lire :
+(commit local, sans publication) ». On doit y lire :
 
 ```text
 Source : dashboard distant (MEMOIRE_API_URL)
   87 entrées lues, 87 publiables, …
   git : commit « Export mémoire : 87 entrées (… UTC) »
-  git : push effectué.
 ```
 
-L'adresse du tunnel n'apparaît nulle part : c'est voulu, ce journal est public. Une à deux
-minutes plus tard, le site affiche la date du jour.
+L'adresse du tunnel n'apparaît nulle part : c'est voulu, ce journal est public.
+
+Deux étapes suivent, et c'est là toute la différence avec un export lancé à la main :
+« Contrôle du data.json produit » rejoue les deux suites de tests (Python et Node) sur le
+fichier qui vient d'être écrit, puis « Publication » fait le `git push`. Si un test casse,
+rien n'est publié : le site garde l'export de la veille et l'alerte s'ouvre. Ce contrôle
+est là parce qu'il ne peut pas être ailleurs — les envois du robot ne déclenchent pas
+`tests.yml` (voir « Vérification automatique »).
+
+Tout vert : une à deux minutes plus tard, le site affiche la date du jour.
 
 ### Quand l'export échoue
 
@@ -563,8 +580,10 @@ toute seule avec un mot.
 
 Les causes les plus courantes, et leur message : ordinateur éteint ou dashboard arrêté
 (`injoignable`), clé changée (`HTTP 401`), jeton de service expiré (`redirection
-inattendue`, `a répondu autre chose que du JSON`), dépôt GitHub en avance (`git push a
-échoué`). Le tableau « Dépannage » plus bas dit quoi faire dans chaque cas.
+inattendue`, `a répondu autre chose que du JSON`), un test qui casse à l'étape « Contrôle
+du data.json produit » (rien n'est publié, le site garde la veille), une publication faite
+à la main pendant l'exécution (`! [rejected]` à l'étape « Publication » : l'export suivant
+rattrape). Le tableau « Dépannage » plus bas dit quoi faire dans chaque cas.
 
 Pour ne plus recevoir ces issues : supprimer les deux dernières étapes de
 `.github/workflows/export-quotidien.yml` (une ligne de commentaire le dit sur place).

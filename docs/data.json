@@ -1,11 +1,11 @@
 {
  "schema": 2,
- "genere_le": "2026-09-22T11:15:50Z",
+ "genere_le": "2026-09-25T06:57:01Z",
  "source": "mcp-memory-service",
- "nb_entrees": 89,
+ "nb_entrees": 91,
  "types": {
   "note": 45,
-  "milestone": 27,
+  "milestone": 29,
   "reference": 9,
   "decision": 7,
   "error": 1
@@ -108,6 +108,34 @@
  ],
  "projets": [
   {
+   "id": "redemarrage-pc",
+   "nom": "Redémarrage PC",
+   "famille": null,
+   "description": null,
+   "lien_principal": null,
+   "nb": 1,
+   "types": {
+    "milestone": 1
+   },
+   "premiere": "2026-09-24T08:34:05.174519Z",
+   "derniere": "2026-09-24T08:34:05.174519Z"
+  },
+  {
+   "id": "trade-sandbox",
+   "nom": "Trade Sandbox",
+   "famille": "sites",
+   "description": "Les 10 étapes de SPEC.md sont construites par Claude Code (un commit git par étape, 119 tests pytest dont le test garde-fou).",
+   "lien_principal": null,
+   "nb": 7,
+   "types": {
+    "milestone": 3,
+    "decision": 2,
+    "note": 2
+   },
+   "premiere": "2026-09-22T04:30:44.449758Z",
+   "derniere": "2026-09-22T17:36:03.272053Z"
+  },
+  {
    "id": "memoire-vive",
    "nom": "Mémoire Vive",
    "famille": "outils-claude",
@@ -122,21 +150,6 @@
    },
    "premiere": "2026-09-18T06:46:26.560365Z",
    "derniere": "2026-09-22T11:13:55.104278Z"
-  },
-  {
-   "id": "trade-sandbox",
-   "nom": "Trade Sandbox",
-   "famille": "sites",
-   "description": "Les 10 étapes de SPEC.md sont construites par Claude Code (un commit git par étape, 119 tests pytest dont le test garde-fou).",
-   "lien_principal": null,
-   "nb": 6,
-   "types": {
-    "decision": 2,
-    "milestone": 2,
-    "note": 2
-   },
-   "premiere": "2026-09-22T04:30:44.449758Z",
-   "derniere": "2026-09-22T10:25:47.728973Z"
   },
   {
    "id": "pc-modes",
@@ -800,6 +813,75 @@
  ],
  "entrees": [
   {
+   "id": "e0eaca3841ad5193c2df8d0d4adafbba64e7f44d496512faa9acd111b16aa3af",
+   "titre": "Projet « Redémarrage PC »",
+   "resume": "Scripts Windows pour tout relancer après un redémarrage du PC de Noah, ou tout arrêter avant. Livré dans le dossier redemarrage-pc/ du dépôt chipatest/wiki-ultime (branche claude/machine-restart-batch-scripts-fy3yv5, PR en brouillon) et en .zip.",
+   "contenu": "Projet « Redémarrage PC » (24/09/2026) : scripts Windows pour tout relancer après un redémarrage du PC de Noah, ou tout arrêter avant. Livré dans le dossier redemarrage-pc/ du dépôt chipatest/wiki-ultime (branche claude/machine-restart-batch-scripts-fy3yv5, PR en brouillon) et en .zip. Contenu : demarrer-tout.bat et arreter-tout.bat, config.bat (seul fichier à modifier), etat.bat, et inventaire.bat, qui relève la commande exacte de chaque programme sur un port. Services couverts, dans l'ordre : Ollama, Docker (Open WebUI, n8n), mémoire partagée 8765 et tableau de bord 8000, tunnel Cloudflare, Tour de contrôle 8787, Jarvis 8766, AI Creator 8001 (désactivé par défaut), Trade Sandbox, bot d'alertes, tâches Syntaxe. Décisions : mcai exclu (on demande toujours avant d'utiliser le GPU) ; à l'arrêt, les tâches Syntaxe sont désactivées pour que Syntaxe-Sante ne relance pas l'autonomie. Reste à faire : compléter les chemins « A VERIFIER » de config.bat à partir de l'inventaire.",
+   "type": "milestone",
+   "tags": [
+    "projet",
+    "redemarrage-pc",
+    "windows",
+    "batch",
+    "services",
+    "livrable"
+   ],
+   "cree_le": "2026-09-24T08:34:05.174519Z",
+   "modifie_le": "2026-09-24T08:34:05.174519Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "redemarrage-pc",
+   "voisins": []
+  },
+  {
+   "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
+   "titre": "Trade Sandbox — jalon du 22/09/2026",
+   "resume": "Prise en charge des trades courts et modèle entraîné sur l'historique. 1. Trades courts : nouveau module backend/app/costs.py (coût de l'aller-retour, prix de rentabilité, ratio gain/risque frais compris).",
+   "contenu": "Trade Sandbox (D:\\trade-sandbox) — jalon du 22/09/2026 : prise en charge des trades courts et modèle entraîné sur l'historique.\n\n1. Trades courts : nouveau module backend/app/costs.py (coût de l'aller-retour, prix de rentabilité, ratio gain/risque frais compris). Le minimum de 1 R de l'Analyzer s'applique désormais au ratio NET et un objectif qui ne couvre pas les frais est refusé. Exécution précise (config portfolio.precise_fills) : chaque relevé de prix construit une bougie couvrant l'intervalle écoulé à partir des bougies 1m, donc une mèche entre deux relevés ne passe plus inaperçue. Statistiques du journal découpées par durée de trade.\n\n2. Modèle entraîné (backend/app/dataset.py + model.py, page « Modèle », scripts/entrainer_modele.py) : arbres boostés scikit-learn qui estiment la probabilité qu'un plan touche son objectif avant son stop. Découpage chronologique apprentissage/réglage/test, mesure hors échantillon frais compris, comparée à « prendre tous les plans ». Modèles rangés dans data/models.\n\nDécision durable : le projet affiche toujours les deux ratios (brut et frais compris) et ne présente jamais l'estimation d'un modèle comme un taux de réussite.\n\nMesure du jour sur BTC (stop 1 ATR, objectif 2 ATR, 24 bougies) : aucun avantage en 15m ni 1h ; espérance légèrement positive en 4h et 1d mais sur 32 à 87 plans seulement, donc non significatif. L'aller-retour à 0,30 % coûte environ 5 bougies d'une minute sur BTC : le scalping y est structurellement perdant.",
+   "type": "milestone",
+   "tags": [
+    "trade-sandbox",
+    "jalon",
+    "architecture",
+    "trading",
+    "machine-learning"
+   ],
+   "cree_le": "2026-09-22T17:36:03.272053Z",
+   "modifie_le": "2026-09-22T17:36:03.272053Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trade-sandbox",
+   "voisins": [
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.863
+    },
+    {
+     "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
+     "score": 0.83
+    },
+    {
+     "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
+     "score": 0.824
+    },
+    {
+     "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
+     "score": 0.817
+    },
+    {
+     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
+     "score": 0.805
+    }
+   ]
+  },
+  {
    "id": "eda1395fdfffea38940282d6caf1c72ceaaa101016f643100efd50dae1b68b27",
    "titre": "Mémoire Vive — jalon livré le 22/09/2026",
    "resume": "Préparation de la phase 2 fusionnée dans main. Trois apports durables. (1) Vérification automatique : .github/workflows/tests.yml rejoue les suites Python et Node à chaque envoi sur GitHub (les tests navigateur restent locaux : Chrome n'est pas garanti sur le…",
@@ -847,6 +929,10 @@
     {
      "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
      "score": 0.836
+    },
+    {
+     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
+     "score": 0.824
     },
     {
      "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
@@ -1002,6 +1088,10 @@
    "projet": "trade-sandbox",
    "voisins": [
     {
+     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
+     "score": 0.863
+    },
+    {
      "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
      "score": 0.848
     },
@@ -1056,6 +1146,10 @@
     {
      "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
      "score": 0.841
+    },
+    {
+     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
+     "score": 0.817
     },
     {
      "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
@@ -1122,6 +1216,10 @@
     {
      "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
      "score": 0.836
+    },
+    {
+     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
+     "score": 0.83
     }
    ]
   },
@@ -1160,6 +1258,10 @@
     {
      "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
      "score": 0.811
+    },
+    {
+     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
+     "score": 0.805
     }
    ]
   },
@@ -3564,5 +3666,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "5e2cd391a2f0f740b3c43f330a50a0e233e8d44c3c910d544141fd56b59e5aae"
+ "empreinte": "3cb9a18947a118fead8c3bcf47012fe2e5665155cb60ce1c0e48b0dcc9927597"
 }

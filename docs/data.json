@@ -1,13 +1,13 @@
 {
  "schema": 2,
- "genere_le": "2026-09-25T06:57:01Z",
+ "genere_le": "2026-09-26T03:23:48Z",
  "source": "mcp-memory-service",
- "nb_entrees": 91,
+ "nb_entrees": 101,
  "types": {
   "note": 45,
   "milestone": 29,
+  "decision": 17,
   "reference": 9,
-  "decision": 7,
   "error": 1
  },
  "ordre_types": [
@@ -107,6 +107,19 @@
   ]
  ],
  "projets": [
+  {
+   "id": "ports",
+   "nom": "Ports",
+   "famille": null,
+   "description": "L'application utilise désormais le port 8001 FIXÉ explicitement (config.json server.port, valeur par défaut de backend/app/config.py, valeurs de secours de scripts/start.ps1 et frontend/vite.config.ts).",
+   "lien_principal": null,
+   "nb": 10,
+   "types": {
+    "decision": 10
+   },
+   "premiere": "2026-09-26T02:56:43.126559Z",
+   "derniere": "2026-09-26T03:22:11.025169Z"
+  },
   {
    "id": "redemarrage-pc",
    "nom": "Redémarrage PC",
@@ -813,6 +826,381 @@
  ],
  "entrees": [
   {
+   "id": "056c368c3bb2d794cbb0363a5aee75c817b3cc4219667a232b8fc3a077b69467",
+   "titre": "Port du projet Pipeline de revue de sécurité",
+   "resume": "5678. n8n en conteneur Docker, d'après l'entrée d'architecture du 17/09/2026 ; non revérifié le 26/09/2026 (Docker introuvable sur le PC lors du relevé).",
+   "contenu": "Port du projet Pipeline de revue de sécurité (n8n) : 5678. n8n en conteneur Docker, d'après l'entrée d'architecture du 17/09/2026 ; non revérifié le 26/09/2026 (Docker introuvable sur le PC lors du relevé). Le port d'Open WebUI, l'autre conteneur du pipeline, n'est noté nulle part.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "pipeline-securite-n8n-ollama",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:22:11.025169Z",
+   "modifie_le": "2026-09-26T03:22:11.025169Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "d122e88368e830f9086af2a069727fe471397ed4dbce878678acfddac28f0a74",
+     "score": 0.853
+    }
+   ]
+  },
+  {
+   "id": "e45d7e770ca30f44fa7e0f546b63f44fca65273a7a39b876b6164dd6140b1aa2",
+   "titre": "Port du projet mcai : 8800",
+   "resume": "Tableau de bord web pendant un run (D:\\machine-learning, dashboard_port dans configs/*.json et mcai/config.py, écoute 127.0.0.1).",
+   "contenu": "Port du projet mcai : 8800. Tableau de bord web pendant un run (D:\\machine-learning, dashboard_port dans configs/*.json et mcai/config.py, écoute 127.0.0.1). Se trouve dans la plage de repli de Mémoire Vive (8790-8809), ce qui ne gêne que si 8790 à 8799 sont tous pris. Vérifié dans la config le 26/09/2026 (mcai éteint lors du relevé).",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "mcai",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:22:09.258418Z",
+   "modifie_le": "2026-09-26T03:22:09.258418Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\machine-learning"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "9c3ae655d05069483dd3829b44fd50a7286abb4054142c6d254f3a05d9cded0f",
+     "score": 0.814
+    }
+   ]
+  },
+  {
+   "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
+   "titre": "Port du projet AI Creator",
+   "resume": "8001. Écrit en dur dans D:\\ai_creator_claude\\router.py (port = 8001) et dans ses tests ; interface sur http://localhost:8001/v2.",
+   "contenu": "Port du projet AI Creator : 8001. Écrit en dur dans D:\\ai_creator_claude\\router.py (port = 8001) et dans ses tests ; interface sur http://localhost:8001/v2. Conflit connu : Trade Sandbox utilise aussi 8001 (fixé le 26/09/2026). Si AI Creator tourne déjà, Trade Sandbox se replie sur le port libre suivant ; si Trade Sandbox tourne déjà, AI Creator ne peut pas démarrer. Vérifié dans le code le 26/09/2026 (AI Creator éteint lors du relevé).",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "ai-creator",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:22:06.980590Z",
+   "modifie_le": "2026-09-26T03:22:06.980590Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\ai_creator_claude\\router.py"
+    },
+    {
+     "type": "local",
+     "valeur": "http://localhost:8001/v2"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "577a488f7a90acfe0f228b7609bf2c05daff9c653ffb5c7b9803106725256c53",
+     "score": 0.863
+    },
+    {
+     "id": "75d1c3ecb68fd945fe29582af4fdc575749d27b569f61281de8c488125825a55",
+     "score": 0.801
+    }
+   ]
+  },
+  {
+   "id": "9c3ae655d05069483dd3829b44fd50a7286abb4054142c6d254f3a05d9cded0f",
+   "titre": "Port du projet Jarvis",
+   "resume": "8766. Cockpit web de Jarvis (D:\\jarvis2\\creation), port lu dans config/jarvis.json ; choisi parce que le 8765 appartient au serveur de mémoire partagée.",
+   "contenu": "Port du projet Jarvis : 8766. Cockpit web de Jarvis (D:\\jarvis2\\creation), port lu dans config/jarvis.json ; choisi parce que le 8765 appartient au serveur de mémoire partagée. Vérifié dans la config le 26/09/2026 (Jarvis éteint lors du relevé).",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "jarvis",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:22:04.438166Z",
+   "modifie_le": "2026-09-26T03:22:04.438166Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\jarvis2\\creation"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "4c85ec1e8e565f91b4e2b731a59482fec45e03e836de213c79e19f9520193d51",
+     "score": 0.869
+    },
+    {
+     "id": "75d1c3ecb68fd945fe29582af4fdc575749d27b569f61281de8c488125825a55",
+     "score": 0.821
+    },
+    {
+     "id": "e45d7e770ca30f44fa7e0f546b63f44fca65273a7a39b876b6164dd6140b1aa2",
+     "score": 0.814
+    },
+    {
+     "id": "82d85ac082ff5bd0d622edaece79bca186ccd9d4905cd7ab7a1ee15712b8dc16",
+     "score": 0.811
+    },
+    {
+     "id": "cbab571491306e9e9410a672886162743b7135b415298f161857a4000eaf65d9",
+     "score": 0.803
+    }
+   ]
+  },
+  {
+   "id": "cbab571491306e9e9410a672886162743b7135b415298f161857a4000eaf65d9",
+   "titre": "CLAUDE.md global de Noah, règles pour tous les projets, version du 26/09/2026",
+   "resume": "(1) Ports locaux : avant d'attribuer un port, lister les entrées de la mémoire partagée qui ont l'étiquette « ports » (filtre par étiquette) et choisir un port libre ; noter le port dans le README ou un PORTS.md du projet ; écrire une entrée mémoire par…",
+   "contenu": "CLAUDE.md global de Noah (~/.claude/CLAUDE.md), règles pour tous les projets, version du 26/09/2026. (1) Ports locaux : avant d'attribuer un port, lister les entrées de la mémoire partagée qui ont l'étiquette « ports » (filtre par étiquette) et choisir un port libre ; noter le port dans le README ou un PORTS.md du projet ; écrire une entrée mémoire par projet (étiquette « ports », format « Port du projet X : 5173 »), sans demander avant ; si le port change, ne mettre à jour que l'entrée du projet concerné ; tenir aussi à jour le tableau global ~/.claude/PORTS.md, importé par la ligne @PORTS.md du CLAUDE.md global et donc chargé au démarrage de chaque session Claude Code, dans tous les projets. (2) GPU ou CPU : avant un travail estimé à plus de 30 minutes, faire un test chronométré GPU et CPU (le test CPU doit utiliser tous les cœurs) ; pendant le travail, vérifier que les cœurs prévus sont bien utilisés ; en session interactive, montrer les chiffres et demander lequel utiliser ; en session autonome, prendre le plus rapide et noter les chiffres dans le compte rendu de fin.",
+   "type": "decision",
+   "tags": [
+    "claude-md",
+    "regles-globales",
+    "ports",
+    "gpu-cpu"
+   ],
+   "cree_le": "2026-09-26T03:19:44.057324Z",
+   "modifie_le": "2026-09-26T03:19:44.057324Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "~/.claude/CLAUDE.md"
+    },
+    {
+     "type": "local",
+     "valeur": "~/.claude/PORTS.md"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "75d1c3ecb68fd945fe29582af4fdc575749d27b569f61281de8c488125825a55",
+     "score": 0.838
+    },
+    {
+     "id": "9c3ae655d05069483dd3829b44fd50a7286abb4054142c6d254f3a05d9cded0f",
+     "score": 0.803
+    }
+   ]
+  },
+  {
+   "id": "6c84a427543ba4774619d8d495eeb08614d316baf731ddb9e6cdb9f3bd8be3c1",
+   "titre": "Port du projet OpenClaw",
+   "resume": "18789. node + openclaw (npm global) lancé par C:\\Users\\chipat\\.openclaw\\gateway.cmd (tâche Windows « OpenClaw Gateway », variable OPENCLAW_GATEWAY_PORT=18789), écoute 127.0.0.1.",
+   "contenu": "Port du projet OpenClaw (gateway) : 18789. node + openclaw (npm global) lancé par C:\\Users\\chipat\\.openclaw\\gateway.cmd (tâche Windows « OpenClaw Gateway », variable OPENCLAW_GATEWAY_PORT=18789), écoute 127.0.0.1. Relevé sur le PC de Noah le 26/09/2026.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "openclaw",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:12:14.785095Z",
+   "modifie_le": "2026-09-26T03:12:14.785095Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "C:\\Users\\chipat\\.openclaw\\gateway.cmd"
+    },
+    {
+     "type": "local",
+     "valeur": "port 18789"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": []
+  },
+  {
+   "id": "080a00e41d736501136a744c9b1a63e5164e2807e7a798ebec218286c59ce9cc",
+   "titre": "Port du projet Tour de contrôle",
+   "resume": "8787. server.py dans C:\\Users\\chipat\\Downloads\\tour-de-controle\\claude-control-tower, écoute 127.0.0.1:8787 (port écrit dans la config du script).",
+   "contenu": "Port du projet Tour de contrôle (claude-control-tower) : 8787. server.py dans C:\\Users\\chipat\\Downloads\\tour-de-controle\\claude-control-tower, écoute 127.0.0.1:8787 (port écrit dans la config du script). Relevé sur le PC de Noah le 26/09/2026.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "tour-de-controle",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:12:13.091277Z",
+   "modifie_le": "2026-09-26T03:12:13.091277Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "C:\\Users\\chipat\\Downloads\\tour-de-controle\\claude-control-tower"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1:8787"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "777576fc697e8ebfd62ef4678a7100391abe92c37c484dc9f5ec52c0b391d217",
+     "score": 0.839
+    },
+    {
+     "id": "b99d614f74a845a7da521b8f089d4b17ad0411bbce9a41e8ee2fe57fa21d0ad9",
+     "score": 0.809
+    }
+   ]
+  },
+  {
+   "id": "75d1c3ecb68fd945fe29582af4fdc575749d27b569f61281de8c488125825a55",
+   "titre": "Port du projet Mémoire Vive",
+   "resume": "8790. Page d'admin locale (D:\\memoire_vive, scripts/admin.py, lancée par le raccourci « Gérer Mémoire Vive.cmd ») ; écoute 127.0.0.1:8790 et, si pris, essaie les ports suivants jusqu'à 8809 (plage 8790-8809 à laisser libre).",
+   "contenu": "Port du projet Mémoire Vive : 8790. Page d'admin locale (D:\\memoire_vive, scripts/admin.py, lancée par le raccourci « Gérer Mémoire Vive.cmd ») ; écoute 127.0.0.1:8790 et, si pris, essaie les ports suivants jusqu'à 8809 (plage 8790-8809 à laisser libre). Les tests utilisent --port 0 (port choisi par le système). Relevé sur le PC de Noah le 26/09/2026.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "memoire-vive",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:12:11.250782Z",
+   "modifie_le": "2026-09-26T03:12:11.250782Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\memoire_vive"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1:8790"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "3205081d7249cc22599dd23ad31de422627b8efd059dc8abfed9ef8eb543e113",
+     "score": 0.844
+    },
+    {
+     "id": "cbab571491306e9e9410a672886162743b7135b415298f161857a4000eaf65d9",
+     "score": 0.838
+    },
+    {
+     "id": "9c3ae655d05069483dd3829b44fd50a7286abb4054142c6d254f3a05d9cded0f",
+     "score": 0.821
+    },
+    {
+     "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
+     "score": 0.801
+    }
+   ]
+  },
+  {
+   "id": "0fc3a7c7907313a3226d7d738fea356dbc918ee80648f638995522761f06057b",
+   "titre": "Port du projet MCP Memory Service",
+   "resume": "8765 et 8000. 8765 = serveur MCP en streamable HTTP (lancé depuis C:\\Users\\chipat\\mcp-memory-service avec python -m mcp_memory_service.server ; écoute 0.0.0.0, OAuth activé, publié sur Internet par un tunnel cloudflared vers localhost:8765, dont le port de…",
+   "contenu": "Port du projet MCP Memory Service : 8765 et 8000. 8765 = serveur MCP en streamable HTTP (lancé depuis C:\\Users\\chipat\\mcp-memory-service avec python -m mcp_memory_service.server ; écoute 0.0.0.0, OAuth activé, publié sur Internet par un tunnel cloudflared vers localhost:8765, dont le port de suivi local est 20241). 8000 = API REST + tableau de bord (memory server --http, lancé par Desktop\\start-memory-rest.ps1, écoute 127.0.0.1). Relevé sur le PC de Noah le 26/09/2026.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "mcp-memory-service",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:12:09.083543Z",
+   "modifie_le": "2026-09-26T03:12:09.083543Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "C:\\Users\\chipat\\mcp-memory-service"
+    },
+    {
+     "type": "local",
+     "valeur": "0.0.0.0"
+    },
+    {
+     "type": "local",
+     "valeur": "localhost:8765"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "ac884104a17c1cbc9359a6162f2439386f22959470d1d4e0bf6743d041c0c9e4",
+     "score": 0.818
+    }
+   ]
+  },
+  {
+   "id": "577a488f7a90acfe0f228b7609bf2c05daff9c653ffb5c7b9803106725256c53",
+   "titre": "Trade Sandbox — ports, décision du 26/09/2026 qui remplace le repli automatique 8000→8001 noté le 22/09",
+   "resume": "L'application utilise désormais le port 8001 FIXÉ explicitement (config.json server.port, valeur par défaut de backend/app/config.py, valeurs de secours de scripts/start.ps1 et frontend/vite.config.ts).",
+   "contenu": "Trade Sandbox (D:\\trade-sandbox) — ports, décision du 26/09/2026 qui remplace le repli automatique 8000→8001 noté le 22/09 : l'application utilise désormais le port 8001 FIXÉ explicitement (config.json server.port, valeur par défaut de backend/app/config.py, valeurs de secours de scripts/start.ps1 et frontend/vite.config.ts). Raison : le 8000 appartient à MCP Memory Service sur le PC de Noah ; avec l'ancien repli, si Trade Sandbox démarrait en premier, c'est le service de mémoire qui perdait son port. Autres ports du projet : 11434 Ollama (IA locale), 5173 Vite (mode développement seulement). Tout écoute sur 127.0.0.1. La liste complète est tenue dans PORTS.md à la racine du projet. Le repli vers le port libre suivant reste actif si 8001 est pris ; le port réel est écrit dans data/runtime.json.",
+   "type": "decision",
+   "tags": [
+    "trade-sandbox",
+    "ports",
+    "decision",
+    "architecture",
+    "claude-code"
+   ],
+   "cree_le": "2026-09-26T02:56:43.126559Z",
+   "modifie_le": "2026-09-26T02:56:43.126559Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox"
+    },
+    {
+     "type": "local",
+     "valeur": "port 8001"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
+     "score": 0.863
+    },
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.808
+    }
+   ]
+  },
+  {
    "id": "e0eaca3841ad5193c2df8d0d4adafbba64e7f44d496512faa9acd111b16aa3af",
    "titre": "Projet « Redémarrage PC »",
    "resume": "Scripts Windows pour tout relancer après un redémarrage du PC de Noah, ou tout arrêter avant. Livré dans le dossier redemarrage-pc/ du dépôt chipatest/wiki-ultime (branche claude/machine-restart-batch-scripts-fy3yv5, PR en brouillon) et en .zip.",
@@ -968,6 +1356,10 @@
    "corrige": false,
    "projet": "memoire-vive",
    "voisins": [
+    {
+     "id": "75d1c3ecb68fd945fe29582af4fdc575749d27b569f61281de8c488125825a55",
+     "score": 0.844
+    },
     {
      "id": "23ce02674541a7069cb4e0f085c91d7e5e3c57631a2559c6f97316aac1b47121",
      "score": 0.823
@@ -2090,7 +2482,12 @@
    "lien_principal": null,
    "corrige": false,
    "projet": "tour-de-controle",
-   "voisins": []
+   "voisins": [
+    {
+     "id": "080a00e41d736501136a744c9b1a63e5164e2807e7a798ebec218286c59ce9cc",
+     "score": 0.809
+    }
+   ]
   },
   {
    "id": "5e7eba3ad60d6bcc465fc7b1e8f3339635024eca9fe89ba0b6fa0bb8928f574a",
@@ -2314,6 +2711,10 @@
     {
      "id": "b5ef55b1b1ced9b3dded0dea3f8ce1f26942ea981f927cc76e4e673e452d6987",
      "score": 0.875
+    },
+    {
+     "id": "080a00e41d736501136a744c9b1a63e5164e2807e7a798ebec218286c59ce9cc",
+     "score": 0.839
     }
    ]
   },
@@ -2375,7 +2776,12 @@
    "lien_principal": null,
    "corrige": false,
    "projet": "pont-memoire",
-   "voisins": []
+   "voisins": [
+    {
+     "id": "0fc3a7c7907313a3226d7d738fea356dbc918ee80648f638995522761f06057b",
+     "score": 0.818
+    }
+   ]
   },
   {
    "id": "7fa528017982435f0c665f550f2a794dc6dea80a2d7d6864e8dd3bdcf3c51161",
@@ -2449,7 +2855,12 @@
    "lien_principal": null,
    "corrige": false,
    "projet": "pipeline-securite-n8n-ollama",
-   "voisins": []
+   "voisins": [
+    {
+     "id": "056c368c3bb2d794cbb0363a5aee75c817b3cc4219667a232b8fc3a077b69467",
+     "score": 0.853
+    }
+   ]
   },
   {
    "id": "9ff666669458a1afe90cea3f2700a251dfa48b42401d17393053943c9fa3e4de",
@@ -3516,6 +3927,10 @@
      "score": 0.869
     },
     {
+     "id": "9c3ae655d05069483dd3829b44fd50a7286abb4054142c6d254f3a05d9cded0f",
+     "score": 0.811
+    },
+    {
      "id": "37a595d6ac70dda293bf914bb40e8837b27a1df4705249fe65887e1ee89b2d2f",
      "score": 0.808
     }
@@ -3543,6 +3958,10 @@
    "corrige": false,
    "projet": "jarvis",
    "voisins": [
+    {
+     "id": "9c3ae655d05069483dd3829b44fd50a7286abb4054142c6d254f3a05d9cded0f",
+     "score": 0.869
+    },
     {
      "id": "53b605648976f61e3c8c45e5685e7ffb730eb12941a3175c5d4c25dba024b000",
      "score": 0.841
@@ -3666,5 +4085,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "3cb9a18947a118fead8c3bcf47012fe2e5665155cb60ce1c0e48b0dcc9927597"
+ "empreinte": "087ed576a0626c422ddb20fdd96ee51b4008f1669122a8b0a9cc6ff65ec4d685"
 }

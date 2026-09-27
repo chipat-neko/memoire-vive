@@ -1,12 +1,12 @@
 {
  "schema": 2,
- "genere_le": "2026-09-26T03:23:48Z",
+ "genere_le": "2026-09-27T11:19:09Z",
  "source": "mcp-memory-service",
- "nb_entrees": 101,
+ "nb_entrees": 103,
  "types": {
   "note": 45,
   "milestone": 29,
-  "decision": 17,
+  "decision": 19,
   "reference": 9,
   "error": 1
  },
@@ -113,12 +113,12 @@
    "famille": null,
    "description": "L'application utilise désormais le port 8001 FIXÉ explicitement (config.json server.port, valeur par défaut de backend/app/config.py, valeurs de secours de scripts/start.ps1 et frontend/vite.config.ts).",
    "lien_principal": null,
-   "nb": 10,
+   "nb": 12,
    "types": {
-    "decision": 10
+    "decision": 12
    },
    "premiere": "2026-09-26T02:56:43.126559Z",
-   "derniere": "2026-09-26T03:22:11.025169Z"
+   "derniere": "2026-09-26T04:00:48.433670Z"
   },
   {
    "id": "redemarrage-pc",
@@ -826,6 +826,101 @@
  ],
  "entrees": [
   {
+   "id": "1e45c56cdaf8894a215cc0f656d46457f03791e8180e8710c18417b0597c1c43",
+   "titre": "Port du projet AI Creator",
+   "resume": "8001. Écrit en dur dans D:\\ai_creator_claude\\router.py (port = 8001) et dans ses tests ; interface sur http://localhost:8001/v2.",
+   "contenu": "Port du projet AI Creator : 8001. Écrit en dur dans D:\\ai_creator_claude\\router.py (port = 8001) et dans ses tests ; interface sur http://localhost:8001/v2. Aucun conflit connu : Trade Sandbox, qui utilisait aussi 8001, est passé à 8420 le 26/09/2026. Vérifié dans le code le 26/09/2026 (AI Creator éteint lors du relevé).",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "ai-creator",
+    "architecture",
+    "conflict:unresolved"
+   ],
+   "cree_le": "2026-09-26T04:00:48.433670Z",
+   "modifie_le": "2026-09-26T04:00:48.433670Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\ai_creator_claude\\router.py"
+    },
+    {
+     "type": "local",
+     "valeur": "http://localhost:8001/v2"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
+     "score": 0.976
+    },
+    {
+     "id": "5687a88a0e69610c2842ae2b92e65e1f266a7a75dd0589cffbb13a213186feb4",
+     "score": 0.841
+    },
+    {
+     "id": "577a488f7a90acfe0f228b7609bf2c05daff9c653ffb5c7b9803106725256c53",
+     "score": 0.84
+    },
+    {
+     "id": "75d1c3ecb68fd945fe29582af4fdc575749d27b569f61281de8c488125825a55",
+     "score": 0.802
+    }
+   ]
+  },
+  {
+   "id": "5687a88a0e69610c2842ae2b92e65e1f266a7a75dd0589cffbb13a213186feb4",
+   "titre": "Port du projet Trade Sandbox",
+   "resume": "8420. Application FastAPI (D:\\trade-sandbox), écoute 127.0.0.1:8420 ; si pris, essaie 8421 à 8430 (plage 8420-8430 à laisser libre).",
+   "contenu": "Port du projet Trade Sandbox : 8420. Application FastAPI (D:\\trade-sandbox), écoute 127.0.0.1:8420 ; si pris, essaie 8421 à 8430 (plage 8420-8430 à laisser libre). Serveur Vite en mode développement : 8440 (et non 5173, port par défaut de tous les projets Vite). Réglé dans config.json (server.port), backend/app/config.py (défaut), scripts/start.ps1 (secours) et frontend/vite.config.ts ; liste tenue dans PORTS.md du projet. Historique : 8000 à l'origine (pris par MCP Memory Service), puis 8001 fixé le matin du 26/09/2026 (en conflit avec AI Creator, qui l'a écrit en dur), puis 8420 le 26/09/2026. Port réel noté dans data/runtime.json ; le trading automatique ne le lit qu'à son démarrage.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "trade-sandbox",
+    "architecture"
+   ],
+   "cree_le": "2026-09-26T03:31:32.249144Z",
+   "modifie_le": "2026-09-26T03:31:32.249144Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1:8420"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "577a488f7a90acfe0f228b7609bf2c05daff9c653ffb5c7b9803106725256c53",
+     "score": 0.893
+    },
+    {
+     "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
+     "score": 0.864
+    },
+    {
+     "id": "1e45c56cdaf8894a215cc0f656d46457f03791e8180e8710c18417b0597c1c43",
+     "score": 0.841
+    },
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.82
+    },
+    {
+     "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
+     "score": 0.818
+    }
+   ]
+  },
+  {
    "id": "056c368c3bb2d794cbb0363a5aee75c817b3cc4219667a232b8fc3a077b69467",
    "titre": "Port du projet Pipeline de revue de sécurité",
    "resume": "5678. n8n en conteneur Docker, d'après l'entrée d'architecture du 17/09/2026 ; non revérifié le 26/09/2026 (Docker introuvable sur le PC lors du relevé).",
@@ -891,7 +986,8 @@
    "tags": [
     "ports",
     "ai-creator",
-    "architecture"
+    "architecture",
+    "conflict:unresolved"
    ],
    "cree_le": "2026-09-26T03:22:06.980590Z",
    "modifie_le": "2026-09-26T03:22:06.980590Z",
@@ -909,6 +1005,14 @@
    "corrige": false,
    "projet": "ports",
    "voisins": [
+    {
+     "id": "1e45c56cdaf8894a215cc0f656d46457f03791e8180e8710c18417b0597c1c43",
+     "score": 0.976
+    },
+    {
+     "id": "5687a88a0e69610c2842ae2b92e65e1f266a7a75dd0589cffbb13a213186feb4",
+     "score": 0.864
+    },
     {
      "id": "577a488f7a90acfe0f228b7609bf2c05daff9c653ffb5c7b9803106725256c53",
      "score": 0.863
@@ -1111,6 +1215,10 @@
      "score": 0.821
     },
     {
+     "id": "1e45c56cdaf8894a215cc0f656d46457f03791e8180e8710c18417b0597c1c43",
+     "score": 0.802
+    },
+    {
      "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
      "score": 0.801
     }
@@ -1191,8 +1299,16 @@
    "projet": "ports",
    "voisins": [
     {
+     "id": "5687a88a0e69610c2842ae2b92e65e1f266a7a75dd0589cffbb13a213186feb4",
+     "score": 0.893
+    },
+    {
      "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
      "score": 0.863
+    },
+    {
+     "id": "1e45c56cdaf8894a215cc0f656d46457f03791e8180e8710c18417b0597c1c43",
+     "score": 0.84
     },
     {
      "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
@@ -1496,7 +1612,7 @@
      "score": 0.837
     },
     {
-     "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
+     "id": "5687a88a0e69610c2842ae2b92e65e1f266a7a75dd0589cffbb13a213186feb4",
      "score": 0.82
     }
    ]
@@ -1538,6 +1654,10 @@
     {
      "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
      "score": 0.841
+    },
+    {
+     "id": "5687a88a0e69610c2842ae2b92e65e1f266a7a75dd0589cffbb13a213186feb4",
+     "score": 0.818
     },
     {
      "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
@@ -4085,5 +4205,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "087ed576a0626c422ddb20fdd96ee51b4008f1669122a8b0a9cc6ff65ec4d685"
+ "empreinte": "747ea5c0dd4574efa48f1a9b244774c548aaaf83c3a9f5db356a8fb8e56a206a"
 }

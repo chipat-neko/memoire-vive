@@ -1,12 +1,12 @@
 {
  "schema": 2,
- "genere_le": "2026-09-30T02:44:21Z",
+ "genere_le": "2026-09-30T12:57:38Z",
  "source": "mcp-memory-service",
- "nb_entrees": 117,
+ "nb_entrees": 123,
  "types": {
   "note": 45,
-  "milestone": 38,
-  "decision": 23,
+  "milestone": 42,
+  "decision": 25,
   "reference": 9,
   "planning": 1,
   "error": 1
@@ -109,34 +109,37 @@
  ],
  "projets": [
   {
-   "id": "syntaxe",
-   "nom": "Syntaxe",
-   "famille": "cours",
-   "description": "Site éducatif statique 100 % file:// (aucun serveur, aucun module ES, aucun build, aucune dépendance installée). Un dossier par cours sous pages/, HTML et CSS séparés, liens \"related\" entre cours.",
+   "id": "pont-memoire",
+   "nom": "Pont mémoire",
+   "famille": "outils-claude",
+   "description": "Relance des serveurs locaux par un double-clic sur Desktop\\Relancer les serveurs.bat (logique : C:\\Users\\chipat\\relance-serveurs\\relancer-serveurs.ps1 ; mode d'emploi : LISEZMOI.md ; journal : journal.log).",
    "lien_principal": {
-    "url": "https://github.com/chipat-neko/devpath",
-    "genre": "depot"
+    "url": "https://desktop-lfi3g2r.tail6c3996.ts.net/mcp",
+    "genre": "site"
    },
    "nb": 4,
    "types": {
-    "milestone": 2,
-    "note": 2
+    "note": 3,
+    "decision": 1
    },
-   "premiere": "2026-09-17T17:29:35.415144Z",
-   "derniere": "2026-09-30T01:56:09.698713Z"
+   "premiere": "2026-09-17T19:28:22.934111Z",
+   "derniere": "2026-09-30T12:37:56.471272Z"
   },
   {
-   "id": "app-heure",
-   "nom": "App Heure",
+   "id": "ports",
+   "nom": "Ports",
    "famille": null,
-   "description": "Stack : Vite 8 + JavaScript + Tailwind 4 intégré (pas de CDN, marche hors ligne) + Capacitor 8 (appId fr.appheure.badgeuse).",
-   "lien_principal": null,
-   "nb": 2,
-   "types": {
-    "milestone": 2
+   "description": "L'application utilise désormais le port 8001 FIXÉ explicitement (config.json server.port, valeur par défaut de backend/app/config.py, valeurs de secours de scripts/start.ps1 et frontend/vite.config.ts).",
+   "lien_principal": {
+    "url": "https://desktop-lfi3g2r.tail6c3996.ts.net",
+    "genre": "site"
    },
-   "premiere": "2026-09-29T17:48:58.040216Z",
-   "derniere": "2026-09-29T19:13:57.696423Z"
+   "nb": 15,
+   "types": {
+    "decision": 15
+   },
+   "premiere": "2026-09-26T02:56:43.126559Z",
+   "derniere": "2026-09-30T12:37:56.265367Z"
   },
   {
    "id": "aaa-game",
@@ -147,14 +150,44 @@
     "url": "https://github.com/chipat-neko/aaa-game",
     "genre": "depot"
    },
-   "nb": 5,
+   "nb": 6,
    "types": {
-    "milestone": 3,
+    "milestone": 4,
     "decision": 1,
     "planning": 1
    },
    "premiere": "2026-09-29T04:25:15.172985Z",
-   "derniere": "2026-09-29T19:12:09.292396Z"
+   "derniere": "2026-09-30T09:20:55.351683Z"
+  },
+  {
+   "id": "syntaxe",
+   "nom": "Syntaxe",
+   "famille": "cours",
+   "description": "Site éducatif statique 100 % file:// (aucun serveur, aucun module ES, aucun build, aucune dépendance installée). Un dossier par cours sous pages/, HTML et CSS séparés, liens \"related\" entre cours.",
+   "lien_principal": {
+    "url": "https://github.com/chipat-neko/devpath",
+    "genre": "depot"
+   },
+   "nb": 5,
+   "types": {
+    "milestone": 3,
+    "note": 2
+   },
+   "premiere": "2026-09-17T17:29:35.415144Z",
+   "derniere": "2026-09-30T04:18:12.413754Z"
+  },
+  {
+   "id": "app-heure",
+   "nom": "App Heure",
+   "famille": null,
+   "description": "Stack : Vite 8 + JavaScript + Tailwind 4 intégré (pas de CDN, marche hors ligne) + Capacitor 8 (appId fr.appheure.badgeuse).",
+   "lien_principal": null,
+   "nb": 4,
+   "types": {
+    "milestone": 4
+   },
+   "premiere": "2026-09-29T17:48:58.040216Z",
+   "derniere": "2026-09-30T03:50:36.239756Z"
   },
   {
    "id": "trade-sandbox",
@@ -172,17 +205,17 @@
    "derniere": "2026-09-29T18:27:24.808983Z"
   },
   {
-   "id": "ports",
-   "nom": "Ports",
+   "id": "ports-historique",
+   "nom": "Ports historique",
    "famille": null,
-   "description": "L'application utilise désormais le port 8001 FIXÉ explicitement (config.json server.port, valeur par défaut de backend/app/config.py, valeurs de secours de scripts/start.ps1 et frontend/vite.config.ts).",
+   "description": "8765 et 8000. 8765 = serveur MCP en streamable HTTP (lancé depuis C:\\Users\\chipat\\mcp-memory-service avec python -m mcp_memory_service.server ; écoute 0.0.0.0, OAuth activé, publié sur Internet par un tunnel cloudflared vers localhost:8765, dont le port de…",
    "lien_principal": null,
-   "nb": 15,
+   "nb": 1,
    "types": {
-    "decision": 15
+    "decision": 1
    },
-   "premiere": "2026-09-26T02:56:43.126559Z",
-   "derniere": "2026-09-29T17:41:43.827380Z"
+   "premiere": "2026-09-26T03:12:09.083543Z",
+   "derniere": "2026-09-26T03:12:09.083543Z"
   },
   {
    "id": "redemarrage-pc",
@@ -356,19 +389,6 @@
    },
    "premiere": "2026-09-17T17:23:20.575778Z",
    "derniere": "2026-09-18T06:46:14.313882Z"
-  },
-  {
-   "id": "pont-memoire",
-   "nom": "Pont mémoire",
-   "famille": "outils-claude",
-   "description": null,
-   "lien_principal": null,
-   "nb": 3,
-   "types": {
-    "note": 3
-   },
-   "premiere": "2026-09-17T19:28:22.934111Z",
-   "derniere": "2026-09-18T05:14:25.483180Z"
   },
   {
    "id": "tour-de-controle",
@@ -859,6 +879,261 @@
  ],
  "entrees": [
   {
+   "id": "6699f41cdebedafb84fea9083ff5d8240ade6ed17f82960d42fa8b40335c837e",
+   "titre": "Jalon livré le 30/09/2026",
+   "resume": "Relance des serveurs locaux par un double-clic sur Desktop\\Relancer les serveurs.bat (logique : C:\\Users\\chipat\\relance-serveurs\\relancer-serveurs.ps1 ; mode d'emploi : LISEZMOI.md ; journal : journal.log).",
+   "contenu": "Jalon livré le 30/09/2026 : relance des serveurs locaux par un double-clic sur Desktop\\Relancer les serveurs.bat (logique : C:\\Users\\chipat\\relance-serveurs\\relancer-serveurs.ps1 ; mode d'emploi : LISEZMOI.md ; journal : journal.log). Sans jamais créer de doublon, il vérifie OpenClaw (18789) et relance Ollama (11434), Trade Sandbox (8420), le serveur MCP mémoire (8765), l'API REST (8000), la Tour de contrôle (8787) et Mémoire Vive (8790), chacun dans une fenêtre réduite (QuickEdit coupé, variables propres à chaque fenêtre), puis vérifie Tailscale, l'accès depuis Internet et le connecteur claude.ai. Décisions durables : la mémoire partagée est publiée par Tailscale Funnel (compte relié à GitHub, mode unattended, expiration de la clé désactivée) à l'adresse fixe https://desktop-lfi3g2r.tail6c3996.ts.net/mcp, au lieu du tunnel cloudflared rapide dont l'adresse changeait à chaque relance ; OAuth persistant (MCP_OAUTH_STORAGE_BACKEND=sqlite, clés RSA fixes, jetons de rafraîchissement de 365 jours), donc le connecteur claude.ai reste connecté après un redémarrage (vérifié le 30/09/2026) ; la clé d'API du 8765 est une clé forte distincte (secrets\\cle-connecteur.txt), l'API REST 8000 et Mémoire Vive gardent leur clé locale.",
+   "type": "decision",
+   "tags": [
+    "mcp-memory-service",
+    "relance-serveurs",
+    "tailscale",
+    "pont-memoire",
+    "architecture",
+    "jalon",
+    "decision"
+   ],
+   "cree_le": "2026-09-30T12:37:56.471272Z",
+   "modifie_le": "2026-09-30T12:37:56.471272Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://desktop-lfi3g2r.tail6c3996.ts.net/mcp"
+    },
+    {
+     "type": "local",
+     "valeur": "C:\\Users\\chipat\\relance-serveurs\\relancer-serveurs.ps1"
+    }
+   ],
+   "lien_principal": {
+    "url": "https://desktop-lfi3g2r.tail6c3996.ts.net/mcp",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "pont-memoire",
+   "voisins": []
+  },
+  {
+   "id": "a20f9fa76fab55cef63ffe69534d829f5daa34681a53f1b553b3cc42c1bc6e1c",
+   "titre": "Port du projet MCP Memory Service",
+   "resume": "8765 et 8000. 8765 = serveur MCP en streamable HTTP (python -m mcp_memory_service.server, écoute 0.0.0.0, OAuth persistant : oauth.db et clés RSA dans %LOCALAPPDATA%\\mcp-memory\\secrets), publié sur Internet par Tailscale Funnel à l'adresse fixe…",
+   "contenu": "Port du projet MCP Memory Service : 8765 et 8000. 8765 = serveur MCP en streamable HTTP (python -m mcp_memory_service.server, écoute 0.0.0.0, OAuth persistant : oauth.db et clés RSA dans %LOCALAPPDATA%\\mcp-memory\\secrets), publié sur Internet par Tailscale Funnel à l'adresse fixe https://desktop-lfi3g2r.tail6c3996.ts.net (port 443 sur l'adresse Tailscale 100.115.73.108, vers 127.0.0.1:8765). L'ancien tunnel cloudflared et son port de suivi 20241 sont arrêtés depuis le 30/09/2026. 8000 = API REST + tableau de bord (memory server --http, lancé par Desktop\\start-memory-rest.ps1, écoute 127.0.0.1). Les deux se relancent par Desktop\\Relancer les serveurs.bat. Relevé sur le PC de Noah le 30/09/2026.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "mcp-memory-service",
+    "architecture"
+   ],
+   "cree_le": "2026-09-30T12:37:56.265367Z",
+   "modifie_le": "2026-09-30T12:37:56.265367Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://desktop-lfi3g2r.tail6c3996.ts.net"
+    },
+    {
+     "type": "local",
+     "valeur": "0.0.0.0"
+    },
+    {
+     "type": "local",
+     "valeur": "port 443"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1:8765"
+    },
+    {
+     "type": "local",
+     "valeur": "127.0.0.1"
+    }
+   ],
+   "lien_principal": {
+    "url": "https://desktop-lfi3g2r.tail6c3996.ts.net",
+    "genre": "site"
+   },
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "0fc3a7c7907313a3226d7d738fea356dbc918ee80648f638995522761f06057b",
+     "score": 0.937
+    }
+   ]
+  },
+  {
+   "id": "e3e1e3b210aa49f109367a9447f720efd08e3814e9126ab527d1abdc71fd3d17",
+   "titre": "aaa-game — jalon livré le 30/09/2026",
+   "resume": "Mini-tranche jouable dans Unreal Engine 5.8 (prototype E:\\aaa-proto\\unreal-v2, projet AaaGorges, dépôt Git local). Gorges des Soupirs photoréalistes (assets CC0 Poly Haven / ambientCG, terrain généré par script), héros MetaHuman habillé d'une tenue générée…",
+   "contenu": "aaa-game (D:\\aaa-game) — jalon livré le 30/09/2026 : mini-tranche jouable dans Unreal Engine 5.8 (prototype E:\\aaa-proto\\unreal-v2, projet AaaGorges, dépôt Git local). Gorges des Soupirs photoréalistes (assets CC0 Poly Haven / ambientCG, terrain généré par script), héros MetaHuman habillé d'une tenue générée par IA en local, 2 morts-vivants et 1 esprit générés en local, combat à l'épée (parade, esquive, verrouillage, Endurance) avec animations Quaternius CC0 et tests automatiques. Chaîne de génération 3D locale retenue (sur RTX 5070 Ti, licences commerciales) : TRELLIS.2-4B + UniRig + poids Blender + FLUX.2 klein ; Hunyuan3D et TripoSG écartés (licence Tencent excluant l'UE). Comparaison avec Unity 6 encore à faire avant le choix du moteur (D-159) ; Meshy prévu pour le jeu complet.",
+   "type": "milestone",
+   "tags": [
+    "aaa-game",
+    "jeu-video",
+    "jalon",
+    "unreal",
+    "prototype"
+   ],
+   "cree_le": "2026-09-30T09:20:55.351683Z",
+   "modifie_le": "2026-09-30T09:20:55.351683Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\aaa-game"
+    },
+    {
+     "type": "local",
+     "valeur": "E:\\aaa-proto\\unreal-v2"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "aaa-game",
+   "voisins": [
+    {
+     "id": "5f2ce827af9607134f577f2342aa1020d7a618dd05e97dc40ba7218ef21e599d",
+     "score": 0.869
+    },
+    {
+     "id": "cb9e38fbe46a2444f83a7b348b3a59cb453892e63ba1f67ad46e9672d009e341",
+     "score": 0.847
+    },
+    {
+     "id": "0669ec5e90ec0e477c53885ddddc2924d543864611de673d16fbcdbada8a60b6",
+     "score": 0.831
+    },
+    {
+     "id": "2fa22b8abddedd63b4b2534642043d0e3522ef7559f4725e945c45001731c258",
+     "score": 0.809
+    },
+    {
+     "id": "ef5a51718b6294f28d112e2676d809156a211cc3aed6cefddb19dafc498d60d9",
+     "score": 0.804
+    }
+   ]
+  },
+  {
+   "id": "6df08f9076a45a4760a78bc7188117e481d84c3023f809ad69db7663d8cbfb90",
+   "titre": "Projet Syntaxe, chantier V16/B4",
+   "resume": "Le 56e cours (observabilite) est clos le 2026-09-30. La part de réponses devinables à la longueur est passée de 96,4 % à 25,0 %, et 55 cours sur 90 sont traités.",
+   "contenu": "Projet Syntaxe (D:\\test-claude), chantier V16/B4 : le 56e cours (observabilite) est clos le 2026-09-30. La part de réponses devinables à la longueur est passée de 96,4 % à 25,0 %, et 55 cours sur 90 sont traités. Le suivant désigné est docker.",
+   "type": "milestone",
+   "tags": [
+    "syntaxe",
+    "jalon",
+    "v16"
+   ],
+   "cree_le": "2026-09-30T04:18:12.413754Z",
+   "modifie_le": "2026-09-30T04:18:12.413754Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\test-claude"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "syntaxe",
+   "voisins": [
+    {
+     "id": "ed7df0fe16ab7d8d1c4a2773d4a00b11f82ad50e9b774b952e7332ec074577a6",
+     "score": 0.924
+    },
+    {
+     "id": "6534cdfc76d6642a9359be541799a44288317e66be29130c8a82ff4ca4222658",
+     "score": 0.914
+    },
+    {
+     "id": "4a0f5060f050fc2ee6066dc7f26c56bd686573a5d00cb0c90519de2319e557ee",
+     "score": 0.803
+    }
+   ]
+  },
+  {
+   "id": "80a97df356a074cc89c8733593f9b1cf3a1c1e6222f5016d5974b937d23742ec",
+   "titre": "Projet App Heure : suivi personnel des heures pour Android",
+   "resume": "L'utilisateur (chauffeur livreur) photographie son cahier d'heures ; lecture par Gemini (clé gratuite Google AI Studio dans les Réglages, REST generateContent + schéma JSON, Flash-Lite d'abord car les Flash complets sont souvent saturés en 503 sur l'offre…",
+   "contenu": "Projet App Heure (D:\\app-heure) : suivi personnel des heures pour Android (APK de débogage App-Heure.apk, appId fr.appheure.badgeuse, Capacitor 8 + Vite + Tailwind 4). L'utilisateur (chauffeur livreur) photographie son cahier d'heures ; lecture par Gemini (clé gratuite Google AI Studio dans les Réglages, REST generateContent + schéma JSON, Flash-Lite d'abord car les Flash complets sont souvent saturés en 503 sur l'offre gratuite ; 45/45 justes sur ses vraies pages, ~2,5 s), repli hors ligne ML Kit (plugin Java maison, ~1/3 juste sur son écriture). Écran de vérification avant enregistrement ; photos jamais gardées (reçues en base64, effacées après enregistrement, ménage des anciennes au démarrage). Onglets : Mes heures, Suivi (tableau de bord mensuel, barres par semaine, détail par semaine), Réglages (métier avec propositions liste + Gemini ; taux = SMIC 12,31 € depuis le 01/06/2026, mise à jour sur demande : page Urssaf téléchargée en natif avec un User-Agent de navigateur, sinon l'Urssaf coupe la connexion, puis extraction par Gemini ; la recherche Google de Gemini est refusée aux clés gratuites). Règle de calcul d'après son cahier : une semaine compte en entier pour le mois de son dimanche (sept. 2026 = 186,5h dont 4h de nuit). Tests : Vitest, tests/e2e.mjs (Edge, Gemini simulé), tests/android.mjs (émulateur apphtest, Gemini réel si .env.local), tests/lire-gemini.mjs (vraies photos, hors dépôt).",
+   "type": "milestone",
+   "tags": [
+    "app-heure",
+    "architecture",
+    "milestone",
+    "android",
+    "capacitor",
+    "gemini",
+    "ocr",
+    "conflict:unresolved"
+   ],
+   "cree_le": "2026-09-30T03:50:36.239756Z",
+   "modifie_le": "2026-09-30T03:50:36.239756Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\app-heure"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "app-heure",
+   "voisins": [
+    {
+     "id": "aee7ab9784a84004a0e46a49a917ba425fc897245d362df531d3fb00c6ba6cb3",
+     "score": 0.99
+    },
+    {
+     "id": "c8a2ebb23bbbb4c7e2e5bcfa7435f72869811cbd3ceeffae9494a35ad7c29576",
+     "score": 0.951
+    },
+    {
+     "id": "c3e6e561dfeea45c65d095b86b2fe556d1f0774251f6d7d83a5982936319e4fc",
+     "score": 0.907
+    }
+   ]
+  },
+  {
+   "id": "aee7ab9784a84004a0e46a49a917ba425fc897245d362df531d3fb00c6ba6cb3",
+   "titre": "Projet App Heure : suivi personnel des heures pour Android",
+   "resume": "L'utilisateur (chauffeur livreur) photographie son cahier d'heures ; au 30/09/2026 la lecture se fait par Gemini (clé gratuite Google AI Studio saisie dans les Réglages, appel REST generateContent avec schéma JSON, modèles Flash-Lite en premier car les Flash…",
+   "contenu": "Projet App Heure (D:\\app-heure) : suivi personnel des heures pour Android (APK de débogage App-Heure.apk, appId fr.appheure.badgeuse, Capacitor 8 + Vite + Tailwind 4). L'utilisateur (chauffeur livreur) photographie son cahier d'heures ; au 30/09/2026 la lecture se fait par Gemini (clé gratuite Google AI Studio saisie dans les Réglages, appel REST generateContent avec schéma JSON, modèles Flash-Lite en premier car les Flash complets sont souvent saturés en 503 sur l'offre gratuite) : 45/45 éléments justes sur ses vraies pages, ~2,5 s par photo. Repli hors ligne : ML Kit sur le téléphone (plugin Java maison), qui ne lit qu'environ un tiers de son écriture liée. Écran de vérification avant tout enregistrement. Règle de calcul décidée d'après son cahier : une semaine compte en entier pour le mois de son dimanche (sept. 2026 = 186,5h dont 4h de nuit) ; heures sup +25 % (contrat → +8h) puis +50 %, nuit 21h-6h +25 %. Tests : Vitest (calcul, lecture, gemini), tests/e2e.mjs (Edge, Gemini simulé), tests/android.mjs (émulateur apphtest), tests/lire-gemini.mjs (vraies photos, clé dans .env.local hors dépôt).",
+   "type": "milestone",
+   "tags": [
+    "app-heure",
+    "architecture",
+    "milestone",
+    "android",
+    "capacitor",
+    "gemini",
+    "ocr",
+    "conflict:unresolved"
+   ],
+   "cree_le": "2026-09-30T02:50:07.496472Z",
+   "modifie_le": "2026-09-30T02:50:07.496472Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\app-heure"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "app-heure",
+   "voisins": [
+    {
+     "id": "80a97df356a074cc89c8733593f9b1cf3a1c1e6222f5016d5974b937d23742ec",
+     "score": 0.99
+    },
+    {
+     "id": "c8a2ebb23bbbb4c7e2e5bcfa7435f72869811cbd3ceeffae9494a35ad7c29576",
+     "score": 0.955
+    },
+    {
+     "id": "c3e6e561dfeea45c65d095b86b2fe556d1f0774251f6d7d83a5982936319e4fc",
+     "score": 0.897
+    }
+   ]
+  },
+  {
    "id": "ed7df0fe16ab7d8d1c4a2773d4a00b11f82ad50e9b774b952e7332ec074577a6",
    "titre": "Projet Syntaxe, chantier V16/B4",
    "resume": "Le 55e cours (lisp) est clos le 2026-09-30. La part des QCM où la bonne réponse est la plus longue passe de 98,2 % à 25,5 %.",
@@ -881,6 +1156,10 @@
    "corrige": false,
    "projet": "syntaxe",
    "voisins": [
+    {
+     "id": "6df08f9076a45a4760a78bc7188117e481d84c3023f809ad69db7663d8cbfb90",
+     "score": 0.924
+    },
     {
      "id": "6534cdfc76d6642a9359be541799a44288317e66be29130c8a82ff4ca4222658",
      "score": 0.906
@@ -910,6 +1189,10 @@
    "corrige": false,
    "projet": "syntaxe",
    "voisins": [
+    {
+     "id": "6df08f9076a45a4760a78bc7188117e481d84c3023f809ad69db7663d8cbfb90",
+     "score": 0.914
+    },
     {
      "id": "ed7df0fe16ab7d8d1c4a2773d4a00b11f82ad50e9b774b952e7332ec074577a6",
      "score": 0.906
@@ -943,6 +1226,14 @@
    "projet": "app-heure",
    "voisins": [
     {
+     "id": "aee7ab9784a84004a0e46a49a917ba425fc897245d362df531d3fb00c6ba6cb3",
+     "score": 0.955
+    },
+    {
+     "id": "80a97df356a074cc89c8733593f9b1cf3a1c1e6222f5016d5974b937d23742ec",
+     "score": 0.951
+    },
+    {
      "id": "c3e6e561dfeea45c65d095b86b2fe556d1f0774251f6d7d83a5982936319e4fc",
      "score": 0.91
     }
@@ -971,7 +1262,12 @@
    "lien_principal": null,
    "corrige": false,
    "projet": "aaa-game",
-   "voisins": []
+   "voisins": [
+    {
+     "id": "e3e1e3b210aa49f109367a9447f720efd08e3814e9126ab527d1abdc71fd3d17",
+     "score": 0.831
+    }
+   ]
   },
   {
    "id": "bacf0ff0ed63890fea3b2c7878a576ba748c183cab3e4ae772c972caa59b265a",
@@ -1048,6 +1344,14 @@
     {
      "id": "c8a2ebb23bbbb4c7e2e5bcfa7435f72869811cbd3ceeffae9494a35ad7c29576",
      "score": 0.91
+    },
+    {
+     "id": "80a97df356a074cc89c8733593f9b1cf3a1c1e6222f5016d5974b937d23742ec",
+     "score": 0.907
+    },
+    {
+     "id": "aee7ab9784a84004a0e46a49a917ba425fc897245d362df531d3fb00c6ba6cb3",
+     "score": 0.897
     }
    ]
   },
@@ -1125,6 +1429,10 @@
     {
      "id": "ef5a51718b6294f28d112e2676d809156a211cc3aed6cefddb19dafc498d60d9",
      "score": 0.81
+    },
+    {
+     "id": "e3e1e3b210aa49f109367a9447f720efd08e3814e9126ab527d1abdc71fd3d17",
+     "score": 0.809
     }
    ]
   },
@@ -1213,6 +1521,10 @@
     {
      "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
      "score": 0.804
+    },
+    {
+     "id": "e3e1e3b210aa49f109367a9447f720efd08e3814e9126ab527d1abdc71fd3d17",
+     "score": 0.804
     }
    ]
   },
@@ -1243,6 +1555,10 @@
     {
      "id": "5f2ce827af9607134f577f2342aa1020d7a618dd05e97dc40ba7218ef21e599d",
      "score": 0.915
+    },
+    {
+     "id": "e3e1e3b210aa49f109367a9447f720efd08e3814e9126ab527d1abdc71fd3d17",
+     "score": 0.847
     }
    ]
   },
@@ -1274,6 +1590,10 @@
     {
      "id": "cb9e38fbe46a2444f83a7b348b3a59cb453892e63ba1f67ad46e9672d009e341",
      "score": 0.915
+    },
+    {
+     "id": "e3e1e3b210aa49f109367a9447f720efd08e3814e9126ab527d1abdc71fd3d17",
+     "score": 0.869
     },
     {
      "id": "65833383092f3685dfa1091658a732e5984e21580f7c890f5cbfcebb791f91cf",
@@ -1762,12 +2082,13 @@
    "contenu": "Port du projet MCP Memory Service : 8765 et 8000. 8765 = serveur MCP en streamable HTTP (lancé depuis C:\\Users\\chipat\\mcp-memory-service avec python -m mcp_memory_service.server ; écoute 0.0.0.0, OAuth activé, publié sur Internet par un tunnel cloudflared vers localhost:8765, dont le port de suivi local est 20241). 8000 = API REST + tableau de bord (memory server --http, lancé par Desktop\\start-memory-rest.ps1, écoute 127.0.0.1). Relevé sur le PC de Noah le 26/09/2026.",
    "type": "decision",
    "tags": [
-    "ports",
+    "ports-historique",
+    "remplacé",
     "mcp-memory-service",
     "architecture"
    ],
    "cree_le": "2026-09-26T03:12:09.083543Z",
-   "modifie_le": "2026-09-26T03:12:09.083543Z",
+   "modifie_le": "2026-09-30T12:37:56.505371Z",
    "liens": [
     {
      "type": "local",
@@ -1788,8 +2109,12 @@
    ],
    "lien_principal": null,
    "corrige": false,
-   "projet": "ports",
+   "projet": "ports-historique",
    "voisins": [
+    {
+     "id": "a20f9fa76fab55cef63ffe69534d829f5daa34681a53f1b553b3cc42c1bc6e1c",
+     "score": 0.937
+    },
     {
      "id": "ac884104a17c1cbc9359a6162f2439386f22959470d1d4e0bf6743d041c0c9e4",
      "score": 0.818
@@ -4349,7 +4674,12 @@
    "lien_principal": null,
    "corrige": false,
    "projet": "syntaxe",
-   "voisins": []
+   "voisins": [
+    {
+     "id": "6df08f9076a45a4760a78bc7188117e481d84c3023f809ad69db7663d8cbfb90",
+     "score": 0.803
+    }
+   ]
   },
   {
    "id": "18b70df146c2884cfa2b97b6b38a6892faac6fed58c85f3ff9c3053c93cd7cee",
@@ -4744,5 +5074,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "9bdbd2d7ab7729644fe31202a517af1636a8321d968a9daf3467c534c2368723"
+ "empreinte": "ab0b0dabda6c7257e90af9b919efe662c2276257c5c6e6ba6bd05f4b9689b304"
 }

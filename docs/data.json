@@ -1,12 +1,12 @@
 {
  "schema": 2,
- "genere_le": "2026-09-30T12:57:38Z",
+ "genere_le": "2026-09-30T17:05:01Z",
  "source": "mcp-memory-service",
- "nb_entrees": 123,
+ "nb_entrees": 124,
  "types": {
   "note": 45,
   "milestone": 42,
-  "decision": 25,
+  "decision": 26,
   "reference": 9,
   "planning": 1,
   "error": 1
@@ -108,6 +108,19 @@
   ]
  ],
  "projets": [
+  {
+   "id": "relance-serveurs",
+   "nom": "Relance serveurs",
+   "famille": null,
+   "description": "Tous ses fichiers sont rangés dans le dossier C:\\Users\\chipat\\Desktop\\relance_serveur\\ (Relancer les serveurs.bat à double-cliquer, relancer-serveurs.ps1, LISEZMOI.md, HISTORIQUE.md, journal.log).",
+   "lien_principal": null,
+   "nb": 1,
+   "types": {
+    "decision": 1
+   },
+   "premiere": "2026-09-30T13:19:21.952935Z",
+   "derniere": "2026-09-30T13:19:21.952935Z"
+  },
   {
    "id": "pont-memoire",
    "nom": "Pont mémoire",
@@ -879,6 +892,45 @@
  ],
  "entrees": [
   {
+   "id": "fc109acab6f1ffec3565cfa1bfaaf108d30193cba3055c4a00e01643dfa85837",
+   "titre": "Mise à jour du 30/09/2026 sur le lanceur de relance des serveurs locaux",
+   "resume": "Tous ses fichiers sont rangés dans le dossier C:\\Users\\chipat\\Desktop\\relance_serveur\\ (Relancer les serveurs.bat à double-cliquer, relancer-serveurs.ps1, LISEZMOI.md, HISTORIQUE.md, journal.log).",
+   "contenu": "Mise à jour du 30/09/2026 (15:03) sur le lanceur de relance des serveurs locaux : tous ses fichiers sont rangés dans le dossier C:\\Users\\chipat\\Desktop\\relance_serveur\\ (Relancer les serveurs.bat à double-cliquer, relancer-serveurs.ps1, LISEZMOI.md, HISTORIQUE.md, journal.log). Les chemins Desktop\\Relancer les serveurs.bat et C:\\Users\\chipat\\relance-serveurs\\ cités dans les entrées précédentes (ports du MCP Memory Service, jalon) sont périmés. Ajout depuis ce jalon : le lanceur relance aussi le trading automatique de Trade Sandbox, seulement s'il tournait quand le PC s'est arrêté (le fichier D:\\trade-sandbox\\data\\trading_auto.pid reste après un arrêt du PC, mais disparaît quand on arrête le trading exprès).",
+   "type": "decision",
+   "tags": [
+    "relance-serveurs",
+    "mcp-memory-service",
+    "architecture",
+    "jalon",
+    "mise-a-jour"
+   ],
+   "cree_le": "2026-09-30T13:19:21.952935Z",
+   "modifie_le": "2026-09-30T13:19:21.952935Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "C:\\Users\\chipat\\Desktop\\relance_serveur\\"
+    },
+    {
+     "type": "local",
+     "valeur": "C:\\Users\\chipat\\relance-serveurs\\"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox\\data\\trading_auto.pid"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "relance-serveurs",
+   "voisins": [
+    {
+     "id": "6699f41cdebedafb84fea9083ff5d8240ade6ed17f82960d42fa8b40335c837e",
+     "score": 0.915
+    }
+   ]
+  },
+  {
    "id": "6699f41cdebedafb84fea9083ff5d8240ade6ed17f82960d42fa8b40335c837e",
    "titre": "Jalon livré le 30/09/2026",
    "resume": "Relance des serveurs locaux par un double-clic sur Desktop\\Relancer les serveurs.bat (logique : C:\\Users\\chipat\\relance-serveurs\\relancer-serveurs.ps1 ; mode d'emploi : LISEZMOI.md ; journal : journal.log).",
@@ -911,7 +963,12 @@
    },
    "corrige": false,
    "projet": "pont-memoire",
-   "voisins": []
+   "voisins": [
+    {
+     "id": "fc109acab6f1ffec3565cfa1bfaaf108d30193cba3055c4a00e01643dfa85837",
+     "score": 0.915
+    }
+   ]
   },
   {
    "id": "a20f9fa76fab55cef63ffe69534d829f5daa34681a53f1b553b3cc42c1bc6e1c",
@@ -5074,5 +5131,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "ab0b0dabda6c7257e90af9b919efe662c2276257c5c6e6ba6bd05f4b9689b304"
+ "empreinte": "e0872991d398d0bd7035ea4e321ffd79d2fedd0664da4a1676f405e1e601e879"
 }

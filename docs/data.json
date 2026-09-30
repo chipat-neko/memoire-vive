@@ -1,13 +1,14 @@
 {
  "schema": 2,
- "genere_le": "2026-09-27T11:19:09Z",
+ "genere_le": "2026-09-30T02:44:21Z",
  "source": "mcp-memory-service",
- "nb_entrees": 103,
+ "nb_entrees": 117,
  "types": {
   "note": 45,
-  "milestone": 29,
-  "decision": 19,
+  "milestone": 38,
+  "decision": 23,
   "reference": 9,
+  "planning": 1,
   "error": 1
  },
  "ordre_types": [
@@ -108,17 +109,80 @@
  ],
  "projets": [
   {
+   "id": "syntaxe",
+   "nom": "Syntaxe",
+   "famille": "cours",
+   "description": "Site éducatif statique 100 % file:// (aucun serveur, aucun module ES, aucun build, aucune dépendance installée). Un dossier par cours sous pages/, HTML et CSS séparés, liens \"related\" entre cours.",
+   "lien_principal": {
+    "url": "https://github.com/chipat-neko/devpath",
+    "genre": "depot"
+   },
+   "nb": 4,
+   "types": {
+    "milestone": 2,
+    "note": 2
+   },
+   "premiere": "2026-09-17T17:29:35.415144Z",
+   "derniere": "2026-09-30T01:56:09.698713Z"
+  },
+  {
+   "id": "app-heure",
+   "nom": "App Heure",
+   "famille": null,
+   "description": "Stack : Vite 8 + JavaScript + Tailwind 4 intégré (pas de CDN, marche hors ligne) + Capacitor 8 (appId fr.appheure.badgeuse).",
+   "lien_principal": null,
+   "nb": 2,
+   "types": {
+    "milestone": 2
+   },
+   "premiere": "2026-09-29T17:48:58.040216Z",
+   "derniere": "2026-09-29T19:13:57.696423Z"
+  },
+  {
+   "id": "aaa-game",
+   "nom": "aaa-game",
+   "famille": null,
+   "description": null,
+   "lien_principal": {
+    "url": "https://github.com/chipat-neko/aaa-game",
+    "genre": "depot"
+   },
+   "nb": 5,
+   "types": {
+    "milestone": 3,
+    "decision": 1,
+    "planning": 1
+   },
+   "premiere": "2026-09-29T04:25:15.172985Z",
+   "derniere": "2026-09-29T19:12:09.292396Z"
+  },
+  {
+   "id": "trade-sandbox",
+   "nom": "Trade Sandbox",
+   "famille": "sites",
+   "description": "Les 10 étapes de SPEC.md sont construites par Claude Code (un commit git par étape, 119 tests pytest dont le test garde-fou).",
+   "lien_principal": null,
+   "nb": 9,
+   "types": {
+    "milestone": 5,
+    "decision": 2,
+    "note": 2
+   },
+   "premiere": "2026-09-22T04:30:44.449758Z",
+   "derniere": "2026-09-29T18:27:24.808983Z"
+  },
+  {
    "id": "ports",
    "nom": "Ports",
    "famille": null,
    "description": "L'application utilise désormais le port 8001 FIXÉ explicitement (config.json server.port, valeur par défaut de backend/app/config.py, valeurs de secours de scripts/start.ps1 et frontend/vite.config.ts).",
    "lien_principal": null,
-   "nb": 12,
+   "nb": 15,
    "types": {
-    "decision": 12
+    "decision": 15
    },
    "premiere": "2026-09-26T02:56:43.126559Z",
-   "derniere": "2026-09-26T04:00:48.433670Z"
+   "derniere": "2026-09-29T17:41:43.827380Z"
   },
   {
    "id": "redemarrage-pc",
@@ -132,21 +196,6 @@
    },
    "premiere": "2026-09-24T08:34:05.174519Z",
    "derniere": "2026-09-24T08:34:05.174519Z"
-  },
-  {
-   "id": "trade-sandbox",
-   "nom": "Trade Sandbox",
-   "famille": "sites",
-   "description": "Les 10 étapes de SPEC.md sont construites par Claude Code (un commit git par étape, 119 tests pytest dont le test garde-fou).",
-   "lien_principal": null,
-   "nb": 7,
-   "types": {
-    "milestone": 3,
-    "decision": 2,
-    "note": 2
-   },
-   "premiere": "2026-09-22T04:30:44.449758Z",
-   "derniere": "2026-09-22T17:36:03.272053Z"
   },
   {
    "id": "memoire-vive",
@@ -793,22 +842,6 @@
    "derniere": "2026-09-17T17:29:48.276813Z"
   },
   {
-   "id": "syntaxe",
-   "nom": "Syntaxe",
-   "famille": "cours",
-   "description": "Site éducatif statique 100 % file:// (aucun serveur, aucun module ES, aucun build, aucune dépendance installée). Un dossier par cours sous pages/, HTML et CSS séparés, liens \"related\" entre cours.",
-   "lien_principal": {
-    "url": "https://github.com/chipat-neko/devpath",
-    "genre": "depot"
-   },
-   "nb": 2,
-   "types": {
-    "note": 2
-   },
-   "premiere": "2026-09-17T17:29:35.415144Z",
-   "derniere": "2026-09-17T17:29:43.099700Z"
-  },
-  {
    "id": "mcai",
    "nom": "mcai",
    "famille": "ia",
@@ -825,6 +858,496 @@
   }
  ],
  "entrees": [
+  {
+   "id": "ed7df0fe16ab7d8d1c4a2773d4a00b11f82ad50e9b774b952e7332ec074577a6",
+   "titre": "Projet Syntaxe, chantier V16/B4",
+   "resume": "Le 55e cours (lisp) est clos le 2026-09-30. La part des QCM où la bonne réponse est la plus longue passe de 98,2 % à 25,5 %.",
+   "contenu": "Projet Syntaxe (D:\\test-claude), chantier V16/B4 : le 55e cours (lisp) est clos le 2026-09-30. La part des QCM où la bonne réponse est la plus longue passe de 98,2 % à 25,5 %. 54 cours sur 90 sont traités ; sur tout le site, cette part est à 42,2 %. Le prochain cours à traiter est observabilite.",
+   "type": "milestone",
+   "tags": [
+    "syntaxe",
+    "jalon",
+    "v16"
+   ],
+   "cree_le": "2026-09-30T01:56:09.698713Z",
+   "modifie_le": "2026-09-30T01:56:09.698713Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\test-claude"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "syntaxe",
+   "voisins": [
+    {
+     "id": "6534cdfc76d6642a9359be541799a44288317e66be29130c8a82ff4ca4222658",
+     "score": 0.906
+    }
+   ]
+  },
+  {
+   "id": "6534cdfc76d6642a9359be541799a44288317e66be29130c8a82ff4ca4222658",
+   "titre": "Projet Syntaxe, chantier V16/B4",
+   "resume": "Le 52e cours (perl) est clos le 2026-09-29. Le biais des QCM « la plus longue » passe de 92,9 % à 25,4 %, et 51 cours sur 90 sont traités.",
+   "contenu": "Projet Syntaxe (D:\\test-claude), chantier V16/B4 : le 52e cours (perl) est clos le 2026-09-29. Le biais des QCM « la plus longue » passe de 92,9 % à 25,4 %, et 51 cours sur 90 sont traités. La relecture adversariale a aussi trouvé et corrigé 22 erreurs dans les corps de leçon, chacune prouvée par exécution. Le 53e cours désigné est dart.",
+   "type": "milestone",
+   "tags": [
+    "syntaxe",
+    "jalon",
+    "v16"
+   ],
+   "cree_le": "2026-09-29T20:13:31.601971Z",
+   "modifie_le": "2026-09-29T20:13:31.601971Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\test-claude"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "syntaxe",
+   "voisins": [
+    {
+     "id": "ed7df0fe16ab7d8d1c4a2773d4a00b11f82ad50e9b774b952e7332ec074577a6",
+     "score": 0.906
+    }
+   ]
+  },
+  {
+   "id": "c8a2ebb23bbbb4c7e2e5bcfa7435f72869811cbd3ceeffae9494a35ad7c29576",
+   "titre": "Projet App Heure : suivi personnel des heures pour Android",
+   "resume": "Depuis le 29/09/2026 : plus de badgeage photo ; l'utilisateur (chauffeur livreur) photographie la page de son cahier (« lundi : 8h -> 12h / 13h -> 17h », « total semaine », « total mois ») et l'appli la lit sur le téléphone avec ML Kit Text Recognition…",
+   "contenu": "Projet App Heure (D:\\app-heure) : suivi personnel des heures pour Android (APK de débogage App-Heure.apk, appId fr.appheure.badgeuse). Depuis le 29/09/2026 : plus de badgeage photo ; l'utilisateur (chauffeur livreur) photographie la page de son cahier (« lundi : 8h -> 12h / 13h -> 17h », « total semaine », « total mois ») et l'appli la lit sur le téléphone avec ML Kit Text Recognition (gratuit, hors ligne, plugin Java maison LecturePagePlugin), puis affiche un écran de vérification où il corrige les chiffres mal lus avant d'enregistrer. Choix de l'utilisateur : lecture 100 % gratuite plutôt que l'API Claude. Stack : Vite 8 + JavaScript + Tailwind 4 intégré + Capacitor 8 (+ @capacitor/camera). Interprétation dans src/lecture.js (confusions réelles ML Kit sur l'écriture manuscrite : B=8, D=0, n=h ; chaque flèche relie l'heure avant/après), calculs dans src/calcul.js (heures sup +25/+50 %, nuit 21h-6h, paie). Tests : Vitest, tests/e2e.mjs (Edge, lecture simulée), tests/android.mjs (vraie lecture ML Kit sur l'émulateur apphtest avec tests/fixtures/cahier.png).",
+   "type": "milestone",
+   "tags": [
+    "app-heure",
+    "architecture",
+    "milestone",
+    "android",
+    "capacitor",
+    "ocr"
+   ],
+   "cree_le": "2026-09-29T19:13:57.696423Z",
+   "modifie_le": "2026-09-29T19:13:57.696423Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\app-heure"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "app-heure",
+   "voisins": [
+    {
+     "id": "c3e6e561dfeea45c65d095b86b2fe556d1f0774251f6d7d83a5982936319e4fc",
+     "score": 0.91
+    }
+   ]
+  },
+  {
+   "id": "0669ec5e90ec0e477c53885ddddc2924d543864611de673d16fbcdbada8a60b6",
+   "titre": "Projet AAA — jalon 29/09/2026",
+   "resume": "Banc d'essai des générateurs image→3D livré dans E:\\aaa-proto\\banc-essai (comparaison.html, RAPPORT.md, scripts réutilisables).",
+   "contenu": "Projet AAA (jeu dark fantasy) — jalon 29/09/2026 : banc d'essai des générateurs image→3D livré dans E:\\aaa-proto\\banc-essai (comparaison.html, RAPPORT.md, scripts réutilisables). Constats durables : les Spaces Hugging Face ZeroGPU donnent 2 min de GPU/jour sans compte (inutilisable pour produire des assets ; TRELLIS.2 impossible en anonyme). Classement sur 3D Arena (6 images par type, seuil du directeur ≥ 5 bons sur 6) : Meshy-7 18/18, Hi3DGen 18/18 (forme seule), TRELLIS.2 15/18 (bâtiments 6/6, créatures 4/6). InstantMesh non commercial (poids Zero123++ CC BY-NC). FLUX.2 [klein] 4B (Apache-2.0) tourne en local sur la RTX 5070 Ti en 7 s par image : il peut produire les images de référence.",
+   "type": "milestone",
+   "tags": [
+    "aaa-game",
+    "assets-ia",
+    "banc-essai",
+    "3d"
+   ],
+   "cree_le": "2026-09-29T19:12:09.292396Z",
+   "modifie_le": "2026-09-29T19:12:09.292396Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "E:\\aaa-proto\\banc-essai"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "aaa-game",
+   "voisins": []
+  },
+  {
+   "id": "bacf0ff0ed63890fea3b2c7878a576ba748c183cab3e4ae772c972caa59b265a",
+   "titre": "Trade Sandbox — jalon du 29/09/2026",
+   "resume": "Bots SMC en direct (sous-projet 2), fusionnés dans main. 14 bots tournent dans l'application, chacun sur son propre compte d'argent fictif (sessions de type « bot », table smc_bots) : - 10 cryptos : unités 1 min à 1 h en versions 15h–17h et toute la journée…",
+   "contenu": "Trade Sandbox (D:\\trade-sandbox) — jalon du 29/09/2026 : bots SMC en direct (sous-projet 2), fusionnés dans main.\n\n14 bots tournent dans l'application, chacun sur son propre compte d'argent fictif (sessions de type « bot », table smc_bots) :\n- 10 cryptos : unités 1 min à 1 h en versions 15h–17h et toute la journée, plus 4 h ;\n- Forex, or et argent : 1 h et 4 h.\n\nArchitecture : paquet backend/app/bots_smc/ (catalog, feed, compute, book, manager, execution, stats).\n- À chaque clôture, tout est recalculé par le moteur mesuré (app.smc) dans 6 processus à part.\n- Les ordres « voulus » suivent l'étape 3 de la simulation. Un test vérifie, clôture après clôture, que le direct redonne les ordres de la mesure.\n- Les entrées se font dans la boucle de prix, avec une taille calculée au moment de l'entrée.\n\nPage « Bots SMC » (frontend/src/pages/Bots.tsx) : tableau comparatif avec le rappel de la mesure historique, graphique annoté (OB, niveaux, BOS/CHoCH) et panneau « Décision du bot » qui explique chaque décision.\n\nDécisions durables :\n- les comptes des bots sont exclus du portefeuille, du journal, du Coach et de la page « Prêt pour le réel ? » ;\n- l'or et l'argent sont lus 12 min après la clôture, car Yahoo retarde les contrats à terme ;\n- l'interrupteur est dans config.json (bots_smc.running).\n\nSpécification : docs/superpowers/specs/2026-09-29-bots-smc-direct-design.md.",
+   "type": "milestone",
+   "tags": [
+    "trade-sandbox",
+    "jalon",
+    "architecture",
+    "trading",
+    "smc"
+   ],
+   "cree_le": "2026-09-29T18:27:24.808983Z",
+   "modifie_le": "2026-09-29T18:27:24.808983Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trade-sandbox",
+   "voisins": [
+    {
+     "id": "e61eb3f7b849531f0b4ca721ce131bb01114485871738d902bf4d8971b643e0b",
+     "score": 0.911
+    },
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.858
+    },
+    {
+     "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
+     "score": 0.849
+    },
+    {
+     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
+     "score": 0.838
+    },
+    {
+     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
+     "score": 0.816
+    }
+   ]
+  },
+  {
+   "id": "c3e6e561dfeea45c65d095b86b2fe556d1f0774251f6d7d83a5982936319e4fc",
+   "titre": "Projet App Heure : badgeuse photo personnelle pour Android, livrée le 29/09/2026",
+   "resume": "Stack : Vite 8 + JavaScript + Tailwind 4 intégré (pas de CDN, marche hors ligne) + Capacitor 8 (appId fr.appheure.badgeuse).",
+   "contenu": "Projet App Heure (D:\\app-heure) : badgeuse photo personnelle pour Android, livrée le 29/09/2026 (APK de débogage App-Heure.apk). Stack : Vite 8 + JavaScript + Tailwind 4 intégré (pas de CDN, marche hors ligne) + Capacitor 8 (appId fr.appheure.badgeuse). Réglages et créneaux dans le LocalStorage, photos dans IndexedDB (le LocalStorage saturerait en quelques semaines). Moteur de calcul dans src/calcul.js : heures décimales, semaines ISO lundi-dimanche, heures sup +25 % (contrat → contrat+8h) et +50 %, nuit 21h-6h +25 % en plus, paie brute/nette (23 %). Tests : Vitest (moteur), tests/e2e.mjs (Edge + fausse caméra + horloge simulée), tests/android.mjs (APK sur émulateur apphtest, WebView pilotée en DevTools brut car Playwright ne se branche pas sur une WebView Android). APK construit par npm run android:apk avec le JDK d'Android Studio.",
+   "type": "milestone",
+   "tags": [
+    "app-heure",
+    "architecture",
+    "milestone",
+    "android",
+    "capacitor"
+   ],
+   "cree_le": "2026-09-29T17:48:58.040216Z",
+   "modifie_le": "2026-09-29T17:48:58.040216Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\app-heure"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "app-heure",
+   "voisins": [
+    {
+     "id": "c8a2ebb23bbbb4c7e2e5bcfa7435f72869811cbd3ceeffae9494a35ad7c29576",
+     "score": 0.91
+    }
+   ]
+  },
+  {
+   "id": "78f95a85297c8f3c2c1d3c83c1537c34a683e2b6e8d10ca8c5aa44449427d556",
+   "titre": "Port du projet App Heure",
+   "resume": "8460. Serveur Vite (npm run dev, npm run preview et test e2e npm run test:e2e), écoute 127.0.0.1:8460 avec strictPort, réglé dans D:\\app-heure\\vite.config.js et noté dans D:\\app-heure\\PORTS.md.",
+   "contenu": "Port du projet App Heure : 8460. Serveur Vite (npm run dev, npm run preview et test e2e npm run test:e2e), écoute 127.0.0.1:8460 avec strictPort, réglé dans D:\\app-heure\\vite.config.js et noté dans D:\\app-heure\\PORTS.md. L'appli Android (Capacitor) n'ouvre aucun port. Attribué le 29/09/2026 après vérification des entrées « ports » et de Get-NetTCPConnection.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "app-heure",
+    "architecture"
+   ],
+   "cree_le": "2026-09-29T17:41:43.827380Z",
+   "modifie_le": "2026-09-29T17:41:43.827380Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "127.0.0.1:8460"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\app-heure\\vite.config.js"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\app-heure\\PORTS.md"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": []
+  },
+  {
+   "id": "2fa22b8abddedd63b4b2534642043d0e3522ef7559f4725e945c45001731c258",
+   "titre": "Port du projet aaa-game",
+   "resume": "8851 (serveur Zen propre au prototype Unreal, écoute 127.0.0.1, données sur E:\\aaa-proto\\unreal\\Caches\\Zen), réglé dans E:\\aaa-proto\\unreal\\AaaProto\\Config\\DefaultEngine.ini ([Zen.AutoLaunch]).",
+   "contenu": "Port du projet aaa-game : 8851 (serveur Zen propre au prototype Unreal, écoute 127.0.0.1, données sur E:\\aaa-proto\\unreal\\Caches\\Zen), réglé dans E:\\aaa-proto\\unreal\\AaaProto\\Config\\DefaultEngine.ini ([Zen.AutoLaunch]). Raison : le Zen commun d'Unreal (8558) est aussi utilisé par un autre projet du poste (D:\\test_codex\\creation\\Aster.uproject) ; deux projets avec des dossiers de données différents sur le même port s'arrêtent l'un l'autre. S'ajoute à 8850 (Unreal MCP) et 7777 UDP (réseau local du prototype). Attribué le 29/09/2026 (décision D-157), noté dans D:\\aaa-game\\PORTS.md.",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "aaa-game",
+    "architecture"
+   ],
+   "cree_le": "2026-09-29T17:39:25.129570Z",
+   "modifie_le": "2026-09-29T17:39:25.129570Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "127.0.0.1"
+    },
+    {
+     "type": "local",
+     "valeur": "E:\\aaa-proto\\unreal\\Caches\\Zen"
+    },
+    {
+     "type": "local",
+     "valeur": "E:\\aaa-proto\\unreal\\AaaProto\\Config\\DefaultEngine.ini"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\test_codex\\creation\\Aster.uproject"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\aaa-game\\PORTS.md"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "ef5a51718b6294f28d112e2676d809156a211cc3aed6cefddb19dafc498d60d9",
+     "score": 0.81
+    }
+   ]
+  },
+  {
+   "id": "e61eb3f7b849531f0b4ca721ce131bb01114485871738d902bf4d8971b643e0b",
+   "titre": "Trade Sandbox — jalon du 29/09/2026",
+   "resume": "Bot « formation SMC » (Smart Money Concepts, semaines 1 à 3 d'une formation fournie par Noah), sous-projet 1 livré et fusionné dans main (moteur + mesure sur l'historique).",
+   "contenu": "Trade Sandbox (D:\\trade-sandbox) — jalon du 29/09/2026 : bot « formation SMC » (Smart Money Concepts, semaines 1 à 3 d'une formation fournie par Noah), sous-projet 1 livré et fusionné dans main (moteur + mesure sur l'historique).\n\nCahier des charges : docs/regles-formation-smc.md (844 règles extraites des vidéos), docs/decisions-bot-smc.md (choix de Noah + résultats), docs/propositions-bot-smc.md (propositions acceptées, 8 variantes). Architecture : paquet backend/app/smc/ (timeframes, structure zigzag en ATR + BOS/CHoCH, order_blocks, liquidity, settings, strategy avec MarketState causal, simulation sur un compte fictif partagé par tous les marchés) et scripts/mesurer_bot_smc.py (chaque moitié de l'historique sur un compte neuf de 10 000 €, R net ± erreur type). 430 tests pytest, dont un test de causalité prouvé contre une fuite d'une bougie.\n\nRésultat mesuré : aucune version ne gagne sur les deux moitiés au-delà du hasard ; après frais, perte en crypto à toutes les unités (10 cryptos, 2017-2026) ; sans frais, autour de zéro ; taux de réussite mesuré 13 à 19 % (la formation annonce 80 %) ; Forex/or/argent : trop peu de trades en 2 ans de données Yahoo 1h. Suite décidée : sous-projet 2, un bot en direct par unité de temps sur son propre compte fictif et une page de comparaison.",
+   "type": "milestone",
+   "tags": [
+    "trade-sandbox",
+    "jalon",
+    "architecture",
+    "trading",
+    "smc"
+   ],
+   "cree_le": "2026-09-29T14:01:13.943842Z",
+   "modifie_le": "2026-09-29T14:01:13.943842Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\trade-sandbox"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "trade-sandbox",
+   "voisins": [
+    {
+     "id": "bacf0ff0ed63890fea3b2c7878a576ba748c183cab3e4ae772c972caa59b265a",
+     "score": 0.911
+    },
+    {
+     "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
+     "score": 0.869
+    },
+    {
+     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
+     "score": 0.851
+    },
+    {
+     "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
+     "score": 0.845
+    },
+    {
+     "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
+     "score": 0.822
+    }
+   ]
+  },
+  {
+   "id": "ef5a51718b6294f28d112e2676d809156a211cc3aed6cefddb19dafc498d60d9",
+   "titre": "Port du projet aaa-game",
+   "resume": "8850 (Unreal MCP, serveur MCP intégré à l'éditeur Unreal 5.8, écoute 127.0.0.1 ; le défaut 8000 est pris par MCP Memory Service) et 7777 UDP (parties en réseau local du prototype moteur, port par défaut d'Unreal et de Unity, un seul prototype à la fois).",
+   "contenu": "Port du projet aaa-game : 8850 (Unreal MCP, serveur MCP intégré à l'éditeur Unreal 5.8, écoute 127.0.0.1 ; le défaut 8000 est pris par MCP Memory Service) et 7777 UDP (parties en réseau local du prototype moteur, port par défaut d'Unreal et de Unity, un seul prototype à la fois). Liste tenue dans D:\\aaa-game\\PORTS.md. Attribués le 29/09/2026 (ports libres vérifiés avec Get-NetTCPConnection / Get-NetUDPEndpoint).",
+   "type": "decision",
+   "tags": [
+    "ports",
+    "aaa-game",
+    "architecture"
+   ],
+   "cree_le": "2026-09-29T13:54:04.966808Z",
+   "modifie_le": "2026-09-29T13:54:04.966808Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "127.0.0.1"
+    },
+    {
+     "type": "local",
+     "valeur": "D:\\aaa-game\\PORTS.md"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "ports",
+   "voisins": [
+    {
+     "id": "cbab571491306e9e9410a672886162743b7135b415298f161857a4000eaf65d9",
+     "score": 0.817
+    },
+    {
+     "id": "2fa22b8abddedd63b4b2534642043d0e3522ef7559f4725e945c45001731c258",
+     "score": 0.81
+    },
+    {
+     "id": "649fba87fb20380f3260fadfd9676057477bbaacd0d6b20573fb8ecfabb3abb0",
+     "score": 0.804
+    }
+   ]
+  },
+  {
+   "id": "cb9e38fbe46a2444f83a7b348b3a59cb453892e63ba1f67ad46e9672d009e341",
+   "titre": "aaa-game — jalon livré le 29/09/2026",
+   "resume": "Missions 2 et 3 terminées. Les documents de design (Documents/) sont alignés sur le registre des arbitrages du directeur (.equipe/decisions.md, D-01 à D-145) : noms et systèmes unifiés, renvois « (Page N) » remplacés par le nom du document, Lexique complété.",
+   "contenu": "aaa-game (D:\\aaa-game) — jalon livré le 29/09/2026 : Missions 2 et 3 terminées. Les documents de design (Documents/) sont alignés sur le registre des arbitrages du directeur (.equipe/decisions.md, D-01 à D-145) : noms et systèmes unifiés, renvois « (Page N) » remplacés par le nom du document, Lexique complété. Décision durable sur le moteur : prototype comparatif Unreal Engine 5 puis Unity 6 avant de choisir (étude dans .equipe/etudes/etude-moteur.md). Plateforme : PC d'abord, portage console ensuite. Commité sur la branche mission-1-fusion-gdd (non fusionnée dans main).",
+   "type": "milestone",
+   "tags": [
+    "aaa-game",
+    "jeu-video",
+    "jalon",
+    "decision"
+   ],
+   "cree_le": "2026-09-29T13:10:11.326847Z",
+   "modifie_le": "2026-09-29T13:10:11.326847Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\aaa-game"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "aaa-game",
+   "voisins": [
+    {
+     "id": "5f2ce827af9607134f577f2342aa1020d7a618dd05e97dc40ba7218ef21e599d",
+     "score": 0.915
+    }
+   ]
+  },
+  {
+   "id": "5f2ce827af9607134f577f2342aa1020d7a618dd05e97dc40ba7218ef21e599d",
+   "titre": "aaa-game — jalon livré le 29/09/2026",
+   "resume": "Mission 1 terminée. Game Design Document rempli à partir des documents de design existants (Documents/01_Projet_et_Pitch), doublons de Documents/ fusionnés, 26 arbitrages de design du directeur consignés dans .equipe/decisions.md (D-01 à D-26 : ouverture du…",
+   "contenu": "aaa-game (D:\\aaa-game) — jalon livré le 29/09/2026 : Mission 1 terminée. Game Design Document rempli à partir des documents de design existants (Documents/01_Projet_et_Pitch), doublons de Documents/ fusionnés, 26 arbitrages de design du directeur consignés dans .equipe/decisions.md (D-01 à D-26 : ouverture du jeu, Royaume, coop = capitaines sacrifiés au même rituel, corruption selon les actes du joueur et réversible, métiers 1–99…). Travail commité sur la branche mission-1-fusion-gdd (non fusionnée dans main). Fonctionnement : une fenêtre Chef + sous-agents redacteur-design / verificateur / gardien-lore, tickets dans .equipe/taches/. Moteur toujours à définir.",
+   "type": "milestone",
+   "tags": [
+    "aaa-game",
+    "jeu-video",
+    "jalon",
+    "gdd",
+    "decision"
+   ],
+   "cree_le": "2026-09-29T07:45:43.398408Z",
+   "modifie_le": "2026-09-29T07:45:43.398408Z",
+   "liens": [
+    {
+     "type": "local",
+     "valeur": "D:\\aaa-game"
+    }
+   ],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "aaa-game",
+   "voisins": [
+    {
+     "id": "cb9e38fbe46a2444f83a7b348b3a59cb453892e63ba1f67ad46e9672d009e341",
+     "score": 0.915
+    },
+    {
+     "id": "65833383092f3685dfa1091658a732e5984e21580f7c890f5cbfcebb791f91cf",
+     "score": 0.822
+    }
+   ]
+  },
+  {
+   "id": "46aeeb900eee20ca923f2db3e3779df37b4d225cc7bf7c390529882a30bad953",
+   "titre": "aaa-game : décision de l'utilisateur de travailler avec UNE seule fenêtre Claude Code plutôt que plusieurs…",
+   "resume": "Guide de démarrage pas à pas fourni (installer kit, /agents, mission 0 = inventaire/doublons/GDD, choix du moteur).",
+   "contenu": "aaa-game : décision de l'utilisateur de travailler avec UNE seule fenêtre Claude Code (Chef + sous-agents .claude/agents) plutôt que plusieurs onglets. Guide de démarrage pas à pas fourni (installer kit, /agents, mission 0 = inventaire/doublons/GDD, choix du moteur).",
+   "type": "decision",
+   "tags": [
+    "aaa-game",
+    "claude-code",
+    "decision",
+    "sous-agents"
+   ],
+   "cree_le": "2026-09-29T04:30:31.943120Z",
+   "modifie_le": "2026-09-29T04:30:31.943120Z",
+   "liens": [],
+   "lien_principal": null,
+   "corrige": false,
+   "projet": "aaa-game",
+   "voisins": [
+    {
+     "id": "65833383092f3685dfa1091658a732e5984e21580f7c890f5cbfcebb791f91cf",
+     "score": 0.89
+    },
+    {
+     "id": "b5ef55b1b1ced9b3dded0dea3f8ce1f26942ea981f927cc76e4e673e452d6987",
+     "score": 0.812
+    }
+   ]
+  },
+  {
+   "id": "65833383092f3685dfa1091658a732e5984e21580f7c890f5cbfcebb791f91cf",
+   "titre": "Projet « aaa-game » : gros projet de jeu AAA, bases de conception rédigées",
+   "resume": "L'utilisateur veut organiser Claude Code (extension VS Code) en équipe multi-fenêtres : fenêtre 1 = chef/contexte qui distribue, fenêtres workers qui exécutent, fenêtre de vérification avant retour au chef.",
+   "contenu": "Projet « aaa-game » (github.com/chipat-neko/aaa-game) : gros projet de jeu AAA, bases de conception rédigées (Notion + dossier local). L'utilisateur veut organiser Claude Code (extension VS Code) en équipe multi-fenêtres : fenêtre 1 = chef/contexte qui distribue, fenêtres workers qui exécutent, fenêtre de vérification avant retour au chef. Conseil donné : sous-agents .claude/agents + protocole de coordination par fichiers + worktrees Git ; agent teams expérimental = CLI seulement.",
+   "type": "planning",
+   "tags": [
+    "aaa-game",
+    "jeu-video",
+    "claude-code",
+    "multi-agents",
+    "organisation"
+   ],
+   "cree_le": "2026-09-29T04:25:15.172985Z",
+   "modifie_le": "2026-09-29T04:25:15.172985Z",
+   "liens": [
+    {
+     "type": "en_ligne",
+     "valeur": "https://github.com/chipat-neko/aaa-game"
+    }
+   ],
+   "lien_principal": {
+    "url": "https://github.com/chipat-neko/aaa-game",
+    "genre": "depot"
+   },
+   "corrige": false,
+   "projet": "aaa-game",
+   "voisins": [
+    {
+     "id": "46aeeb900eee20ca923f2db3e3779df37b4d225cc7bf7c390529882a30bad953",
+     "score": 0.89
+    },
+    {
+     "id": "5f2ce827af9607134f577f2342aa1020d7a618dd05e97dc40ba7218ef21e599d",
+     "score": 0.822
+    }
+   ]
+  },
   {
    "id": "1e45c56cdaf8894a215cc0f656d46457f03791e8180e8710c18417b0597c1c43",
    "titre": "Port du projet AI Creator",
@@ -1018,6 +1541,10 @@
      "score": 0.863
     },
     {
+     "id": "ef5a51718b6294f28d112e2676d809156a211cc3aed6cefddb19dafc498d60d9",
+     "score": 0.804
+    },
+    {
      "id": "75d1c3ecb68fd945fe29582af4fdc575749d27b569f61281de8c488125825a55",
      "score": 0.801
     }
@@ -1099,6 +1626,10 @@
     {
      "id": "75d1c3ecb68fd945fe29582af4fdc575749d27b569f61281de8c488125825a55",
      "score": 0.838
+    },
+    {
+     "id": "ef5a51718b6294f28d112e2676d809156a211cc3aed6cefddb19dafc498d60d9",
+     "score": 0.817
     },
     {
      "id": "9c3ae655d05069483dd3829b44fd50a7286abb4054142c6d254f3a05d9cded0f",
@@ -1368,20 +1899,20 @@
      "score": 0.863
     },
     {
+     "id": "e61eb3f7b849531f0b4ca721ce131bb01114485871738d902bf4d8971b643e0b",
+     "score": 0.851
+    },
+    {
+     "id": "bacf0ff0ed63890fea3b2c7878a576ba748c183cab3e4ae772c972caa59b265a",
+     "score": 0.838
+    },
+    {
      "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
      "score": 0.83
     },
     {
      "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
      "score": 0.824
-    },
-    {
-     "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
-     "score": 0.817
-    },
-    {
-     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
-     "score": 0.805
     }
    ]
   },
@@ -1439,12 +1970,16 @@
      "score": 0.824
     },
     {
+     "id": "e61eb3f7b849531f0b4ca721ce131bb01114485871738d902bf4d8971b643e0b",
+     "score": 0.822
+    },
+    {
      "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
      "score": 0.82
     },
     {
-     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
-     "score": 0.811
+     "id": "bacf0ff0ed63890fea3b2c7878a576ba748c183cab3e4ae772c972caa59b265a",
+     "score": 0.812
     }
    ]
   },
@@ -1596,8 +2131,16 @@
    "projet": "trade-sandbox",
    "voisins": [
     {
+     "id": "e61eb3f7b849531f0b4ca721ce131bb01114485871738d902bf4d8971b643e0b",
+     "score": 0.869
+    },
+    {
      "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
      "score": 0.863
+    },
+    {
+     "id": "bacf0ff0ed63890fea3b2c7878a576ba748c183cab3e4ae772c972caa59b265a",
+     "score": 0.858
     },
     {
      "id": "697deb6a2e8f34f9ecc306eb0be881502853ab8f0b017f6283160eaf13554b93",
@@ -1606,14 +2149,6 @@
     {
      "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
      "score": 0.841
-    },
-    {
-     "id": "c632980379cd0e6cc9cb8e8c23013148c8b502f288133f0e3cbc1f108c13df91",
-     "score": 0.837
-    },
-    {
-     "id": "5687a88a0e69610c2842ae2b92e65e1f266a7a75dd0589cffbb13a213186feb4",
-     "score": 0.82
     }
    ]
   },
@@ -1718,6 +2253,10 @@
      "score": 0.856
     },
     {
+     "id": "bacf0ff0ed63890fea3b2c7878a576ba748c183cab3e4ae772c972caa59b265a",
+     "score": 0.849
+    },
+    {
      "id": "7f313c0324186783d3428e779b4b795f3d4fd0460d26f9196f57ad618d8d8ec1",
      "score": 0.848
     },
@@ -1726,12 +2265,8 @@
      "score": 0.848
     },
     {
-     "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
-     "score": 0.836
-    },
-    {
-     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
-     "score": 0.83
+     "id": "e61eb3f7b849531f0b4ca721ce131bb01114485871738d902bf4d8971b643e0b",
+     "score": 0.845
     }
    ]
   },
@@ -1764,16 +2299,16 @@
      "score": 0.837
     },
     {
+     "id": "e61eb3f7b849531f0b4ca721ce131bb01114485871738d902bf4d8971b643e0b",
+     "score": 0.818
+    },
+    {
      "id": "99d55d7804d2e370a478259277b4538a41f7cb925c3c5a4032b9c46bf23b32f2",
      "score": 0.816
     },
     {
-     "id": "fd20e57bb15b242b4964d7be6b0026c23c9118eb1d796e2ce4d9c6fd199bbf33",
-     "score": 0.811
-    },
-    {
-     "id": "d2e5a3c1407f1e818403d39359edea6ef869bd7bdbd402f44984ef9b8cd974b0",
-     "score": 0.805
+     "id": "bacf0ff0ed63890fea3b2c7878a576ba748c183cab3e4ae772c972caa59b265a",
+     "score": 0.816
     }
    ]
   },
@@ -2733,6 +3268,10 @@
     {
      "id": "c331b254b6f9376ff932b629ec727bf31ce3d1521bc869b467d241567353d8ab",
      "score": 0.827
+    },
+    {
+     "id": "46aeeb900eee20ca923f2db3e3779df37b4d225cc7bf7c390529882a30bad953",
+     "score": 0.812
     },
     {
      "id": "8a09c9f4ee5d3f8c77018f3c83352de6146743208fb6c1a36f5a29b3b27fcf71",
@@ -4205,5 +4744,5 @@
   "max": 5
  },
  "voisins_en_attente": [],
- "empreinte": "747ea5c0dd4574efa48f1a9b244774c548aaaf83c3a9f5db356a8fb8e56a206a"
+ "empreinte": "9bdbd2d7ab7729644fe31202a517af1636a8321d968a9daf3467c534c2368723"
 }
